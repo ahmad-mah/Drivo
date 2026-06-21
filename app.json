@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "drivo",
+    "name": "Drivo",
     "slug": "drivo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,9 +28,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
+          "image": "./assets/images/splash.png",
+          "resizeMode": "cover",
           "android": {
-            "image": "./assets/images/splash.png",
-            "imageWidth": 120
+            // "image": "./assets/images/splash.png",
+            // "imageWidth": 120
           }
         }
       ]

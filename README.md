@@ -72,6 +72,4 @@ src/
   types/        — Shared TypeScript types
 ```
 
-## Tutorial
 
-This project follows the [JavaScript Mastery](https://youtube.com/@javascriptmastery) tutorial on YouTube.
