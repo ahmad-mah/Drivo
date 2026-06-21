@@ -1,9 +1,3 @@
-import { Text, View } from "react-native";
+import HistoryScreen from '@/features/history/screens/history-screen';
 
-export default function HistoryTabScreen() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-2xl font-bold">History</Text>
-    </View>
-  );
-}
+export default HistoryScreen;

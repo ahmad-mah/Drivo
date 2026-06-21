@@ -1,9 +1,3 @@
-import { Text, View } from "react-native";
+import ChatScreen from '@/features/chat/screens/chat-screen';
 
-export default function ChatTabScreen() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-2xl font-bold">Chat</Text>
-    </View>
-  );
-}
+export default ChatScreen;
