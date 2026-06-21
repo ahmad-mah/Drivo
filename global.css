@@ -1,3 +1,76 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@layer theme {
+  @theme {
+    --font-Jakarta: "Jakarta", "sans-serif";
+    --font-Jakarta-ExtraLight: "Jakarta-ExtraLight", "sans-serif";
+    --font-Jakarta-Light: "Jakarta-Light", "sans-serif";
+    --font-Jakarta-Medium: "Jakarta-Medium", "sans-serif";
+    --font-Jakarta-SemiBold: "Jakarta-SemiBold", "sans-serif";
+    --font-Jakarta-Bold: "Jakarta-Bold", "sans-serif";
+    --font-Jakarta-ExtraBold: "Jakarta-ExtraBold", "sans-serif";
+
+    --color-primary-100: #f5f8ff;
+    --color-primary-200: #ebf4ff;
+    --color-primary-300: #c3d9ff;
+    --color-primary-400: #9bbfff;
+    --color-primary-500: #0286ff;
+    --color-primary-600: #6a85e6;
+    --color-primary-700: #475a99;
+    --color-primary-800: #364573;
+    --color-primary-900: #242b4d;
+
+    --color-secondary-100: #f8f8f8;
+    --color-secondary-200: #f1f1f1;
+    --color-secondary-300: #d9d9d9;
+    --color-secondary-400: #c2c2c2;
+    --color-secondary-500: #aaaaaa;
+    --color-secondary-600: #999999;
+    --color-secondary-700: #666666;
+    --color-secondary-800: #4d4d4d;
+    --color-secondary-900: #333333;
+
+    --color-success-100: #f0fff4;
+    --color-success-200: #c6f6d5;
+    --color-success-300: #9ae6b4;
+    --color-success-400: #68d391;
+    --color-success-500: #38a169;
+    --color-success-600: #2f855a;
+    --color-success-700: #276749;
+    --color-success-800: #22543d;
+    --color-success-900: #1c4532;
+
+    --color-danger-100: #fff5f5;
+    --color-danger-200: #fed7d7;
+    --color-danger-300: #feb2b2;
+    --color-danger-400: #fc8181;
+    --color-danger-500: #f56565;
+    --color-danger-600: #e53e3e;
+    --color-danger-700: #c53030;
+    --color-danger-800: #9b2c2c;
+    --color-danger-900: #742a2a;
+
+    --color-warning-100: #fffbeb;
+    --color-warning-200: #fef3c7;
+    --color-warning-300: #fde68a;
+    --color-warning-400: #facc15;
+    --color-warning-500: #eab308;
+    --color-warning-600: #ca8a04;
+    --color-warning-700: #a16207;
+    --color-warning-800: #854d0e;
+    --color-warning-900: #713f12;
+
+    --color-general-100: #ced1dd;
+    --color-general-200: #858585;
+    --color-general-300: #eeeeee;
+    --color-general-400: #0cc25f;
+    --color-general-500: #f6f8fa;
+    --color-general-600: #e6f3ff;
+    --color-general-700: #ebebeb;
+    --color-general-800: #adadad;
+  }
+}

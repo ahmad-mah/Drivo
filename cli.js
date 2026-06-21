@@ -56,7 +56,7 @@ const dirs = [
   // app-level infrastructure
   "src/services",
   "src/types",
-  "src/config"
+  "src/config",
 ];
 
 dirs.forEach((dir) => {
