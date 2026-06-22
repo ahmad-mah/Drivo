@@ -10,7 +10,7 @@ const OnboardingItem = ({
   width: number;
 }) => {
   return (
-    <View style={{ width: width * 0.9, gap: 20 }}>
+    <View style={{ width: width * 0.9, gap: 14 }}>
       <AppImage source={item.image} className="h-[300] object-contain" />
 
       <Text className="font-Jakarta-Bold text-4xl text-center leading-relaxed text-secondary-900">
