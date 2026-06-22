@@ -1,14 +1,20 @@
-import AppSafeArea from "@/shared/components/AppSafeArea";
+import { AppGap, AppSafeArea } from "@/shared/components";
 import { Text, TouchableOpacity } from "react-native";
-import AppGap from "../../../shared/components/AppGap";
+import {Image} from "expo-image";
 
 export default function OnboardingScreen() {
   return (
-    <AppSafeArea className="flex-1 px-10">
+    <AppSafeArea className="w-full h-full px-5">
       <AppGap height={24} />
-      <TouchableOpacity>
-        <Text>Skip</Text>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {}}
+        className="self-end"
+      >
+        <Text className="font-Jakarta-Bold text-lg">Skip</Text>
       </TouchableOpacity>
+      <AppGap height={40} />
+      {/* <Image source={require('@/assets/images/')}/> */}
     </AppSafeArea>
   );
 }

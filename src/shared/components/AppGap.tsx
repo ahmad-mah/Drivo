@@ -1,7 +1,10 @@
-import { View } from "react-native";
+import { styled } from 'nativewind';
+import { View } from 'react-native';
+
+const Base = styled(View);
 
 const AppGap = ({ height, width }: { height?: number; width?: number }) => {
-  return <View style={{ height: height, width: width }}></View>;
+  return <Base style={{ height, width }} />;
 };
 
-export default AppGap;
+export { AppGap };
