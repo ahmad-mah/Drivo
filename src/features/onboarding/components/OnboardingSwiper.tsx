@@ -1,6 +1,6 @@
-import { View, FlatList } from "react-native";
+import { FlatList, View } from "react-native";
+import type { OnboardingSlide } from "../constants/onboarding.data";
 import OnboardingItem from "./OnboardingItem";
-import type { OnboardingSlide } from "../constants/constants";
 
 const OnboardingSwiper = ({
   flatListRef,

@@ -1,6 +1,6 @@
-import { View, Text } from "react-native";
 import { AppImage } from "@/shared/components";
-import type { OnboardingSlide } from "../constants/constants";
+import { Text, View } from "react-native";
+import type { OnboardingSlide } from "../constants/onboarding.data";
 
 const OnboardingItem = ({
   item,

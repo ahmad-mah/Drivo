@@ -1,19 +1,27 @@
 import { AppGap, AppSafeArea } from "@/shared/components";
-import SkipButton from "../components/SkipButton";
 import NextButton from "../components/NextButton";
 import OnboardingDots from "../components/OnboardingDots";
 import OnboardingSwiper from "../components/OnboardingSwiper";
-import { onboardingSlides } from "../constants/constants";
+import SkipButton from "../components/SkipButton";
+import { onboardingSlides } from "../constants/onboarding.data";
 import { useOnboarding } from "../hooks/useOnboarding";
 
 export default function OnboardingScreen() {
-  const { flatListRef, currentIndex, width, isLastSlide, onScrollEnd, onNext, totalSlides } =
-    useOnboarding();
+  const {
+    flatListRef,
+    currentIndex,
+    width,
+    isLastSlide,
+    onScrollEnd,
+    onNext,
+    totalSlides,
+    onSkip,
+  } = useOnboarding();
 
   return (
     <AppSafeArea className="items-center">
       <AppGap height={24} />
-      <SkipButton />
+      <SkipButton onPress={onSkip} />
       <AppGap height={40} />
 
       <OnboardingSwiper
