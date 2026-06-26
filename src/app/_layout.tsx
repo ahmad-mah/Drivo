@@ -41,7 +41,7 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, statusBarStyle: "dark" }}>
       <Stack.Screen
         name="(app)"
         options={{
