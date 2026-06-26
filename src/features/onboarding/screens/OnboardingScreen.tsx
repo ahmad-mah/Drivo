@@ -1,5 +1,4 @@
-import { AppGap, AppSafeArea } from "@/shared/components";
-import NextButton from "../components/NextButton";
+import { AppButton, AppGap, AppSafeArea } from "@/shared/components";
 import OnboardingDots from "../components/OnboardingDots";
 import OnboardingSwiper from "../components/OnboardingSwiper";
 import SkipButton from "../components/SkipButton";
@@ -35,10 +34,9 @@ export default function OnboardingScreen() {
 
       <AppGap height={30} />
 
-      <NextButton
-        currentIndex={currentIndex}
-        isLastSlide={isLastSlide}
-        onNext={onNext}
+      <AppButton
+        title={isLastSlide ? "Get Started" : "Next"}
+        onPress={onNext}
       />
     </AppSafeArea>
   );

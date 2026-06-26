@@ -42,7 +42,14 @@ export default function RootLayout() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(app)" />
+      <Stack.Screen
+        name="(app)"
+        options={{
+          contentStyle: {
+            backgroundColor: "#ffff",
+          },
+        }}
+      />
     </Stack>
   );
 }
