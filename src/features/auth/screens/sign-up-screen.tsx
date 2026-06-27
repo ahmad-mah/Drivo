@@ -14,7 +14,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 
 export default function SignUpScreen() {
   const { bottom } = useSafeAreaInsets();
-  const goToSignIn = () => router.push("/(app)/(auth)/sign-in");
+  const goToSignIn = () => router.replace("/(app)/(auth)/sign-in");
 
   const {
     control,
