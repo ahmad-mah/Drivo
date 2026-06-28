@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useAppReady } from "./_layout";
+import { useAppReady } from "@/lib/app-ready-context";
 import { getInitialRedirectPath } from "@/lib/onboarding-redirects";
 
 export default function Index() {

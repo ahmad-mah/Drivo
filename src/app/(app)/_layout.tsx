@@ -1,5 +1,5 @@
 import { Slot, Redirect, useSegments } from "expo-router";
-import { useAppReady } from "../_layout";
+import { useAppReady } from "@/lib/app-ready-context";
 import {
   shouldRedirectToOnboarding,
   shouldRedirectFromOnboarding,
