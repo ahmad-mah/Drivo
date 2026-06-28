@@ -1,14 +1,36 @@
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import "../../global.css";
 import { Stack } from "expo-router";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { hasSeenOnboarding } from "@/features/onboarding/constants/onboarding.storage";
 
-// keep splash visible immediately, before React renders
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey) {
+  throw new Error("Add your Clerk Publishable Key to the .env file");
+}
+
+interface AppReadyContext {
+  fontsLoaded: boolean;
+  seenOnboarding: boolean;
+}
+
+const AppReadyCtx = createContext<AppReadyContext>({
+  fontsLoaded: false,
+  seenOnboarding: false,
+});
+
+export const useAppReady = () => useContext(AppReadyCtx);
+
+SplashScreen.setOptions({ duration: 600, fade: true });
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
+  const [seenOnboarding, setSeenOnboarding] = useState(false);
 
   useEffect(() => {
     async function prepare() {
@@ -24,32 +46,36 @@ export default function RootLayout() {
         });
       } catch (error) {
         console.log("Font loading failed:", error);
-      } finally {
-        setReady(true);
       }
     }
 
-    prepare();
-  }, []);
-
-  useEffect(() => {
-    if (ready) {
+    async function initialize() {
+      await prepare();
+      const seen = await hasSeenOnboarding();
+      setSeenOnboarding(seen);
+      setReady(true);
       SplashScreen.hideAsync();
     }
-  }, [ready]);
+
+    initialize();
+  }, []);
 
   if (!ready) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false, statusBarStyle: "dark" }}>
-      <Stack.Screen
-        name="(app)"
-        options={{
-          contentStyle: {
-            backgroundColor: "#ffff",
-          },
-        }}
-      />
-    </Stack>
+    <AppReadyCtx value={{ fontsLoaded: true, seenOnboarding }}>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <Stack screenOptions={{ headerShown: false, statusBarStyle: "light" }}>
+          <Stack.Screen
+            name="(app)"
+            options={{
+              contentStyle: {
+                backgroundColor: "#ffff",
+              },
+            }}
+          />
+        </Stack>
+      </ClerkProvider>
+    </AppReadyCtx>
   );
 }

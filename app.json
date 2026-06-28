@@ -15,7 +15,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.drivo"
     },
     "web": {
       "output": "static",
@@ -30,12 +31,11 @@
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash.png",
           "resizeMode": "cover",
-          "android": {
-            // "image": "./assets/images/splash.png",
-            // "imageWidth": 120
-          }
+          "android": {}
         }
-      ]
+      ],
+      "@clerk/expo",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
