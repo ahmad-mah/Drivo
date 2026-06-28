@@ -15,7 +15,7 @@ export function TextActionRow({
       onPress={onAction}
       activeOpacity={onAction ? 0.8 : 1}
     >
-      <Text className="font-Jakarta-Medium text-xl text-secondary-600">
+      <Text className="font-Jakarta-Medium text-xl text-secondary-400">
         {text}{" "}
       </Text>
       <Text className="font-Jakarta-SemiBold text-lg text-primary-500">

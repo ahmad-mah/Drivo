@@ -7,7 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "drivo",
     "userInterfaceStyle": "automatic",
-    "ios": {},
+    "ios": {
+      "bundleIdentifier": "com.anonymous.drivo"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

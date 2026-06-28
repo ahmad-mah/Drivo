@@ -19,15 +19,14 @@ export default function RootLayout() {
   return (
     <AppReadyProvider fontsLoaded seenOnboarding={seenOnboarding}>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <Stack screenOptions={{ headerShown: false, statusBarStyle: "light" }}>
-          <Stack.Screen
-            name="(app)"
-            options={{
-              contentStyle: {
-                backgroundColor: "#ffff",
-              },
-            }}
-          />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            statusBarStyle: "dark",
+            contentStyle: { backgroundColor: "white" },
+          }}
+        >
+          <Stack.Screen name="(app)" />
         </Stack>
       </ClerkProvider>
     </AppReadyProvider>

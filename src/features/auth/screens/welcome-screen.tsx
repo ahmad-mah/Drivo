@@ -1,5 +1,6 @@
-import { AppButton, AppGap, AppImage, OrDivider } from "@/shared/components";
+import { AppButton, AppGap, OrDivider } from "@/shared/components";
 import { WelcomeContent } from "../components/WelcomeContent";
+import { WelcomeImage } from "../components/WelcomeImage";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
 import { router } from "expo-router";
@@ -13,10 +14,7 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 justify-start">
-      <AppImage
-        source={require("@/assets/images/get-started.png")}
-        className="w-full flex-1 object-cover"
-      />
+      <WelcomeImage />
       <View
         className="w-full flex-1 px-6 items-center"
         style={{ paddingBottom: bottom }}
