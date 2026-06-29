@@ -1,4 +1,4 @@
-import { AppButton, AppGap, OrDivider } from "@/shared/components";
+import { AppButton, AppGap, AppDialog, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
 import { useSignUpFlow } from "../hooks/useSignUpFlow";
@@ -12,11 +12,26 @@ import signUpSchema from "../schema/sign-up";
 import SignUpFormFields from "../components/SignUpFormFields";
 import AuthHeaderImage from "../components/AuthHeaderImage";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { VerifyEmailDialog } from "../components/VerifyEmailDialog";
+import { SuccessDialog } from "../components/SuccessDialog";
+import { useState } from "react";
+import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 
 export default function SignUpScreen() {
   const { bottom } = useSafeAreaInsets();
   const goToSignIn = () => router.replace("/(app)/(auth)/sign-in");
-  const { register, isLoading, authError } = useSignUpFlow();
+  const {
+    register,
+    verifyEmail,
+    resendCode,
+    finalize,
+    isLoading,
+    authError,
+  } = useSignUpFlow();
+
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [showVerifiedDialog, setShowVerifiedDialog] = useState(false);
+  const [code, setCode] = useState("");
 
   const {
     control,
@@ -32,12 +47,35 @@ export default function SignUpScreen() {
   });
 
   const onSubmit = async (data: SignUpForm) => {
-    await register({
+    const ok = await register({
       email: data.email,
       password: data.password,
       firstName: data.name,
     });
+    if (ok) {
+      setShowOtpDialog(true);
+    }
   };
+
+  const handleVerify = async () => {
+    const ok = await verifyEmail(code);
+    if (ok) {
+      setShowOtpDialog(false);
+      setShowVerifiedDialog(true);
+    }
+  };
+
+  const handleBrowseHome = async () => {
+    await finalize();
+  };
+
+  const errorMessage = authError
+    ? [
+        ...authError.fieldErrors.map((fe) => fe.longMessage ?? fe.message),
+        ...authError.globalErrors.map((ge) => ge.longMessage ?? ge.message),
+      ].join("\n")
+    : null;
+  useErrorSnackbar(errorMessage);
 
   return (
     <KeyboardAwareScrollView
@@ -72,6 +110,21 @@ export default function SignUpScreen() {
           onAction={goToSignIn}
         />
       </View>
+
+      <AppDialog visible={showOtpDialog}>
+        <VerifyEmailDialog
+          code={code}
+          onCodeChange={setCode}
+          onVerify={handleVerify}
+          onResend={resendCode}
+          isLoading={isLoading}
+          authError={authError}
+        />
+      </AppDialog>
+
+      <AppDialog visible={showVerifiedDialog}>
+        <SuccessDialog onBrowseHome={handleBrowseHome} loading={isLoading} />
+      </AppDialog>
     </KeyboardAwareScrollView>
   );
 }

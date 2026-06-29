@@ -55,11 +55,7 @@ export function useSignUpFlow() {
           setOperationError(mapClerkError(error));
           return false;
         }
-        if (signUp.status === "complete") {
-          await signUp.finalize();
-          return true;
-        }
-        return false;
+        return signUp.status === "complete";
       } catch (error) {
         setOperationError(mapClerkError(error));
         return false;
@@ -69,6 +65,23 @@ export function useSignUpFlow() {
     },
     [signUp],
   );
+
+  const finalize = useCallback(async (): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      const { error } = await signUp.finalize();
+      if (error) {
+        setOperationError(mapClerkError(error));
+        return false;
+      }
+      return true;
+    } catch (error) {
+      setOperationError(mapClerkError(error));
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [signUp]);
 
   const resendCode = useCallback(async () => {
     setOperationError(null);
@@ -83,6 +96,7 @@ export function useSignUpFlow() {
     register,
     verifyEmail,
     resendCode,
+    finalize,
     status,
     isLoading: isLoading || fetchStatus === "fetching",
     authError,
