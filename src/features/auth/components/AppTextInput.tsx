@@ -82,7 +82,7 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
                   />
                 )}
                 <TextInput
-                  className="font-Jakarta-Medium text-lg flex-1"
+                  className="font-Jakarta-Medium text-lg flex-1 text-gray-950"
                   ref={inputRef}
                   placeholder={placeholder}
                   placeholderTextColor={"#ADADAD"}

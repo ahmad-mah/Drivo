@@ -1,6 +1,7 @@
 import { AppButton, AppGap, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
+import { useSignUpFlow } from "../hooks/useSignUpFlow";
 import { router } from "expo-router";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +16,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 export default function SignUpScreen() {
   const { bottom } = useSafeAreaInsets();
   const goToSignIn = () => router.replace("/(app)/(auth)/sign-in");
+  const { register, isLoading, authError } = useSignUpFlow();
 
   const {
     control,
@@ -29,8 +31,12 @@ export default function SignUpScreen() {
     },
   });
 
-  const onSubmit = (data: SignUpForm) => {
-    console.log(data);
+  const onSubmit = async (data: SignUpForm) => {
+    await register({
+      email: data.email,
+      password: data.password,
+      firstName: data.name,
+    });
   };
 
   return (
@@ -50,7 +56,11 @@ export default function SignUpScreen() {
       >
         <SignUpFormFields control={control} errors={errors} />
         <AppGap height={22} />
-        <AppButton title="Sign Up" onPress={handleSubmit(onSubmit)} />
+        <AppButton
+          title="Sign Up"
+          onPress={handleSubmit(onSubmit)}
+          loading={isLoading}
+        />
         <AppGap height={12} />
         <OrDivider />
         <AppGap height={12} />
