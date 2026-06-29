@@ -3,3 +3,4 @@ export { AppGap } from "./AppGap";
 export { AppImage } from "./AppImage";
 export { AppButton } from "./AppButton";
 export { OrDivider } from "./OrDivider";
+export { AppDialog } from "./AppDialog";
