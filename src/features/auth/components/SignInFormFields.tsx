@@ -12,6 +12,7 @@ const fields = [
     inputMode: "email" as const,
     returnKeyType: "next" as const,
     autoCapitalize: "none" as const,
+    maxLength: 254,
   },
   {
     title: "Password",
@@ -21,6 +22,7 @@ const fields = [
     secureTextEntry: true,
     returnKeyType: "done" as const,
     autoCapitalize: "none" as const,
+    maxLength: 128,
   },
 ];
 

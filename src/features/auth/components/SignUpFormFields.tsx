@@ -10,6 +10,7 @@ const fields = [
     icon: require("@/assets/icons/person.png"),
     returnKeyType: "next" as const,
     autoCapitalize: "words" as const,
+    maxLength: 50,
   },
   {
     title: "Email",
@@ -20,6 +21,7 @@ const fields = [
     inputMode: "email" as const,
     returnKeyType: "next" as const,
     autoCapitalize: "none" as const,
+    maxLength: 254,
   },
   {
     title: "Password",
@@ -29,6 +31,7 @@ const fields = [
     secureTextEntry: true,
     returnKeyType: "done" as const,
     autoCapitalize: "none" as const,
+    maxLength: 128,
   },
 ];
 

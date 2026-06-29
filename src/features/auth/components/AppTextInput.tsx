@@ -10,10 +10,10 @@ import { AppImage } from "@/shared/components";
 import type { KeyboardTypeOptions, ReturnKeyTypeOptions } from "react-native";
 
 type AppTextInputProps = {
-  control: any;
+  control?: any;
   name: string;
   placeholder: string;
-  title: string;
+  title?: string;
   icon?: any;
   secureTextEntry?: boolean;
   returnKeyType?: ReturnKeyTypeOptions;
@@ -29,6 +29,10 @@ type AppTextInputProps = {
     | "search";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   onSubmitEditing?: () => void;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  textAlign?: "left" | "center" | "right";
+  maxLength?: number;
 };
 
 const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
@@ -45,6 +49,10 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
       inputMode,
       autoCapitalize,
       onSubmitEditing,
+      value: directValue,
+      onChangeText: directOnChangeText,
+      textAlign,
+      maxLength,
     },
     ref,
   ) => {
@@ -56,71 +64,79 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
 
     const isPassword = secureTextEntry;
 
+    const renderInput = (
+      fieldValue?: string,
+      fieldOnChange?: (text: string) => void,
+      fieldOnBlur?: () => void,
+    ) => (
+      <Pressable
+        className={`py-0.5 px-4 gap-3 border rounded-3xl flex-row items-center bg-gray-200 ${
+          isFocused ? "border-blue-500" : "border-gray-200"
+        }`}
+        onPress={() => {
+          inputRef.current?.focus();
+          setIsFocused(true);
+        }}
+        onBlur={() => setIsFocused(false)}
+      >
+        {icon && (
+          <AppImage className="size-6" source={icon} tintColor={"#858585"} />
+        )}
+        <TextInput
+          className="font-Jakarta-Medium text-lg flex-1 text-gray-950"
+          ref={inputRef}
+          placeholder={placeholder}
+          placeholderTextColor={"#ADADAD"}
+          textAlign={textAlign}
+          value={fieldValue}
+          onChangeText={fieldOnChange}
+          onBlur={fieldOnBlur}
+          onFocus={() => setIsFocused(true)}
+          secureTextEntry={isPassword && !showPassword}
+          keyboardType={keyboardType}
+          inputMode={inputMode}
+          returnKeyType={returnKeyType}
+          autoCapitalize={autoCapitalize}
+          onSubmitEditing={onSubmitEditing}
+          cursorColor={"#0286ff"}
+          submitBehavior="submit"
+          maxLength={maxLength}
+        />
+        {isPassword && (
+          <Pressable
+            onPress={(e) => {
+              setShowPassword((prev) => !prev);
+            }}
+            hitSlop={8}
+          >
+            <AppImage
+              className="size-6"
+              source={
+                showPassword
+                  ? require("@/assets/icons/eye.png")
+                  : require("@/assets/icons/eyecross.png")
+              }
+              tintColor={showPassword ? "#0286ff" : "#000000"}
+            />
+          </Pressable>
+        )}
+      </Pressable>
+    );
+
     return (
       <View className="w-full gap-2">
-        <Text className="text-lg">{title}</Text>
-        <Controller
-          name={name}
-          control={control}
-          render={({ field }) => {
-            return (
-              <Pressable
-                className={` py-.5 px-4 gap-3  border rounded-3xl flex-row items-center ${
-                  isFocused ? "border-blue-500" : "border-gray-300"
-                }`}
-                onPress={() => {
-                  inputRef.current?.focus();
-                  setIsFocused(true);
-                }}
-                onBlur={() => setIsFocused(false)}
-              >
-                {icon && (
-                  <AppImage
-                    className="size-6"
-                    source={icon}
-                    tintColor={"#858585"}
-                  />
-                )}
-                <TextInput
-                  className="font-Jakarta-Medium text-lg flex-1 text-gray-950"
-                  ref={inputRef}
-                  placeholder={placeholder}
-                  placeholderTextColor={"#ADADAD"}
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  onBlur={field.onBlur}
-                  onFocus={() => setIsFocused(true)}
-                  secureTextEntry={isPassword && !showPassword}
-                  keyboardType={keyboardType}
-                  inputMode={inputMode}
-                  returnKeyType={returnKeyType}
-                  autoCapitalize={autoCapitalize}
-                  onSubmitEditing={onSubmitEditing}
-                  cursorColor={"#0286ff"}
-                  submitBehavior="submit"
-                />
-                {isPassword && (
-                  <Pressable
-                    onPress={(e) => {
-                      setShowPassword((prev) => !prev);
-                    }}
-                    hitSlop={8}
-                  >
-                    <AppImage
-                      className="size-6"
-                      source={
-                        showPassword
-                          ? require("@/assets/icons/eye.png")
-                          : require("@/assets/icons/eyecross.png")
-                      }
-                      tintColor={showPassword ? "#0286ff" : "#000000"}
-                    />
-                  </Pressable>
-                )}
-              </Pressable>
-            );
-          }}
-        />
+        {title && <Text className="text-lg">{title}</Text>}
+        {control ? (
+          <Controller
+            name={name}
+            control={control}
+            render={({ field }) =>
+              renderInput(field.value, field.onChange, field.onBlur)
+            }
+          />
+        ) : (
+          renderInput(directValue, directOnChangeText)
+        )}
       </View>
     );
   },
