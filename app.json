@@ -39,6 +39,10 @@
       "@clerk/expo",
       "expo-secure-store"
     ],
+    "extra": {
+      "EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID": "157159846198-a3hanb9jccrbtdp6p1t3sf4fpo52u6ke.apps.googleusercontent.com",
+      "EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID": "157159846198-o1vd754a3he4817epil3vidic19b6eld.apps.googleusercontent.com"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

@@ -1,5 +1,6 @@
 import { useSignIn } from "@clerk/expo";
 import { useState, useCallback } from "react";
+import { router } from "expo-router";
 import { mapClerkError, mapSignInErrors } from "../data/clerk-error-mapper";
 import type { AuthError } from "../domain/auth-error";
 
@@ -32,7 +33,12 @@ export function useSignInFlow() {
 
         if (signIn.status !== "complete") return false;
 
-        const { error: finalizeError } = await signIn.finalize();
+        const { error: finalizeError } = await signIn.finalize({
+          navigate: ({ session, decorateUrl }) => {
+            if (session?.currentTask) return;
+            router.replace(decorateUrl("/") as any);
+          },
+        });
         if (finalizeError) {
           setOperationError(mapClerkError(finalizeError));
           return false;
