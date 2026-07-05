@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "technologies/react-native/AGENTS.md",
+    "technologies/nodejs/express/AGENTS.md"
+  ],
+  "skills": {
+    "paths": [
+      "global/skills",
+      "technologies/react-native/skills",
+      "technologies/nodejs/express/skills"
+    ]
+  }
+}
