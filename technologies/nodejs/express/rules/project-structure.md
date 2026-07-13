@@ -93,3 +93,97 @@ Use `camelCase` or `kebab-case` consistently.
 - [ ] Controllers act only as traffic cops, delegating work to services.
 - [ ] File names follow the `.routes.ts`, `.controller.ts`, `.service.ts` postfix convention.
 - [ ] The `server.ts` file only handles starting the server and connecting to the DB, while `app.ts` handles Express setup (easier for integration testing).
+
+---
+
+## Modular Structure Quick Start (Recommended)
+
+For new projects, use this modular structure where each feature is a self-contained module:
+
+```
+backend/
+├── src/
+│   ├── app.ts                  # Express app setup, middleware, route wiring
+│   ├── server.ts               # Entry point (listen, DB connect, graceful shutdown)
+│   ├── config/
+│   │   ├── env.ts              # Environment variables (validated with Zod)
+│   │   ├── database.ts         # Prisma client singleton
+│   │   └── index.ts            # Barrel export
+│   ├── errors/
+│   │   └── AppError.ts         # Custom error class
+│   ├── middleware/
+│   │   ├── error.middleware.ts  # Centralized error handler
+│   │   ├── validate.middleware.ts # Zod validation middleware
+│   │   └── auth.middleware.ts   # Authentication guard
+│   ├── types/
+│   │   └── index.ts            # Shared types
+│   ├── modules/
+│   │   ├── users/              # Example module
+│   │   │   ├── user.routes.ts
+│   │   │   ├── user.controller.ts
+│   │   │   ├── user.service.ts
+│   │   │   ├── user.repository.ts
+│   │   │   ├── user.schema.ts
+│   │   │   └── user.types.ts
+│   │   └── webhook/            # Example module
+│   │       ├── webhook.routes.ts
+│   │       ├── webhook.controller.ts
+│   │       ├── webhook.service.ts
+│   │       ├── webhook.schema.ts
+│   │       └── webhook.types.ts
+│   └── utils/
+├── prisma/
+│   └── schema.prisma
+├── tests/
+├── .env.example
+├── package.json                # With "type": "module"
+├── tsconfig.json               # ESNext module, bundler resolution
+└── nodemon.json
+```
+
+### Quick Setup Commands
+```bash
+mkdir -p src/{config,errors,middleware,types,modules,utils} prisma tests
+npm init -y
+npm install express @prisma/client cors dotenv helmet morgan zod
+npm install -D typescript @types/express @types/node @types/cors @types/morgan prisma tsx nodemon
+npx prisma init
+```
+
+### tsconfig.json Template
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+```
+
+### package.json Scripts
+```json
+"scripts": {
+  "dev": "nodemon",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "db:generate": "prisma generate",
+  "db:push": "prisma db push",
+  "db:migrate": "prisma migrate dev",
+  "typecheck": "tsc --noEmit"
+}
+```
