@@ -187,3 +187,94 @@ npx prisma init
   "typecheck": "tsc --noEmit"
 }
 ```
+
+---
+
+## Webhook Handler Map Pattern — RECOMMENDED
+
+Instead of a switch statement, use a handler map. Each event type gets its own function — easy to test, easy to extend, no growing switch.
+
+```typescript
+const handlers: Record<string, (event: WebhookEvent) => Promise<void>> = {
+  "user.created": async (event) => { /* ... */ },
+  "user.updated": async (event) => { /* ... */ },
+  "user.deleted": async (event) => { /* ... */ },
+};
+
+async function processWebhook(event: WebhookEvent): Promise<void> {
+  const handler = handlers[event.type];
+  if (handler) {
+    await handler(event);
+  }
+}
+```
+
+**Benefits:**
+- One function per event — isolated and testable.
+- New events = new entry in the map, no structural changes.
+- Handler can be moved to a separate file when the module grows.
+
+---
+
+## Error Handling Architecture — MUST
+
+Five layers of error handling in every production Express app:
+
+### 1. Custom Error Classes
+```
+src/errors/
+├── AppError.ts              # Base class (statusCode, isOperational)
+├── BadRequestError.ts       # 400
+├── UnauthorizedError.ts     # 401
+├── ForbiddenError.ts        # 403
+├── NotFoundError.ts         # 404
+├── ConflictError.ts         # 409
+├── ValidationError.ts       # 400 with field-level errors
+└── InternalServerError.ts   # 500 (non-operational)
+```
+
+### 2. Express Error Middleware
+```typescript
+app.use((err, req, res, next) => {
+  if (err instanceof ValidationError) {
+    return res.status(400).json({ success: false, message: err.message, errors: err.errors });
+  }
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({ success: false, message: err.message });
+  }
+  console.error(err);
+  res.status(500).json({ success: false, message: "Internal server error" });
+});
+```
+
+### 3. 404 Handler
+```typescript
+app.use("*", (req, res) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
+```
+
+### 4. Process-Level Handlers — `server.ts`
+```typescript
+process.on("unhandledRejection", (reason) => {
+  console.error(reason);
+  server.close(() => process.exit(1));
+});
+
+process.on("uncaughtException", (err) => {
+  console.error(err);
+  process.exit(1);
+});
+```
+
+### 5. Response Code Rules
+| Situation | Code |
+|---|---|
+| Signature invalid | 400 |
+| Validation error | 400 |
+| Authenticated but denied | 403 |
+| Resource not found | 404 |
+| Conflict (duplicate) | 409 |
+| Bug in code | 500 |
+| Success | 200 |
+| Unknown webhook event | 200 |
