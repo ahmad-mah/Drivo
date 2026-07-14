@@ -1,11 +1,22 @@
+import { clerkMiddleware } from '@clerk/express';
+import cors from 'cors';
 import express from 'express';
-import { webhookRouter } from './modules/webhook/webhook.routes';
-import { log } from 'console';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { errorHandler } from './middleware/error.middleware';
+import { notFoundHandler } from './middleware/notFound';
+import webhookRouter from './modules/webhook/webhook.routes';
 
 const app = express();
 
-app.use(express.json());
-
+app.use(helmet());
+app.use(cors());
+app.use(morgan('dev'));
 app.use('/api/webhook', webhookRouter);
+app.use(express.json());
+app.use(clerkMiddleware());
+
+app.use('*', notFoundHandler);
+app.use(errorHandler);
 
 export default app;

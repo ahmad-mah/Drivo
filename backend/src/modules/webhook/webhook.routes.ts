@@ -1,3 +1,15 @@
 import { Router } from "express";
+import express from "express";
+import { handleClerkWebhook } from "./webhook.controller";
 
-export const webhookRouter = Router();
+const router = Router();
+
+router.post(
+  "/clerk",
+  express.raw({
+    type: "application/json",
+  }),
+  handleClerkWebhook,
+);
+
+export default router;
