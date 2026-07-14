@@ -27,6 +27,22 @@ export async function upsertFromClerk(
   });
 }
 
+export async function findByClerkId(clerkId: string) {
+  return prisma.user.findUnique({
+    where: { clerkId },
+    select: {
+      id: true,
+      clerkId: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      imageUrl: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
 export async function deleteByClerkId(
   clerkId: string,
   tx?: Prisma.TransactionClient,
