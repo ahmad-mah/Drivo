@@ -3,5 +3,7 @@ export interface CreateUserFromClerkDto {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
   imageUrl: string | null;
+  avatarUrl: string | null;
 }

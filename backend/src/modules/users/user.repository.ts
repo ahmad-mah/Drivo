@@ -15,14 +15,18 @@ export async function upsertFromClerk(
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
+      phone: data.phone,
       imageUrl: data.imageUrl,
+      avatarUrl: data.avatarUrl,
     },
     create: {
       clerkId: data.clerkId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
+      phone: data.phone,
       imageUrl: data.imageUrl,
+      avatarUrl: data.avatarUrl,
     },
   });
 }
@@ -36,7 +40,9 @@ export async function findByClerkId(clerkId: string) {
       email: true,
       firstName: true,
       lastName: true,
+      phone: true,
       imageUrl: true,
+      avatarUrl: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -48,7 +54,7 @@ export async function deleteByClerkId(
   tx?: Prisma.TransactionClient,
 ) {
   const client = tx ?? prisma;
-  return client.user.deleteMany({
+  return client.user.delete({
     where: { clerkId },
   });
 }
