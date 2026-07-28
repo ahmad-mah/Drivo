@@ -4,3 +4,4 @@ export { AppImage } from "./AppImage";
 export { AppButton } from "./AppButton";
 export { OrDivider } from "./OrDivider";
 export { AppDialog } from "./AppDialog";
+export { AppMapView } from "./AppMapView";
