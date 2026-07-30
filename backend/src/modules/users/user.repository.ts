@@ -36,6 +36,7 @@ export async function findByClerkId(clerkId: string) {
     where: { clerkId },
     select: {
       id: true,
+      role: true,
       clerkId: true,
       email: true,
       firstName: true,

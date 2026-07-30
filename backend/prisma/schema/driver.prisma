@@ -1,0 +1,28 @@
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@map("approval_status")
+}
+
+model DriverProfile {
+  id              String         @id @default(cuid())
+  userId          String         @unique @map("user_id")
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName       String         @map("first_name")
+  lastName        String         @map("last_name")
+  phone           String
+  vehicleType     String         @map("vehicle_type")
+  vehicleModel    String         @map("vehicle_model")
+  vehicleColor    String         @map("vehicle_color")
+  vehiclePlate    String         @map("vehicle_plate")
+  licenseNumber   String         @map("license_number")
+  approvalStatus  ApprovalStatus @default(PENDING) @map("approval_status")
+  rejectionReason String?        @map("rejection_reason")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@map("driver_profiles")
+}

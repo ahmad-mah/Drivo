@@ -1,0 +1,6 @@
+model ProcessedWebhook {
+  id          String   @id
+  processedAt DateTime @default(now())
+
+  @@map("processed_webhooks")
+}
