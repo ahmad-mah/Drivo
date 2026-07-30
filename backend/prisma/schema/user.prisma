@@ -1,3 +1,10 @@
+enum Role {
+  USER
+  ADMIN
+
+  @@map("roles")
+}
+
 model User {
   id             String          @id @default(cuid())
   email          String          @unique
@@ -7,6 +14,7 @@ model User {
   avatarUrl      String?         @map("avatar_url")
   imageUrl       String?         @map("image_url")
   clerkId        String?         @unique @map("clerk_id")
+  role           Role            @default(USER) @map("role")
   driverProfile  DriverProfile?
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")

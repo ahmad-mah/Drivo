@@ -7,6 +7,8 @@ import { errorHandler } from './middleware/error.middleware';
 import { notFoundHandler } from './middleware/notFound';
 import userRouter from './modules/users/user.routes';
 import webhookRouter from './modules/webhook/webhook.routes';
+import driverRouter from './modules/drivers/driver.routes';
+import adminRouter from './modules/admin/admin.routes';
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 app.use('/api/users', userRouter);
+app.use('/api/drivers', driverRouter);
+app.use('/api/admin', adminRouter);
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
