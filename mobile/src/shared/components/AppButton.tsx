@@ -8,10 +8,11 @@ function cn(...classes: (string | undefined | null | false)[]) {
 type AppButtonProps = {
   title: string;
   onPress?: () => void;
-  variant?: "primary" | "outline";
+  variant?: "primary" | "outline" | "danger";
   icon?: ReactNode;
   className?: string;
   loading?: boolean;
+  disabled?: boolean;
 };
 
 const variantStyles = {
@@ -27,6 +28,12 @@ const variantStyles = {
     buttonDisabled: "bg-gray-200",
     indicator: "text-secondary-600",
   },
+  danger: {
+    button: "bg-danger-500",
+    text: "text-white",
+    buttonDisabled: "bg-danger-300",
+    indicator: "text-white",
+  },
 };
 
 export function AppButton({
@@ -36,14 +43,16 @@ export function AppButton({
   icon,
   className,
   loading = false,
+  disabled = false,
 }: AppButtonProps) {
   const styles = variantStyles[variant];
+  const isDisabled = loading || disabled;
 
   return (
     <Pressable
       className={cn(
         "rounded-full w-full justify-center items-center py-4.5",
-        loading ? styles.buttonDisabled : styles.button,
+        isDisabled ? styles.buttonDisabled : styles.button,
         className,
       )}
       style={{
@@ -54,7 +63,7 @@ export function AppButton({
         elevation: 1.4,
       }}
       onPress={onPress}
-      disabled={loading}
+      disabled={isDisabled}
     >
       <View className="flex-row items-center gap-3">
         {loading ? (

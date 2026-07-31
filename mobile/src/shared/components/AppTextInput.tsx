@@ -1,13 +1,14 @@
-import { View, Text, TextInput, Pressable } from "react-native";
-import React, {
+import {
   forwardRef,
   useImperativeHandle,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { Controller } from "react-hook-form";
-import { AppImage } from "@/shared/components";
 import type { KeyboardTypeOptions, ReturnKeyTypeOptions } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
+import { AppImage } from "./AppImage";
 
 type AppTextInputProps = {
   control?: any;
@@ -15,6 +16,7 @@ type AppTextInputProps = {
   placeholder: string;
   title?: string;
   icon?: any;
+  iconEnd?: ReactNode;
   secureTextEntry?: boolean;
   returnKeyType?: ReturnKeyTypeOptions;
   keyboardType?: KeyboardTypeOptions;
@@ -43,6 +45,7 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
       placeholder,
       title,
       icon,
+      iconEnd,
       secureTextEntry,
       returnKeyType = "done",
       keyboardType = "default",
@@ -102,6 +105,7 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
           submitBehavior="submit"
           maxLength={maxLength}
         />
+        {iconEnd && !isPassword && iconEnd}
         {isPassword && (
           <Pressable
             onPress={(e) => {
@@ -144,4 +148,4 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
 
 AppTextInput.displayName = "AppTextInput";
 
-export default AppTextInput;
+export { AppTextInput };
