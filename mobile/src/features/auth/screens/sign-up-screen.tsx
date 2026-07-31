@@ -2,8 +2,8 @@ import { AppButton, AppGap, AppDialog, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
 import { useSignUpFlow } from "../hooks/useSignUpFlow";
-import { router } from "expo-router";
 import { View } from "react-native";
+import { replaceWithSignIn } from "@/shared/services/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 import { SignUpForm } from "../types/types";
@@ -19,7 +19,6 @@ import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 
 export default function SignUpScreen() {
   const { bottom } = useSafeAreaInsets();
-  const goToSignIn = () => router.replace("/(app)/(auth)/sign-in");
   const {
     register,
     verifyEmail,
@@ -107,7 +106,7 @@ export default function SignUpScreen() {
         <TextActionRow
           text="Already have an account?"
           action="Log in"
-          onAction={goToSignIn}
+          onAction={replaceWithSignIn}
         />
       </View>
 

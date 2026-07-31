@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Keyboard } from "react-native";
 import { useRef } from "react";
-import AppTextInput from "./AppTextInput";
+import { AppTextInput } from "@/shared/components";
 
 const fields = [
   {

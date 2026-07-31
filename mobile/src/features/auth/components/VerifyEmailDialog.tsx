@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
-import { AppButton, AppGap } from "@/shared/components";
+import { AppButton, AppGap, AppTextInput } from "@/shared/components";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
-import AppTextInput from "./AppTextInput";
 import type { AuthError } from "../domain/auth-error";
 
 type VerifyEmailDialogProps = {

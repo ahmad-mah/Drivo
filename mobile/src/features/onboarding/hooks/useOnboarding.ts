@@ -1,5 +1,5 @@
-import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
+import { goToWelcome } from "@/shared/services/navigation";
 import {
   FlatList,
   NativeScrollEvent,
@@ -26,7 +26,7 @@ export function useOnboarding() {
   };
   const onSkip = async () => {
     await markOnboardingSeen();
-    router.replace("/(app)/(auth)/welcome");
+    goToWelcome();
   };
 
   const onNext = useCallback(async () => {

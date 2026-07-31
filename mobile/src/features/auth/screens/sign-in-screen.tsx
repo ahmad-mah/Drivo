@@ -1,8 +1,8 @@
 import { AppButton, AppGap, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
-import { router } from "expo-router";
 import { View } from "react-native";
+import { replaceWithSignUp } from "@/shared/services/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 import { SignInForm } from "../types/types";
@@ -16,7 +16,6 @@ import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 
 export default function SignInScreen() {
   const { bottom } = useSafeAreaInsets();
-  const goToSignUp = () => router.replace("/(app)/(auth)/sign-up");
   const { signIn, isLoading, authError } = useSignInFlow();
 
   const {
@@ -69,7 +68,7 @@ export default function SignInScreen() {
         <TextActionRow
           text="Don't have an account?"
           action="Sign up"
-          onAction={goToSignUp}
+          onAction={replaceWithSignUp}
         />
       </View>
     </KeyboardAwareScrollView>

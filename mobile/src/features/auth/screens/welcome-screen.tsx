@@ -3,14 +3,13 @@ import { WelcomeContent } from "../components/WelcomeContent";
 import { WelcomeImage } from "../components/WelcomeImage";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
-import { router } from "expo-router";
 import { View } from "react-native";
+import { goToSignUp, goToSignIn } from "@/shared/services/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function WelcomeScreen() {
   const { bottom } = useSafeAreaInsets();
-  const goToSignUp = () => router.push("/(app)/(auth)/sign-up");
-  const goToSignIn = () => router.push("/(app)/(auth)/sign-in");
+
 
   return (
     <View className="flex-1 justify-start">
