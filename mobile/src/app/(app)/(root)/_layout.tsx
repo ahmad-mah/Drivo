@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/expo";
 import { Redirect, Stack } from "expo-router";
+import { UserProvider } from "@/providers/UserProvider";
 
 export default function RootGroupLayout() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -9,11 +10,13 @@ export default function RootGroupLayout() {
   if (!isSignedIn) return <Redirect href="/(app)/(auth)/sign-in" />;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: "white" },
-      }}
-    />
+    <UserProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "white" },
+        }}
+      />
+    </UserProvider>
   );
 }

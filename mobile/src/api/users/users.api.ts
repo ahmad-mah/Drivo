@@ -7,12 +7,25 @@ export interface UserProfile {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
   imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface UpdateProfileDto {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  imageUrl?: string;
+}
+
 export async function getCurrentUser() {
   const { data } = await apiClient.get<ApiResponse<UserProfile>>("/api/users/me");
+  return data.data;
+}
+
+export async function updateProfile(dto: UpdateProfileDto) {
+  const { data } = await apiClient.patch<ApiResponse<UserProfile>>("/api/users/me", dto);
   return data.data;
 }
