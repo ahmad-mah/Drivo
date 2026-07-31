@@ -50,6 +50,29 @@ export async function findByClerkId(clerkId: string) {
   });
 }
 
+export async function updateByClerkId(
+  clerkId: string,
+  data: { firstName?: string | null; lastName?: string | null; phone?: string | null; imageUrl?: string | null },
+) {
+  return prisma.user.update({
+    where: { clerkId },
+    data,
+    select: {
+      id: true,
+      role: true,
+      clerkId: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      imageUrl: true,
+      avatarUrl: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
 export async function deleteByClerkId(
   clerkId: string,
   tx?: Prisma.TransactionClient,

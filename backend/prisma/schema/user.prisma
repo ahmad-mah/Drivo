@@ -13,7 +13,7 @@ model User {
   phone          String?
   avatarUrl      String?         @map("avatar_url")
   imageUrl       String?         @map("image_url")
-  clerkId        String?         @unique @map("clerk_id")
+  clerkId        String          @unique @map("clerk_id")
   role           Role            @default(USER) @map("role")
   driverProfile  DriverProfile?
   createdAt      DateTime        @default(now()) @map("created_at")
