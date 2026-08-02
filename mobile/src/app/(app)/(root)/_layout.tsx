@@ -14,7 +14,7 @@ export default function RootGroupLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "white" },
+          contentStyle: { backgroundColor: "#F6F8FA" },
         }}
       />
     </UserProvider>
