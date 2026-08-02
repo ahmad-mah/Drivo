@@ -1,6 +1,6 @@
 import { BadRequestError } from "../../../errors/BadRequestError";
 import { NotFoundError } from "../../../errors/NotFoundError";
-import type { ApprovalStatus } from "@prisma/client";
+import { ApprovalStatus } from "@prisma/client";
 import * as driverRepository from "../../drivers/driver.repository";
 
 /**
@@ -20,14 +20,14 @@ export async function approve(id: string) {
   if (!profile) throw new NotFoundError("Driver profile not found");
 
   // Only PENDING applications can be approved
-  if (profile.approvalStatus !== "PENDING") {
+  if (profile.approvalStatus !== ApprovalStatus.PENDING) {
     throw new BadRequestError(
       `Cannot approve a ${profile.approvalStatus.toLowerCase()} application`,
     );
   }
 
   return driverRepository.updateStatus(id, {
-    approvalStatus: "APPROVED",
+    approvalStatus: ApprovalStatus.APPROVED,
     rejectionReason: null,
   });
 }
@@ -42,14 +42,14 @@ export async function reject(id: string, reason: string) {
   if (!profile) throw new NotFoundError("Driver profile not found");
 
   // Only PENDING applications can be rejected
-  if (profile.approvalStatus !== "PENDING") {
+  if (profile.approvalStatus !== ApprovalStatus.PENDING) {
     throw new BadRequestError(
       `Cannot reject a ${profile.approvalStatus.toLowerCase()} application`,
     );
   }
 
   return driverRepository.updateStatus(id, {
-    approvalStatus: "REJECTED",
+    approvalStatus: ApprovalStatus.REJECTED,
     rejectionReason: reason,
   });
 }
@@ -64,13 +64,15 @@ export async function suspend(id: string) {
   if (!profile) throw new NotFoundError("Driver profile not found");
 
   // Only APPROVED drivers can be suspended
-  if (profile.approvalStatus !== "APPROVED") {
+  if (profile.approvalStatus !== ApprovalStatus.APPROVED) {
     throw new BadRequestError(
       `Cannot suspend a ${profile.approvalStatus.toLowerCase()} driver`,
     );
   }
 
-  return driverRepository.updateStatus(id, { approvalStatus: "SUSPENDED" });
+  return driverRepository.updateStatus(id, {
+    approvalStatus: ApprovalStatus.SUSPENDED,
+  });
 }
 
 /**
@@ -83,14 +85,14 @@ export async function reinstate(id: string) {
   if (!profile) throw new NotFoundError("Driver profile not found");
 
   // Only SUSPENDED drivers can be reinstated
-  if (profile.approvalStatus !== "SUSPENDED") {
+  if (profile.approvalStatus !== ApprovalStatus.SUSPENDED) {
     throw new BadRequestError(
       `Cannot reinstate a ${profile.approvalStatus.toLowerCase()} driver`,
     );
   }
 
   return driverRepository.updateStatus(id, {
-    approvalStatus: "APPROVED",
+    approvalStatus: ApprovalStatus.APPROVED,
     rejectionReason: null,
   });
 }
