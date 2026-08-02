@@ -2,6 +2,7 @@ import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { ProfileInfoForm } from "@/features/profile/components/ProfileInfoForm";
+import { ProfileDriverSection } from "@/features/profile/components/ProfileDriverSection";
 import { ProfileSkeleton } from "@/features/profile/components/ProfileSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSignOut } from "@/hooks/useSignOut";
@@ -36,6 +37,10 @@ export default function ProfileScreen() {
         <AppGap height={24} />
 
         <ProfileInfoForm user={user} />
+
+        <View className="mt-6">
+          <ProfileDriverSection />
+        </View>
 
         <View className="mt-8">
           <AppButton
