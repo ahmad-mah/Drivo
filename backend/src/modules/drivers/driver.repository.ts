@@ -1,6 +1,9 @@
 import { prisma } from "../../config/database";
-import type { ApprovalStatus, Prisma } from "@prisma/client";
-import type { CreateDriverDto } from "./driver.types";
+import {
+  ApprovalStatus,
+  type Prisma,
+} from "@prisma/client";
+import type { CreateDriverDto, DriverPersonalInfo } from "./driver.types";
 
 export async function findByUserId(userId: string) {
   return prisma.driverProfile.findUnique({
@@ -15,31 +18,36 @@ export async function findById(id: string) {
   });
 }
 
-export async function upsert(userId: string, data: CreateDriverDto) {
+export async function upsert(
+  userId: string,
+  personal: DriverPersonalInfo,
+  data: CreateDriverDto,
+) {
+  const personalData = {
+    firstName: personal.firstName,
+    lastName: personal.lastName,
+    phone: personal.phone,
+  };
+  const vehicleData = {
+    vehicleType: data.vehicleType,
+    vehicleModel: data.vehicleModel,
+    vehicleColor: data.vehicleColor,
+    vehiclePlate: data.vehiclePlate,
+    licenseNumber: data.licenseNumber,
+  };
+
   return prisma.driverProfile.upsert({
     where: { userId },
     update: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phone: data.phone,
-      vehicleType: data.vehicleType,
-      vehicleModel: data.vehicleModel,
-      vehicleColor: data.vehicleColor,
-      vehiclePlate: data.vehiclePlate,
-      licenseNumber: data.licenseNumber,
-      approvalStatus: "PENDING",
+      ...personalData,
+      ...vehicleData,
+      approvalStatus: ApprovalStatus.PENDING,
       rejectionReason: null,
     },
     create: {
       userId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phone: data.phone,
-      vehicleType: data.vehicleType,
-      vehicleModel: data.vehicleModel,
-      vehicleColor: data.vehicleColor,
-      vehiclePlate: data.vehiclePlate,
-      licenseNumber: data.licenseNumber,
+      ...personalData,
+      ...vehicleData,
     },
   });
 }
