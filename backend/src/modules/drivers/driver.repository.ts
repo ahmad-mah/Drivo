@@ -58,6 +58,7 @@ export async function findAll(status?: ApprovalStatus) {
   return prisma.driverProfile.findMany({
     where,
     include: { user: { select: { id: true, email: true } } },
+    orderBy: { createdAt: "desc" },
   });
 }
 

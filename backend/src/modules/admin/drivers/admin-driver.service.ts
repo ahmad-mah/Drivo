@@ -11,6 +11,16 @@ export async function listDrivers(status?: ApprovalStatus) {
 }
 
 /**
+ * Returns a single driver profile including its user (email) for the
+ * admin detail view. Throws if the profile does not exist.
+ */
+export async function getById(id: string) {
+  const profile = await driverRepository.findById(id);
+  if (!profile) throw new NotFoundError("Driver profile not found");
+  return profile;
+}
+
+/**
  * Approves a PENDING driver application.
  * State: PENDING → APPROVED
  * Blocked: REJECTED, SUSPENDED, or already APPROVED profiles.

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ensureAdmin } from "../admin.guard";
 import {
+  getById,
   list,
   approve,
   reject,
@@ -13,6 +14,7 @@ const router = Router();
 router.use(ensureAdmin);
 
 router.get("/", list);
+router.get("/:id", getById);
 router.put("/:id/approve", approve);
 router.put("/:id/reject", reject);
 router.put("/:id/suspend", suspend);

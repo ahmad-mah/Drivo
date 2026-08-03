@@ -21,6 +21,23 @@ export async function list(
 }
 
 /**
+ * GET /api/admin/drivers/:id
+ * Returns a single driver profile. Admin only.
+ */
+export async function getById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const profile = await adminDriverService.getById(req.params.id as string);
+    res.json({ success: true, data: profile });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * PUT /api/admin/drivers/:id/approve
  * Approves a PENDING driver application. Admin only.
  */
