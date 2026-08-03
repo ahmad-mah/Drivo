@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import type { DriverProfile, ApplyDriverDto } from "@/api/drivers/drivers.api";
 import * as driversApi from "@/api/drivers/drivers.api";
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
@@ -33,32 +34,36 @@ export function useDriverApplication() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Refetch on every focus so Home/Profile reflect the latest status (e.g. after
+  // returning from the apply screen or after an admin approves/rejects).
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
 
-    const fetchApplication = async () => {
-      try {
-        const result = await driversApi.getMyDriverApplication();
-        if (cancelled) return;
-        setApplication(result);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.statusCode === 404) {
-          setApplication(null);
-        } else {
-          setError(err instanceof Error ? err : new Error("Failed to fetch application"));
+      const fetchApplication = async () => {
+        try {
+          const result = await driversApi.getMyDriverApplication();
+          if (cancelled) return;
+          setApplication(result);
+        } catch (err) {
+          if (cancelled) return;
+          if (err instanceof ApiError && err.statusCode === 404) {
+            setApplication(null);
+          } else {
+            setError(err instanceof Error ? err : new Error("Failed to fetch application"));
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
+      };
 
-    fetchApplication();
+      fetchApplication();
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   const apply = useCallback(
     (dto: ApplyDriverDto) =>
@@ -78,10 +83,12 @@ export function useDriverApplication() {
     [],
   );
 
-  // Routes to apply or update based on current state — screens stay logic-free
+  // Routes to apply or update based on current state — screens stay logic-free.
+  // REJECTED → re-apply; APPROVED → vehicle change (drops back to PENDING).
   const submit = useCallback(
     (dto: ApplyDriverDto) =>
-      application?.approvalStatus === DriverApprovalStatus.REJECTED
+      application?.approvalStatus === DriverApprovalStatus.REJECTED ||
+      application?.approvalStatus === DriverApprovalStatus.APPROVED
         ? updateApplication(dto)
         : apply(dto),
     [application?.approvalStatus, apply, updateApplication],

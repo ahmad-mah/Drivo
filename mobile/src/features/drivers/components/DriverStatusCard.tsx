@@ -2,44 +2,24 @@ import { View, Text } from "react-native";
 import { AppButton } from "@/shared/components";
 import type { DriverProfile } from "@/api/drivers/drivers.api";
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
+import { driverStatusConfig } from "../constants/driverStatusConfig";
+import { getReapplyCooldownDays } from "../utils/driverCooldown";
 
 type Props = {
   application: DriverProfile;
   onReapply?: () => void;
+  onChangeVehicle?: () => void;
+  compact?: boolean;
 };
 
-const statusConfig: Record<
-  DriverProfile["approvalStatus"],
-  { label: string; color: string; bg: string; icon: string }
-> = {
-  [DriverApprovalStatus.PENDING]: {
-    label: "Application Under Review",
-    color: "text-yellow-700",
-    bg: "bg-yellow-50",
-    icon: "🕐",
-  },
-  [DriverApprovalStatus.APPROVED]: {
-    label: "Driver Approved",
-    color: "text-green-700",
-    bg: "bg-green-50",
-    icon: "✅",
-  },
-  [DriverApprovalStatus.REJECTED]: {
-    label: "Application Rejected",
-    color: "text-red-700",
-    bg: "bg-red-50",
-    icon: "❌",
-  },
-  [DriverApprovalStatus.SUSPENDED]: {
-    label: "Account Suspended",
-    color: "text-orange-700",
-    bg: "bg-orange-50",
-    icon: "⚠️",
-  },
-};
-
-export function DriverStatusCard({ application, onReapply }: Props) {
-  const config = statusConfig[application.approvalStatus];
+export function DriverStatusCard({
+  application,
+  onReapply,
+  onChangeVehicle,
+  compact,
+}: Props) {
+  const config = driverStatusConfig[application.approvalStatus];
+  const cooldownDays = getReapplyCooldownDays(application);
 
   return (
     <View className={`w-full rounded-2xl p-4 ${config.bg}`}>
@@ -51,15 +31,27 @@ export function DriverStatusCard({ application, onReapply }: Props) {
       </View>
 
       <View className="ml-9">
-        <Text className="text-sm text-secondary-600 font-Jakarta-Regular">
-          {application.vehicleType} · {application.vehicleModel} · {application.vehicleColor}
-        </Text>
-        <Text className="text-sm text-secondary-600 font-Jakarta-Regular">
-          Plate: {application.vehiclePlate}
-        </Text>
+        {!compact && (
+          <>
+            <Text className="text-sm text-secondary-600 font-Jakarta-Regular">
+              {application.vehicleType} · {application.vehicleModel} ·{" "}
+              {application.vehicleColor}
+            </Text>
+            <Text className="text-sm text-secondary-600 font-Jakarta-Regular">
+              Plate: {application.vehiclePlate}
+            </Text>
+          </>
+        )}
+        {compact && (
+          <Text className="text-sm text-secondary-600 font-Jakarta-Regular">
+            {cooldownDays !== null
+              ? `You can re-apply in ${cooldownDays} day${cooldownDays === 1 ? "" : "s"}.`
+              : config.description}
+          </Text>
+        )}
       </View>
 
-      {application.rejectionReason && (
+      {application.rejectionReason && !compact && (
         <View className="mt-2 ml-9">
           <Text className="text-xs text-red-600 font-Jakarta-Medium">
             Reason: {application.rejectionReason}
@@ -67,15 +59,36 @@ export function DriverStatusCard({ application, onReapply }: Props) {
         </View>
       )}
 
-      {application.approvalStatus === DriverApprovalStatus.REJECTED && onReapply && (
+      {cooldownDays !== null && !compact && (
         <View className="mt-3 ml-9">
-          <AppButton
-            title="Re-apply"
-            onPress={onReapply}
-            variant="outline"
-          />
+          <Text className="text-sm text-red-600 font-Jakarta-Medium">
+            You can re-apply in {cooldownDays} day{cooldownDays === 1 ? "" : "s"}.
+          </Text>
         </View>
       )}
+
+      {application.approvalStatus === DriverApprovalStatus.REJECTED &&
+        cooldownDays === null &&
+        onReapply && (
+          <View className="mt-3 ml-9">
+            <AppButton
+              title={compact ? "Re-apply to Drive" : "Re-apply"}
+              onPress={onReapply}
+              variant="outline"
+            />
+          </View>
+        )}
+
+      {application.approvalStatus === DriverApprovalStatus.APPROVED &&
+        onChangeVehicle && (
+          <View className="mt-3 ml-9">
+            <AppButton
+              title="Change Vehicle"
+              onPress={onChangeVehicle}
+              variant="outline"
+            />
+          </View>
+        )}
     </View>
   );
 }

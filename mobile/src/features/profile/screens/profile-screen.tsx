@@ -6,11 +6,13 @@ import { ProfileDriverSection } from "@/features/profile/components/ProfileDrive
 import { ProfileSkeleton } from "@/features/profile/components/ProfileSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSignOut } from "@/hooks/useSignOut";
+import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplication";
 import { AppButton, AppGap, AppSafeArea } from "@/shared/components";
 
 export default function ProfileScreen() {
   const { user } = useCurrentUser();
   const handleSignOut = useSignOut();
+  const { application } = useDriverApplication();
   const { bottom } = useSafeAreaInsets();
 
   if (!user) return <ProfileSkeleton />;
@@ -39,7 +41,7 @@ export default function ProfileScreen() {
         <ProfileInfoForm user={user} />
 
         <View className="mt-6">
-          <ProfileDriverSection />
+          <ProfileDriverSection application={application} />
         </View>
 
         <View className="mt-8">

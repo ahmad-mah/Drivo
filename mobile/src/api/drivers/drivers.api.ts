@@ -18,6 +18,7 @@ export interface DriverProfile {
   licenseNumber: string;
   approvalStatus: DriverApprovalStatus;
   rejectionReason: string | null;
+  rejectedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

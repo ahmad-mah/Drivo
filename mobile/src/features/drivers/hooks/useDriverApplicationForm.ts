@@ -11,6 +11,9 @@ export function useDriverApplicationForm() {
     useDriverApplication();
 
   const isReapply = application?.approvalStatus === DriverApprovalStatus.REJECTED;
+  const isVehicleChange =
+    application?.approvalStatus === DriverApprovalStatus.APPROVED;
+  const isEditing = isReapply || isVehicleChange;
 
   const form = useForm<DriverApplicationFormData>({
     resolver: zodResolver(applyDriverSchema),
@@ -24,9 +27,10 @@ export function useDriverApplicationForm() {
     },
   });
 
-  // Prefill the existing REJECTED application so drivers can edit and resubmit
+  // Prefill an existing application (rejected re-apply or approved vehicle
+  // change) so drivers can edit and resubmit
   useEffect(() => {
-    if (!isReapply || !application) return;
+    if (!isEditing || !application) return;
     form.reset({
       vehicleType: application.vehicleType,
       vehicleModel: application.vehicleModel,
@@ -34,9 +38,17 @@ export function useDriverApplicationForm() {
       vehiclePlate: application.vehiclePlate,
       licenseNumber: application.licenseNumber,
     });
-  }, [isReapply, application, form]);
+  }, [isEditing, application, form]);
 
   const onSubmit = async (data: DriverApplicationFormData) => submit(data);
 
-  return { form, onSubmit, isReapply, loading, submitting, error };
+  return {
+    form,
+    onSubmit,
+    isReapply,
+    isVehicleChange,
+    loading,
+    submitting,
+    error,
+  };
 }

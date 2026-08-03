@@ -5,11 +5,15 @@ import { HomeWelcome } from "../components/HomeWelcome";
 import { HomeSearch } from "../components/HomeSearch";
 import { HomeMap } from "../components/HomeMap";
 import { HomeRidesList } from "../components/HomeRidesList";
+import { DriverStatusBanner } from "@/features/drivers/components/DriverStatusBanner";
+import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplication";
+import { goToBecomeDriver } from "@/shared/services/navigation";
 import { AppSafeArea, AppGap } from "@/shared/components";
 
 export default function HomeScreen() {
   const { user } = useCurrentUser();
   const signOut = useSignOut();
+  const { application } = useDriverApplication();
 
   return (
     <AppSafeArea>
@@ -21,6 +25,16 @@ export default function HomeScreen() {
         <AppGap height={20} />
         <HomeWelcome userName={user?.firstName ?? undefined} onSignOut={signOut} />
         <AppGap height={16} />
+        {application && (
+          <>
+            <DriverStatusBanner
+              application={application}
+              onReapply={goToBecomeDriver}
+              onChangeVehicle={goToBecomeDriver}
+            />
+            <AppGap height={16} />
+          </>
+        )}
         <HomeSearch />
         <AppGap height={20} />
         <HomeMap />

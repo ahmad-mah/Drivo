@@ -1,28 +1,40 @@
-import { Pressable, View, Text } from "react-native";
-import { FormProvider } from "react-hook-form";
+import { View } from "react-native";
 import { goBack } from "@/shared/services/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
   AppButton,
+  AppForm,
   AppGap,
-  AppImage,
+  AppLoadingOverlay,
   AppSafeArea,
 } from "@/shared/components";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
+import { useSnackbar } from "@/shared/contexts/SnackbarContext";
 import { useDriverApplicationForm } from "../hooks/useDriverApplicationForm";
 import { DriverApplicationForm } from "../components/DriverApplicationForm";
+import { DriverRequirements } from "../components/DriverRequirements";
 import { BecomeDriverLoading } from "../components/BecomeDriverLoading";
+import { BecomeDriverHeader } from "../components/BecomeDriverHeader";
 
 export default function BecomeDriverScreen() {
   const { bottom } = useSafeAreaInsets();
-  const { form, onSubmit, isReapply, loading, submitting, error } =
+  const { show } = useSnackbar();
+  const { form, onSubmit, isReapply, isVehicleChange, loading, submitting, error } =
     useDriverApplicationForm();
 
   useErrorSnackbar(error?.message ?? null);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (await onSubmit(data)) {
+      show(
+        isVehicleChange
+          ? "Vehicle updated. Your application is under review again."
+          : isReapply
+            ? "Application re-submitted. Your details are under review."
+            : "Application submitted successfully. You're under review.",
+        "success",
+      );
       goBack();
     }
   });
@@ -41,41 +53,34 @@ export default function BecomeDriverScreen() {
         extraScrollHeight={40}
         contentContainerClassName="pb-8"
       >
-        <View className="pt-4 pb-2">
-          <Pressable
-            onPress={goBack}
-            className="rounded-full bg-white p-2.5 self-start"
-          >
-            <AppImage
-              source={require("@/assets/icons/back-arrow.png")}
-              className="size-6"
-              tintColor="#333333"
-            />
-          </Pressable>
-          <AppGap height={16} />
-          <Text className="text-2xl font-Jakarta-Bold text-secondary-900">
-            {isReapply ? "Re-apply to Drive" : "Apply to Drive"}
-          </Text>
-          <Text className="text-sm text-secondary-600 font-Jakarta-Regular mt-1">
-            {isReapply
-              ? "Update your details to resubmit your application"
-              : "Fill in your details to start earning"}
-          </Text>
-        </View>
+        <BecomeDriverHeader
+          isReapply={isReapply}
+          isVehicleChange={isVehicleChange}
+          onBack={goBack}
+        />
 
         <AppGap height={20} />
-        <FormProvider {...form}>
+        <DriverRequirements />
+        <AppGap height={16} />
+        <AppForm form={form}>
           <DriverApplicationForm />
-        </FormProvider>
+        </AppForm>
         <AppGap height={24} />
         <AppButton
-          title={isReapply ? "Re-submit Application" : "Submit Application"}
+          title={
+            isReapply
+              ? "Re-submit Application"
+              : isVehicleChange
+                ? "Submit Vehicle Update"
+                : "Submit Application"
+          }
           onPress={handleSubmit}
           loading={submitting}
-          disabled={!form.formState.isValid}
         />
         <View style={{ height: bottom + 20 }} />
       </KeyboardAwareScrollView>
+
+      <AppLoadingOverlay visible={submitting} label="Submitting application…" />
     </AppSafeArea>
   );
 }
