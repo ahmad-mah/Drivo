@@ -1,6 +1,6 @@
-import { View, Text, TextInput } from "react-native";
+import { View, TextInput } from "react-native";
 import { useRef } from "react";
-import { AppTextInput } from "@/shared/components";
+import { AppFormField } from "@/shared/components";
 
 const fields = [
   {
@@ -26,40 +26,25 @@ const fields = [
   },
 ];
 
-type SignInFormFieldsProps = {
-  control: any;
-  errors?: Record<string, { message?: string }>;
-};
-
-export default function SignInFormFields({
-  control,
-  errors,
-}: SignInFormFieldsProps) {
+export default function SignInFormFields() {
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   return (
     <View className="w-full gap-4">
       {fields.map((field, index) => (
-        <View key={field.name}>
-          <AppTextInput
-            control={control}
-            {...field}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
-            onSubmitEditing={() => {
-              const nextRef = inputRefs.current[index + 1];
-              if (nextRef) {
-                nextRef.focus();
-              }
-            }}
-          />
-          {errors?.[field.name]?.message && (
-            <Text className="text-red-500 text-sm mt-1 ml-2">
-              {errors[field.name].message}
-            </Text>
-          )}
-        </View>
+        <AppFormField
+          key={field.name}
+          {...field}
+          inputRef={(el) => {
+            inputRefs.current[index] = el;
+          }}
+          onSubmitEditing={() => {
+            const nextRef = inputRefs.current[index + 1];
+            if (nextRef) {
+              nextRef.focus();
+            }
+          }}
+        />
       ))}
     </View>
   );

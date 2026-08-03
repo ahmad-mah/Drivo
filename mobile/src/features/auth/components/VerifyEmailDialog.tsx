@@ -35,7 +35,6 @@ export function VerifyEmailDialog({
       <AppTextInput
         value={code}
         onChangeText={onCodeChange}
-        name="code"
         placeholder="000000"
         keyboardType="number-pad"
         inputMode="numeric"

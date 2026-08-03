@@ -1,4 +1,4 @@
-import { AppButton, AppGap, AppDialog, OrDivider } from "@/shared/components";
+import { AppButton, AppDialog, AppForm, AppGap, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
 import { useSignUpFlow } from "../hooks/useSignUpFlow";
@@ -32,11 +32,7 @@ export default function SignUpScreen() {
   const [showVerifiedDialog, setShowVerifiedDialog] = useState(false);
   const [code, setCode] = useState("");
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignUpForm>({
+  const form = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",
@@ -91,11 +87,13 @@ export default function SignUpScreen() {
         style={{ paddingBottom: bottom + 20 }}
         className="w-full px-6 items-center justify-start"
       >
-        <SignUpFormFields control={control} errors={errors} />
+        <AppForm form={form}>
+          <SignUpFormFields />
+        </AppForm>
         <AppGap height={22} />
         <AppButton
           title="Sign Up"
-          onPress={handleSubmit(onSubmit)}
+          onPress={form.handleSubmit(onSubmit)}
           loading={isLoading}
         />
         <AppGap height={12} />

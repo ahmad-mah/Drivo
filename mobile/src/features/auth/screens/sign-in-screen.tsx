@@ -1,4 +1,4 @@
-import { AppButton, AppGap, OrDivider } from "@/shared/components";
+import { AppButton, AppForm, AppGap, OrDivider } from "@/shared/components";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { TextActionRow } from "../components/TextActionRow";
 import { View } from "react-native";
@@ -18,11 +18,7 @@ export default function SignInScreen() {
   const { bottom } = useSafeAreaInsets();
   const { signIn, isLoading, authError } = useSignInFlow();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignInForm>({
+  const form = useForm<SignInForm>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
@@ -57,9 +53,11 @@ export default function SignInScreen() {
         style={{ paddingBottom: bottom + 20 }}
         className="w-full px-6 items-center justify-start"
       >
-        <SignInFormFields control={control} errors={errors} />
+        <AppForm form={form}>
+          <SignInFormFields />
+        </AppForm>
         <AppGap height={22} />
-        <AppButton title="Log in" onPress={handleSubmit(onSubmit)} loading={isLoading} />
+        <AppButton title="Log in" onPress={form.handleSubmit(onSubmit)} loading={isLoading} />
         <AppGap height={12} />
         <OrDivider />
         <AppGap height={12} />

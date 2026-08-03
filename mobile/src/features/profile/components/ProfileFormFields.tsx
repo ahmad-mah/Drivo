@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
-import type { Control, FieldErrors } from "react-hook-form";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { AppTextInput, AppGap } from "@/shared/components";
+import { AppFormField, AppGap } from "@/shared/components";
 import type { ProfileFormValues } from "@/features/profile/schema/profile.schema";
 
 const editIcon = (
@@ -40,43 +39,17 @@ const fields: FieldConfig[] = [
 ];
 
 type ProfileFormFieldsProps = {
-  control: Control<ProfileFormValues>;
-  errors: FieldErrors<ProfileFormValues>;
   email: string;
 };
 
-export function ProfileFormFields({
-  control,
-  errors,
-  email,
-}: ProfileFormFieldsProps) {
-  const renderField = (field: FieldConfig) => (
-    <View key={field.name} className="w-full">
-      <AppTextInput
-        control={control}
-        name={field.name}
-        title={field.title}
-        placeholder={field.placeholder}
-        autoCapitalize={field.autoCapitalize}
-        keyboardType={field.keyboardType}
-        inputMode={field.inputMode}
-        iconEnd={editIcon}
-      />
-      {errors[field.name]?.message && (
-        <Text className="text-red-500 text-sm mt-1 ml-2">
-          {errors[field.name]?.message}
-        </Text>
-      )}
-    </View>
-  );
-
+export function ProfileFormFields({ email }: ProfileFormFieldsProps) {
   return (
     <>
-      {renderField(fields[0])}
+      <AppFormField {...fields[0]} iconEnd={editIcon} />
 
       <AppGap height={16} />
 
-      {renderField(fields[1])}
+      <AppFormField {...fields[1]} iconEnd={editIcon} />
 
       <AppGap height={16} />
 
@@ -91,7 +64,7 @@ export function ProfileFormFields({
 
       <AppGap height={16} />
 
-      {renderField(fields[2])}
+      <AppFormField {...fields[2]} iconEnd={editIcon} />
     </>
   );
 }
