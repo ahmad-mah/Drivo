@@ -29,6 +29,7 @@ export async function approve(id: string) {
   return driverRepository.updateStatus(id, {
     approvalStatus: ApprovalStatus.APPROVED,
     rejectionReason: null,
+    rejectedAt: null,
   });
 }
 
@@ -51,6 +52,7 @@ export async function reject(id: string, reason: string) {
   return driverRepository.updateStatus(id, {
     approvalStatus: ApprovalStatus.REJECTED,
     rejectionReason: reason,
+    rejectedAt: new Date(),
   });
 }
 
@@ -94,5 +96,6 @@ export async function reinstate(id: string) {
   return driverRepository.updateStatus(id, {
     approvalStatus: ApprovalStatus.APPROVED,
     rejectionReason: null,
+    rejectedAt: null,
   });
 }

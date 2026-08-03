@@ -6,6 +6,26 @@ import type { ApplyDriverDto } from "./driver.validation";
 import type { DriverPersonalInfo } from "./driver.types";
 import { ApprovalStatus, type User } from "@prisma/client";
 
+const REAPPLY_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Blocks re-apply until the rejection cooldown has passed.
+ * Throws when the driver was rejected less than REAPPLY_COOLDOWN_MS ago.
+ */
+function assertReapplyWindowReached(existing: { rejectedAt: Date | null }) {
+  if (!existing.rejectedAt) return;
+
+  const elapsedMs = Date.now() - existing.rejectedAt.getTime();
+  if (elapsedMs < REAPPLY_COOLDOWN_MS) {
+    const remainingDays = Math.ceil(
+      (REAPPLY_COOLDOWN_MS - elapsedMs) / (24 * 60 * 60 * 1000),
+    );
+    throw new BadRequestError(
+      `You can re-apply in ${remainingDays} day${remainingDays === 1 ? "" : "s"}`,
+    );
+  }
+}
+
 /**
  * Snapshots the user's profile into the driver record.
  *
@@ -65,6 +85,7 @@ async function requireUser(clerkId: string): Promise<User> {
  *
  * State: null → PENDING  |  REJECTED → PENDING
  * Blocked: existing PENDING or APPROVED applications cannot re-apply.
+ * Re-apply is also blocked during the 7-day rejection cooldown.
  */
 export async function apply(clerkId: string, data: ApplyDriverDto) {
   const user = await requireUser(clerkId);
@@ -79,6 +100,9 @@ export async function apply(clerkId: string, data: ApplyDriverDto) {
         : "You are already an approved driver",
     );
   }
+
+  // Strict cooldown: rejected drivers must wait 1 week before re-applying
+  if (existing) assertReapplyWindowReached(existing);
 
   const personal = getDriverPersonalInfo(user);
 
@@ -99,10 +123,11 @@ export async function getMyApplication(clerkId: string) {
 }
 
 /**
- * Updates and re-submits a previously REJECTED application.
+ * Updates and re-submits an application.
  *
- * State: REJECTED → PENDING
- * Blocked: PENDING, APPROVED, or SUSPENDED drivers cannot use this flow.
+ * State: REJECTED → PENDING  |  APPROVED → PENDING (vehicle change re-review)
+ * Blocked: PENDING and SUSPENDED drivers cannot use this flow.
+ * Rejected drivers must wait out the 7-day re-apply cooldown.
  */
 export async function updateApplication(clerkId: string, data: ApplyDriverDto) {
   const user = await requireUser(clerkId);
@@ -110,9 +135,19 @@ export async function updateApplication(clerkId: string, data: ApplyDriverDto) {
   const existing = await driverRepository.findByUserId(user.id);
   if (!existing) throw new NotFoundError("No driver application found");
 
-  // Re-apply is only permitted after rejection — forces edit before re-review
-  if (existing.approvalStatus !== ApprovalStatus.REJECTED) {
-    throw new BadRequestError("Can only re-apply after rejection");
+  // Re-apply is only permitted after rejection, or when an approved driver
+  // changes their vehicle (drops back to PENDING for re-review)
+  if (
+    existing.approvalStatus !== ApprovalStatus.REJECTED &&
+    existing.approvalStatus !== ApprovalStatus.APPROVED
+  ) {
+    throw new BadRequestError("Can only update a rejected or approved application");
+  }
+
+  // Strict cooldown: rejected drivers must wait 1 week before re-applying.
+  // Approved vehicle changes are exempt — there is no rejection to cool down from.
+  if (existing.approvalStatus === ApprovalStatus.REJECTED) {
+    assertReapplyWindowReached(existing);
   }
 
   // Fall back to the snapshot on the previous application so an incomplete

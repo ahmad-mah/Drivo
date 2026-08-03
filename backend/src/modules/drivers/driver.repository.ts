@@ -43,6 +43,7 @@ export async function upsert(
       ...vehicleData,
       approvalStatus: ApprovalStatus.PENDING,
       rejectionReason: null,
+      rejectedAt: null,
     },
     create: {
       userId,
@@ -54,7 +55,10 @@ export async function upsert(
 
 export async function findAll(status?: ApprovalStatus) {
   const where = status ? { approvalStatus: status } : {};
-  return prisma.driverProfile.findMany({ where });
+  return prisma.driverProfile.findMany({
+    where,
+    include: { user: { select: { id: true, email: true } } },
+  });
 }
 
 export async function updateStatus(

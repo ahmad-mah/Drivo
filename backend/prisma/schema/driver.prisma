@@ -21,6 +21,7 @@ model DriverProfile {
   licenseNumber   String         @map("license_number")
   approvalStatus  ApprovalStatus @default(PENDING) @map("approval_status")
   rejectionReason String?        @map("rejection_reason")
+  rejectedAt      DateTime?      @map("rejected_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
