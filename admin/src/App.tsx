@@ -1,9 +1,18 @@
-function App() {
+import { Show } from "@clerk/react";
+import { AppHeader } from "./components/AppHeader";
+import { SignedOutScreen } from "./components/SignedOutScreen";
+import { DriversDashboardScreen } from "./features/drivers/screens/DriversDashboardScreen";
+import { AuthBridge } from "./lib/AuthBridge";
+
+export default function App() {
   return (
-    <h1 className="  text-3xl text-amber-300 font-bold  flex flex-col justify-center items-center h-screen">
-      Drivo Admin
-    </h1>
+    <AuthBridge>
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <Show when="signed-in" fallback={<SignedOutScreen />}>
+          <DriversDashboardScreen />
+        </Show>
+      </div>
+    </AuthBridge>
   );
 }
-
-export default App;
