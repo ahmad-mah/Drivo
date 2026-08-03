@@ -11,7 +11,7 @@ import { AppButton, AppGap, AppSafeArea } from "@/shared/components";
 
 export default function ProfileScreen() {
   const { user } = useCurrentUser();
-  const handleSignOut = useSignOut();
+  const { handleSignOut, loading: signOutLoading } = useSignOut();
   const { application } = useDriverApplication();
   const { bottom } = useSafeAreaInsets();
 
@@ -41,7 +41,7 @@ export default function ProfileScreen() {
         <ProfileInfoForm user={user} />
 
         <View className="mt-6">
-          <ProfileDriverSection application={application} />
+          <ProfileDriverSection application={application} user={user} />
         </View>
 
         <View className="mt-8">
@@ -49,6 +49,7 @@ export default function ProfileScreen() {
             title="Sign Out"
             onPress={handleSignOut}
             variant="danger"
+            loading={signOutLoading}
           />
         </View>
       </ScrollView>

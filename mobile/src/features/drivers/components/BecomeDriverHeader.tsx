@@ -1,5 +1,5 @@
-import { Pressable, Text, View } from "react-native";
-import { AppGap, AppImage } from "@/shared/components";
+import { Text, View } from "react-native";
+import { AppGap, AppIconButton } from "@/shared/components";
 
 interface BecomeDriverHeaderProps {
   isReapply: boolean;
@@ -25,16 +25,11 @@ export function BecomeDriverHeader({
 
   return (
     <View className="pt-4 pb-2">
-      <Pressable
+      <AppIconButton
+        icon={require("@/assets/icons/back-arrow.png")}
         onPress={onBack}
-        className="rounded-full bg-white p-2.5 self-start"
-      >
-        <AppImage
-          source={require("@/assets/icons/back-arrow.png")}
-          className="size-6"
-          tintColor="#333333"
-        />
-      </Pressable>
+        tintColor="#333333"
+      />
       <AppGap height={16} />
       <Text className="text-2xl font-Jakarta-Bold text-secondary-900">
         {title}

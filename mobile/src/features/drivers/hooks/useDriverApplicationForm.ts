@@ -47,6 +47,7 @@ export function useDriverApplicationForm() {
     onSubmit,
     isReapply,
     isVehicleChange,
+    isFirstTime: !isEditing,
     loading,
     submitting,
     error,

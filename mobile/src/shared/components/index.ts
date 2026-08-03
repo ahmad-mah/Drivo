@@ -2,6 +2,7 @@ export { AppSafeArea } from "./AppSafeArea";
 export { AppGap } from "./AppGap";
 export { AppImage } from "./AppImage";
 export { AppButton } from "./AppButton";
+export { AppIconButton } from "./AppIconButton";
 export { OrDivider } from "./OrDivider";
 export { AppDialog } from "./AppDialog";
 export { AppMapView } from "./AppMapView";

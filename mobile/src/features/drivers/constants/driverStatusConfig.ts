@@ -36,7 +36,8 @@ export const driverStatusConfig: Record<
   },
   [DriverApprovalStatus.SUSPENDED]: {
     label: "Account Suspended",
-    description: "Contact support for more information.",
+    description:
+      "Your driver account is suspended. Only Drivo support can reinstate it — please contact us.",
     color: "text-orange-700",
     bg: "bg-orange-50",
     icon: "⚠️",
