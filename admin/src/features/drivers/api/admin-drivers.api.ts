@@ -19,6 +19,13 @@ export async function listDrivers(
   return data.data;
 }
 
+export async function getDriver(id: string): Promise<AdminDriver> {
+  const { data } = await apiClient.get<ApiResponse<AdminDriver>>(
+    `/api/admin/drivers/${id}`,
+  );
+  return data.data;
+}
+
 async function updateStatus(
   id: string,
   action: "approve" | "reject" | "suspend" | "reinstate",

@@ -7,6 +7,7 @@ import { StatusBadge } from "./StatusBadge";
 export interface DriverRowProps {
   driver: AdminDriver;
   disabled: boolean;
+  onView: (driver: AdminDriver) => void;
   onApprove: (id: string) => void;
   onReject: (driver: AdminDriver) => void;
   onSuspend: (id: string) => void;
@@ -16,6 +17,7 @@ export interface DriverRowProps {
 export function DriverRow({
   driver,
   disabled,
+  onView,
   onApprove,
   onReject,
   onSuspend,
@@ -24,9 +26,14 @@ export function DriverRow({
   const status = driver.approvalStatus;
 
   return (
-    <tr className="border-b border-gray-100 last:border-0">
+    <tr
+      onClick={() => onView(driver)}
+      className="group border-b border-gray-100 last:border-0 cursor-pointer"
+    >
       <td className="py-4 ps-6 pe-4">
-        <div className="font-medium text-gray-900">{getDriverName(driver)}</div>
+        <div className="font-medium text-gray-900 group-hover:text-blue-600">
+          {getDriverName(driver)}
+        </div>
         <div className="text-sm text-gray-500">{driver.user.email}</div>
       </td>
       <td className="py-4 pe-4 text-sm text-gray-600">{driver.phone}</td>
@@ -46,7 +53,10 @@ export function DriverRow({
         <StatusBadge status={status} />
       </td>
       <td className="py-4 pe-6 text-right">
-        <div className="flex justify-end gap-2">
+        <div
+          className="flex justify-end gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
           {status === DriverApprovalStatus.PENDING && (
             <>
               <ActionButton

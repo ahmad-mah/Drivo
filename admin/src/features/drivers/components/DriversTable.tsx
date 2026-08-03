@@ -4,7 +4,6 @@ import { DriverRow, type DriverRowProps } from "./DriverRow";
 type DriversTableProps = Omit<DriverRowProps, "driver"> & {
   drivers: AdminDriver[];
 };
-
 export function DriversTable({ drivers, ...rowHandlers }: DriversTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">

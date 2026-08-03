@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { AdminDriver } from "../types/driver";
 
 export function useRejectForm(
-  onReject: (id: string, reason: string) => void,
+  onReject: (id: string, reason: string) => void | Promise<void>,
 ) {
   const [target, setTarget] = useState<AdminDriver | null>(null);
   const [reason, setReason] = useState("");
@@ -20,13 +20,13 @@ export function useRejectForm(
     setError(null);
   }, []);
 
-  const submit = useCallback(() => {
+  const submit = useCallback(async () => {
     if (!target) return;
     if (!reason.trim()) {
       setError("A rejection reason is required");
       return;
     }
-    onReject(target.id, reason.trim());
+    await onReject(target.id, reason.trim());
     close();
   }, [target, reason, onReject, close]);
 

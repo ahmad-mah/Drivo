@@ -7,6 +7,7 @@ interface DriverListSectionProps {
   busy: boolean;
   error: string | null;
   actionError: string | null;
+  onView: (driver: AdminDriver) => void;
   onApprove: (id: string) => void;
   onReject: (driver: AdminDriver) => void;
   onSuspend: (id: string) => void;
@@ -19,6 +20,7 @@ export function DriverListSection({
   busy,
   error,
   actionError,
+  onView,
   onApprove,
   onReject,
   onSuspend,
@@ -49,6 +51,7 @@ export function DriverListSection({
           <DriversTable
             drivers={drivers}
             disabled={busy}
+            onView={onView}
             onApprove={onApprove}
             onReject={onReject}
             onSuspend={onSuspend}

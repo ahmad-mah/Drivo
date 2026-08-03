@@ -5,11 +5,11 @@ const variants = {
   warning: "bg-orange-500 text-white hover:bg-orange-600",
 } as const;
 
-type Variant = keyof typeof variants;
+export type ActionButtonVariant = keyof typeof variants;
 
 interface ActionButtonProps {
   label: string;
-  variant: Variant;
+  variant: ActionButtonVariant;
   onClick: () => void;
   disabled?: boolean;
 }
