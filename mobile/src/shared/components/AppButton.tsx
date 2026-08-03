@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import type { ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
+import { usePressLock } from "@/shared/hooks/usePressLock";
 
 function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
@@ -47,6 +48,11 @@ export function AppButton({
 }: AppButtonProps) {
   const styles = variantStyles[variant];
   const isDisabled = loading || disabled;
+  const lock = usePressLock();
+
+  const handlePress = useCallback(() => {
+    lock(() => onPress?.());
+  }, [lock, onPress]);
 
   return (
     <Pressable
@@ -62,7 +68,7 @@ export function AppButton({
         shadowOpacity: 0.15,
         elevation: 1.4,
       }}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
     >
       <View className="flex-row items-center gap-3">
