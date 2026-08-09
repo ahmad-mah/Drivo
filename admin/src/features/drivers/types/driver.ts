@@ -8,6 +8,18 @@ export const DriverApprovalStatus = {
 export type DriverApprovalStatus =
   (typeof DriverApprovalStatus)[keyof typeof DriverApprovalStatus];
 
+/** Shape of the admin `drivers:locations` socket snapshot / `GET /live` payload. */
+export interface LiveDriver {
+  id: string;
+  firstName: string;
+  lastName: string;
+  latitude: number | null;
+  longitude: number | null;
+  lastSeenAt: string | null;
+  vehicleType: string;
+  email: string;
+}
+
 export interface AdminDriver {
   id: string;
   userId: string;

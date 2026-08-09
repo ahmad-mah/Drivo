@@ -11,6 +11,15 @@ export async function listDrivers(status?: ApprovalStatus) {
 }
 
 /**
+ * Returns only drivers currently online — the initial payload for the admin
+ * live map, served as a REST fallback before/additionally to the socket
+ * snapshot. Mirrors the shape of the socket `drivers:locations` snapshot.
+ */
+export async function listLiveDrivers() {
+  return driverRepository.findOnlineDrivers();
+}
+
+/**
  * Returns a single driver profile including its user (email) for the
  * admin detail view. Throws if the profile does not exist.
  */

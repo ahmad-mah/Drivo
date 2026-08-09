@@ -21,6 +21,24 @@ export async function list(
 }
 
 /**
+ * GET /api/admin/drivers/live
+ * Returns drivers currently online with their latest positions, for the admin
+ * live map. Admin only.
+ */
+export async function listLive(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const drivers = await adminDriverService.listLiveDrivers();
+    res.json({ success: true, data: drivers });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/admin/drivers/:id
  * Returns a single driver profile. Admin only.
  */
