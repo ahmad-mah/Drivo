@@ -1,8 +1,15 @@
+import http from "node:http";
 import app from "./app";
 import { env, connectDatabase, disconnectDatabase } from "./config";
+import { initSocketServer } from "./sockets";
 
 await connectDatabase();
-const server = app.listen(env.PORT, () => {
+
+// Socket.io attaches to the raw HTTP server, not the Express app itself.
+const server = http.createServer(app);
+initSocketServer(server);
+
+server.listen(env.PORT, () => {
   console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
 });
 

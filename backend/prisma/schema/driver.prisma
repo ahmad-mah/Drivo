@@ -22,6 +22,10 @@ model DriverProfile {
   approvalStatus  ApprovalStatus @default(PENDING) @map("approval_status")
   rejectionReason String?        @map("rejection_reason")
   rejectedAt      DateTime?      @map("rejected_at")
+  isOnline        Boolean        @default(false) @map("is_online")
+  latitude        Float?         @map("latitude")
+  longitude       Float?         @map("longitude")
+  lastSeenAt      DateTime?      @map("last_seen_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
