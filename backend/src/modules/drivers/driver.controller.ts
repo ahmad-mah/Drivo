@@ -55,3 +55,41 @@ export async function updateApplication(
     next(err);
   }
 }
+
+/**
+ * PUT /api/drivers/availability
+ * REST fallback for go online/offline when the socket is unavailable
+ * (e.g. iOS background execution can't hold an open connection).
+ */
+export async function updateAvailability(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { userId } = getAuth(req);
+    const result = await driverService.setAvailability(userId!, req.body);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/drivers/location
+ * REST fallback for streaming a position when the socket is unavailable
+ * (background tasks cannot reliably keep a WebSocket open).
+ */
+export async function updateLocation(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { userId } = getAuth(req);
+    await driverService.updateLocation(userId!, req.body);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+}

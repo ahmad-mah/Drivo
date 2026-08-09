@@ -1,10 +1,15 @@
 import { BadRequestError } from "../../errors/BadRequestError";
+import { ConflictError } from "../../errors/ConflictError";
 import { NotFoundError } from "../../errors/NotFoundError";
 import * as userRepository from "../users/user.repository";
 import * as driverRepository from "./driver.repository";
-import type { ApplyDriverDto } from "./driver.validation";
+import type { ApplyDriverDto, UpdateLocationDto } from "./driver.validation";
 import type { DriverPersonalInfo } from "./driver.types";
-import { ApprovalStatus, type User } from "@prisma/client";
+import {
+  ApprovalStatus,
+  Prisma,
+  type User,
+} from "@prisma/client";
 
 const REAPPLY_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -49,28 +54,19 @@ function hasRequiredPersonalInfo(personal: DriverPersonalInfo) {
 }
 
 /**
- * Returns the driver's personal info snapshot, or the previous application's
- * snapshot as a fallback when the profile is incomplete (re-apply path).
- * Throws when incomplete and no fallback exists (first-time apply).
+ * Returns the driver application with the user profile as the source of truth.
+ * The User owns personal info (profile screen); the driver record only stores
+ * a snapshot for admin review. Throws when the profile is incomplete — there
+ * is deliberately no fallback to a previous application's snapshot (Model A).
  */
-function getDriverPersonalInfo(
-  user: User,
-  existing?: DriverPersonalInfo | null,
-): DriverPersonalInfo {
+function getDriverPersonalInfo(user: User): DriverPersonalInfo {
   const personal = buildDriverPersonalInfo(user);
-  if (hasRequiredPersonalInfo(personal)) return personal;
-
-  if (existing) {
-    return {
-      firstName: existing.firstName,
-      lastName: existing.lastName,
-      phone: existing.phone,
-    };
+  if (!hasRequiredPersonalInfo(personal)) {
+    throw new BadRequestError(
+      "Complete your name and phone in your profile before applying to drive",
+    );
   }
-
-  throw new BadRequestError(
-    "Complete your name and phone in your profile before applying to drive",
-  );
+  return personal;
 }
 
 /** Resolves the authenticated user or throws. */
@@ -106,7 +102,20 @@ export async function apply(clerkId: string, data: ApplyDriverDto) {
 
   const personal = getDriverPersonalInfo(user);
 
-  return driverRepository.upsert(user.id, personal, data);
+  // Two concurrent first-time applications could both pass the "no existing
+  // row" check and race the create. The unique (userId) index makes one of
+  // them fail with P2002 — surface it as a clean 409 instead of a 500.
+  try {
+    return await driverRepository.upsert(user.id, personal, data);
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new ConflictError("Application already submitted");
+    }
+    throw err;
+  }
 }
 
 /**
@@ -150,9 +159,90 @@ export async function updateApplication(clerkId: string, data: ApplyDriverDto) {
     assertReapplyWindowReached(existing);
   }
 
-  // Fall back to the snapshot on the previous application so an incomplete
-  // profile never blocks a re-apply
-  const personal = getDriverPersonalInfo(user, existing);
+  // Personal info is re-read from the User so an approved driver can never
+  // resubmit under an old name/phone they have since changed (Model A).
+  const personal = getDriverPersonalInfo(user);
 
-  return driverRepository.upsert(user.id, personal, data);
+  try {
+    return await driverRepository.upsert(user.id, personal, data);
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new ConflictError("Application already submitted");
+    }
+    throw err;
+  }
+}
+
+export interface DriverAvailabilityResult {
+  isOnline: boolean;
+  error?: string;
+}
+
+/**
+ * Flips the driver online.
+ *
+ * State: offline → online
+ * Blocked: PENDING, REJECTED and SUSPENDED drivers cannot go online; only
+ * approved drivers may present themselves as available to the map. The
+ * approval check is part of the atomic DB write, so an admin suspending the
+ * driver concurrently cannot race a stale read into an online flip.
+ */
+export async function goOnline(clerkId: string): Promise<DriverAvailabilityResult> {
+  const user = await requireUser(clerkId);
+
+  const result = await driverRepository.setOnlineIfApproved(user.id);
+  if (result.count === 0) {
+    // 0 rows means either no profile or the approval status isn't APPROVED —
+    // either way the driver may not go online
+    return { isOnline: false, error: "Only approved drivers can go online" };
+  }
+
+  return { isOnline: true };
+}
+
+/**
+ * Flips the driver offline. Intentionally idempotent — the mobile app may
+ * retry or call it for an already-offline driver; that is a success.
+ */
+export async function goOffline(clerkId: string): Promise<DriverAvailabilityResult> {
+  const user = await requireUser(clerkId);
+  await driverRepository.setOffline(user.id);
+  return { isOnline: false };
+}
+
+/**
+ * REST variant of the two socket events: the body carries the target state
+ * (`isOnline: true|false`) instead of distinct socket events. This "sets"
+ * availability rather than toggling it.
+ */
+export async function setAvailability(
+  clerkId: string,
+  data: { isOnline: boolean },
+): Promise<DriverAvailabilityResult> {
+  return data.isOnline ? goOnline(clerkId) : goOffline(clerkId);
+}
+
+const INVALID_LOCATION_MSG = "Invalid location coordinates";
+
+/** Records the driver's latest live position. */
+export async function updateLocation(
+  clerkId: string,
+  location: UpdateLocationDto,
+) {
+  if (
+    !Number.isFinite(location.latitude) ||
+    !Number.isFinite(location.longitude) ||
+    location.latitude < -90 ||
+    location.latitude > 90 ||
+    location.longitude < -180 ||
+    location.longitude > 180
+  ) {
+    throw new BadRequestError(INVALID_LOCATION_MSG);
+  }
+
+  const user = await requireUser(clerkId);
+  await driverRepository.updateLocation(user.id, location);
 }

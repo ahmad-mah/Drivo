@@ -9,3 +9,16 @@ export const applyDriverSchema = z.object({
 });
 
 export type ApplyDriverDto = z.infer<typeof applyDriverSchema>;
+
+/** REST fallback for background location pings (Lat/Lng from expo-location). */
+export const updateLocationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+export type UpdateLocationDto = z.infer<typeof updateLocationSchema>;
+
+/** REST fallback for go online/offline (same contract as the socket event). */
+export const updateAvailabilitySchema = z.object({
+  isOnline: z.boolean(),
+});
+export type UpdateAvailabilityDto = z.infer<typeof updateAvailabilitySchema>;
