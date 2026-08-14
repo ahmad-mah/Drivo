@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSnackbar } from "@/shared/contexts/SnackbarContext";
 import { hasCompleteProfile, getMissingProfileFields } from "@/shared/utils/profile";
 import { useDriverApplication } from "../hooks/useDriverApplication";
+import { DriverDetailsCard } from "../components/DriverDetailsCard";
 import { DriverStatusCard } from "../components/DriverStatusCard";
 import { DriverProfileSkeleton } from "../components/DriverProfileSkeleton";
 import { goBack, goToBecomeDriver } from "@/shared/services/navigation";
@@ -113,24 +114,16 @@ export function DriverProfileScreen() {
 
         <AppGap height={16} />
 
-        <View className="rounded-2xl bg-white p-5 shadow-sm">
-          <Text className="text-lg font-Jakarta-Bold text-secondary-900">
-            Vehicle Details
-          </Text>
-          <AppGap height={12} />
+        <DriverDetailsCard title="Vehicle Details">
           <ProfileRow label="Type" value={application.vehicleType} />
           <ProfileRow label="Model" value={application.vehicleModel} />
           <ProfileRow label="Color" value={application.vehicleColor} />
           <ProfileRow label="Plate" value={application.vehiclePlate} />
-        </View>
+        </DriverDetailsCard>
 
         <AppGap height={16} />
 
-        <View className="rounded-2xl bg-white p-5 shadow-sm">
-          <Text className="text-lg font-Jakarta-Bold text-secondary-900">
-            Driver Information
-          </Text>
-          <AppGap height={12} />
+        <DriverDetailsCard title="Driver Information">
           <ProfileRow
             label="Name"
             value={`${application.firstName} ${application.lastName}`.trim()}
@@ -141,7 +134,7 @@ export function DriverProfileScreen() {
             label="Applied"
             value={formatAppliedAt(application.createdAt)}
           />
-        </View>
+        </DriverDetailsCard>
       </KeyboardAwareScrollView>
     </AppSafeArea>
   );
