@@ -12,6 +12,7 @@ import SignInFormFields from "../components/SignInFormFields";
 import AuthHeaderImage from "../components/AuthHeaderImage";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSignInFlow } from "../hooks/useSignInFlow";
+import { formatAuthErrorMessages } from "../utils/format-auth-error";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 
 export default function SignInScreen() {
@@ -30,13 +31,7 @@ export default function SignInScreen() {
     await signIn({ email: data.email, password: data.password });
   };
 
-  const errorMessage = authError
-    ? [
-        ...authError.fieldErrors.map((fe) => fe.longMessage ?? fe.message),
-        ...authError.globalErrors.map((ge) => ge.longMessage ?? ge.message),
-      ].join("\n")
-    : null;
-  useErrorSnackbar(errorMessage);
+  useErrorSnackbar(formatAuthErrorMessages(authError));
 
   return (
     <KeyboardAwareScrollView

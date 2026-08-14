@@ -15,6 +15,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { VerifyEmailDialog } from "../components/VerifyEmailDialog";
 import { SuccessDialog } from "../components/SuccessDialog";
 import { useState } from "react";
+import { formatAuthErrorMessages } from "../utils/format-auth-error";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 
 export default function SignUpScreen() {
@@ -64,13 +65,7 @@ export default function SignUpScreen() {
     await finalize();
   };
 
-  const errorMessage = authError
-    ? [
-        ...authError.fieldErrors.map((fe) => fe.longMessage ?? fe.message),
-        ...authError.globalErrors.map((ge) => ge.longMessage ?? ge.message),
-      ].join("\n")
-    : null;
-  useErrorSnackbar(errorMessage);
+  useErrorSnackbar(formatAuthErrorMessages(authError));
 
   return (
     <KeyboardAwareScrollView
