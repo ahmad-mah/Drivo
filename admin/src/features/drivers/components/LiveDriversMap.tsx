@@ -51,9 +51,12 @@ export function LiveDriversMap({ drivers }: { drivers: VehicleMapper[] }) {
       style={{ height: "420px", width: "100%", borderRadius: "0.75rem" }}
       className="z-0"
     >
+      {/* CARTO light basemap mirrors the app's default map look: clean,
+          light-gray background with readable labels (see mobile
+          shared/constants/map-style.ts for the equivalent native style). */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
       {drivers.map((driver) => (
         <VehicleMarker key={driver.id} driver={driver} />
