@@ -19,9 +19,15 @@ export const useCurrentLocation = () => {
 
       if (!granted) return;
 
-      await enableHighAccuracy();
+      try {
+        await enableHighAccuracy();
 
-      subscription = await startWatchingLocation(setLocation);
+        subscription = await startWatchingLocation(setLocation);
+      } catch {
+        // Location services disabled (GPS off) or provider unavailable: leave
+        // `location` null and let screens render their fallback rather than
+        // surfacing an unhandled rejection from the watch call.
+      }
     };
 
     initializeLocation();

@@ -53,3 +53,22 @@ export async function updateDriverApplication(dto: ApplyDriverDto) {
   );
   return data.data;
 }
+
+export interface DriverAvailabilityResult {
+  isOnline: boolean;
+  error?: string;
+}
+
+/** REST fallback for going online/offline (background tasks can't hold a socket). */
+export async function updateAvailability(isOnline: boolean) {
+  const { data } = await apiClient.put<ApiResponse<DriverAvailabilityResult>>(
+    "/api/drivers/availability",
+    { isOnline },
+  );
+  return data.data;
+}
+
+/** REST fallback for reporting a position while the app is backgrounded. */
+export async function sendLocation(latitude: number, longitude: number) {
+  await apiClient.post("/api/drivers/location", { latitude, longitude });
+}

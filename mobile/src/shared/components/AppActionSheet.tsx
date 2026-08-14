@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Animated,
   Modal,
@@ -30,12 +30,20 @@ export function AppActionSheet({
   options,
   onCancel,
 }: AppActionSheetProps) {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  // Stable Animated.Value across renders (useState lazy init is the
+  // react-hooks/refs-rule-sanctioned replacement for useRef(...).current).
+  const [slideAnim] = useState(() => new Animated.Value(SCREEN_HEIGHT));
   const [mounted, setMounted] = useState(false);
+  // Adjust state when `visible` flips instead of in an effect (React's
+  // "you might not need an effect" pattern for deriving state from props).
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+    if (visible) setMounted(true);
+  }
 
   useEffect(() => {
     if (visible) {
-      setMounted(true);
       slideAnim.setValue(SCREEN_HEIGHT);
       Animated.spring(slideAnim, {
         toValue: 0,

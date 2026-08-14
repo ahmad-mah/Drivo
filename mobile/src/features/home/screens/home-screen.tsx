@@ -6,7 +6,9 @@ import { HomeSearch } from "../components/HomeSearch";
 import { HomeMap } from "../components/HomeMap";
 import { HomeRidesList } from "../components/HomeRidesList";
 import { DriverStatusCard } from "@/features/drivers/components/DriverStatusCard";
+import { GoDriveCard } from "@/features/drivers/components/GoDriveCard";
 import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplication";
+import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
 import { goToDriverProfile } from "@/shared/services/navigation";
 import { AppSafeArea, AppGap } from "@/shared/components";
 
@@ -27,10 +29,14 @@ export default function HomeScreen() {
         <AppGap height={16} />
         {application && (
           <>
-            <DriverStatusCard
-              application={application}
-              onPress={goToDriverProfile}
-            />
+            {application.approvalStatus === DriverApprovalStatus.APPROVED ? (
+              <GoDriveCard />
+            ) : (
+              <DriverStatusCard
+                application={application}
+                onPress={goToDriverProfile}
+              />
+            )}
             <AppGap height={16} />
           </>
         )}

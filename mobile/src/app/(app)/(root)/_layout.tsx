@@ -16,7 +16,9 @@ export default function RootGroupLayout() {
           headerShown: false,
           contentStyle: { backgroundColor: "#F6F8FA" },
         }}
-      />
+      >
+        <Stack.Screen name="driver-mode" options={{ animation: "fade" }} />
+      </Stack>
     </UserProvider>
   );
 }

@@ -35,6 +35,7 @@ export const Routes = {
   root: {
     becomeDriver: "/(app)/(root)/become-driver" as const,
     driverProfile: "/(app)/(root)/driver-profile" as const,
+    driverMode: "/(app)/(root)/driver-mode" as const,
     tabs: {
       home: "/(app)/(root)/(tabs)/home" as const,
     },
@@ -71,6 +72,10 @@ export function goToBecomeDriver() {
 
 export function goToDriverProfile() {
   guardedNav(() => router.push(Routes.root.driverProfile));
+}
+
+export function goToDriverMode() {
+  guardedNav(() => router.push(Routes.root.driverMode));
 }
 
 export function goBack() {
