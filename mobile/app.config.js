@@ -43,6 +43,8 @@ module.exports = () => ({
         {
           locationAlwaysAndWhenInUsePermission:
             "Allow Drivo to access your location.",
+          isIosBackgroundLocationEnabled: true,
+          isAndroidForegroundServiceEnabled: true,
         },
       ],
       [
