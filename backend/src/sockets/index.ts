@@ -79,6 +79,14 @@ export function initSocketServer(httpServer: HttpServer) {
       },
     );
 
+    socket.on(
+      EVENTS.driverHeartbeat,
+      async () => {
+        // Liveness only — no coordinate change, so no snapshot broadcast.
+        await driverService.heartbeat(clerkId);
+      },
+    );
+
     socket.on(EVENTS.adminJoin, async () => {
       if (role !== "ADMIN") return;
       await socket.join(ADMINS_ROOM);

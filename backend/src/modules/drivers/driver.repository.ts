@@ -149,6 +149,18 @@ export async function findOnlineDrivers() {
 }
 
 /**
+ * Bumps the staleness clock without moving the driver. Emitted on a fixed
+ * interval independent of GPS motion, so a stationary but alive driver is not
+ * swept offline by the stale sweep. Idempotent.
+ */
+export async function refreshSeen(userId: string) {
+  return prisma.driverProfile.updateMany({
+    where: { userId },
+    data: { lastSeenAt: new Date() },
+  });
+}
+
+/**
  * Flips drivers offline whose last location ping is older than `before`.
  * Treats silence as offline — the driver's device is not trustworthy here
  * (app killed, connection lost), so the server makes the call.

@@ -14,6 +14,7 @@ export const EVENTS = {
   driverOnline: "driver:online",
   driverOffline: "driver:offline",
   driverLocation: "driver:location",
+  driverHeartbeat: "driver:heartbeat",
   driverStatus: "driver:status",
   adminJoin: "admin:join",
   driversLocations: "drivers:locations",

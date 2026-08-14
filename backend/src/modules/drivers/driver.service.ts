@@ -227,6 +227,16 @@ export async function setAvailability(
 
 const INVALID_LOCATION_MSG = "Invalid location coordinates";
 
+/**
+ * Registers driver liveness. Offline drivers are swept after a silence window
+ * regardless of whether they are moving, so the mobile app pings this on a
+ * fixed interval to keep stationary drivers visible on the admin map.
+ */
+export async function heartbeat(clerkId: string) {
+  const user = await requireUser(clerkId);
+  await driverRepository.refreshSeen(user.id);
+}
+
 /** Records the driver's latest live position. */
 export async function updateLocation(
   clerkId: string,
