@@ -4,6 +4,7 @@ import {
 } from "../types/driver";
 import { formatDate, getDriverName } from "../utils/driver";
 import { ActionButton, type ActionButtonVariant } from "./ActionButton";
+import { DetailSection } from "./DetailSection";
 import { StatusBadge } from "./StatusBadge";
 
 interface DriverDetailModalProps {
@@ -118,35 +119,30 @@ export function DriverDetailModal({
             </p>
           ) : (
             <>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                Vehicle
-              </h3>
-              <dl>
-                <DetailRow label="Type" value={driver.vehicleType} />
-                <DetailRow label="Model" value={driver.vehicleModel} />
-                <DetailRow label="Color" value={driver.vehicleColor} />
-                <DetailRow label="Plate" value={driver.vehiclePlate} />
-                <DetailRow label="License" value={driver.licenseNumber} />
-              </dl>
+              <DetailSection title="Vehicle">
+                <dl>
+                  <DetailRow label="Type" value={driver.vehicleType} />
+                  <DetailRow label="Model" value={driver.vehicleModel} />
+                  <DetailRow label="Color" value={driver.vehicleColor} />
+                  <DetailRow label="Plate" value={driver.vehiclePlate} />
+                  <DetailRow label="License" value={driver.licenseNumber} />
+                </dl>
+              </DetailSection>
 
-              <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                Personal
-              </h3>
-              <dl>
-                <DetailRow label="Phone" value={driver.phone} />
-                <DetailRow label="Submitted" value={formatDate(driver.createdAt)} />
-                <DetailRow label="Updated" value={formatDate(driver.updatedAt)} />
-              </dl>
+              <DetailSection title="Personal">
+                <dl>
+                  <DetailRow label="Phone" value={driver.phone} />
+                  <DetailRow label="Submitted" value={formatDate(driver.createdAt)} />
+                  <DetailRow label="Updated" value={formatDate(driver.updatedAt)} />
+                </dl>
+              </DetailSection>
 
               {driver.rejectionReason && (
-                <>
-                  <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                    Rejection
-                  </h3>
+                <DetailSection title="Rejection">
                   <p className="mt-1 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                     {driver.rejectionReason}
                   </p>
-                </>
+                </DetailSection>
               )}
             </>
           )}
