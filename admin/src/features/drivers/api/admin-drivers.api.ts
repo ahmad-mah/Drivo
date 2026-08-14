@@ -2,11 +2,20 @@ import { apiClient } from "../../../lib/api";
 import {
   DriverApprovalStatus,
   type AdminDriver,
+  type LiveDriver,
 } from "../types/driver";
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
+}
+
+/** Initial REST paint for the live map before the socket snapshot arrives. */
+export async function listLiveDrivers(): Promise<LiveDriver[]> {
+  const { data } = await apiClient.get<ApiResponse<LiveDriver[]>>(
+    "/api/admin/drivers/live",
+  );
+  return data.data;
 }
 
 export async function listDrivers(
