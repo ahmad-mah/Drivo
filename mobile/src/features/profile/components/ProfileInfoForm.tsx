@@ -47,9 +47,13 @@ export function ProfileInfoForm({ user }: ProfileInfoFormProps) {
 
     if (Object.keys(dto).length === 0) return;
 
-    await updateProfile(dto);
-    form.reset(values);
-    show("Profile updated", "success");
+    try {
+      await updateProfile(dto);
+      form.reset(values);
+      show("Profile updated", "success");
+    } catch (err) {
+      show(err instanceof Error ? err.message : "Failed to update profile");
+    }
   };
 
   return (

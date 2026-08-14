@@ -15,8 +15,11 @@ apiClient.interceptors.request.use(async (config) => {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-  } catch {
+  } catch (err) {
     // token retrieval failed — request proceeds without auth
+    if (__DEV__) {
+      console.warn("[api] token retrieval failed — request proceeding unauthenticated", err);
+    }
   }
   return config;
 });

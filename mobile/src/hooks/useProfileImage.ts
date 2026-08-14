@@ -14,6 +14,7 @@ export function useProfileImage() {
   const { user: clerkUser } = useUser();
   const { refreshUser } = useUserContext();
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const pickImage = useCallback(
     async (useCamera: boolean) => {
@@ -28,6 +29,7 @@ export function useProfileImage() {
       if (result.canceled || !result.assets?.[0]?.uri) return;
 
       setUploading(true);
+      setError(null);
       try {
         const blob = await uriToBlob(result.assets[0].uri);
         const imageResource = await clerkUser?.setProfileImage({ file: blob });
@@ -36,8 +38,8 @@ export function useProfileImage() {
           await updateProfile({ imageUrl: newImageUrl });
           await refreshUser();
         }
-      } catch {
-        // silently fail
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update profile photo");
       } finally {
         setUploading(false);
       }
@@ -45,5 +47,5 @@ export function useProfileImage() {
     [clerkUser, refreshUser],
   );
 
-  return { pickImage, uploading };
+  return { pickImage, uploading, error };
 }

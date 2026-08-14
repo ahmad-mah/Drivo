@@ -1,5 +1,4 @@
 import type {
-  ClerkAPIResponseError,
   ClerkAPIError,
 } from "@clerk/shared/error";
 import { isClerkAPIResponseError } from "@clerk/shared/error";

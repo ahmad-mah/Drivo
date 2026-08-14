@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Image, Pressable } from "react-native";
 import { ProfileImagePreview } from "@/features/profile/components/ProfileImagePreview";
 import { useProfileImage } from "@/hooks/useProfileImage";
+import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import {
   AppActionSheet,
   ActionSheetIcon,
@@ -13,9 +14,11 @@ interface ProfileAvatarProps {
 }
 
 export function ProfileAvatar({ imageUrl }: ProfileAvatarProps) {
-  const { pickImage } = useProfileImage();
+  const { pickImage, error } = useProfileImage();
   const [previewVisible, setPreviewVisible] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
+
+  useErrorSnackbar(error);
 
   const actionSheetOptions = [
     {
