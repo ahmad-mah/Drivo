@@ -1,4 +1,4 @@
-import type { Ride } from "../components/RideItem";
+import type { Ride } from "../types/ride.types";
 
 const MOCK_RIDES: Ride[] = [
   {
