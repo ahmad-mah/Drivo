@@ -18,6 +18,10 @@ export default function RootGroupLayout() {
         }}
       >
         <Stack.Screen name="driver-mode" options={{ animation: "fade" }} />
+        <Stack.Screen
+          name="ride-request"
+          options={{ animation: "slide_from_bottom" }}
+        />
       </Stack>
     </UserProvider>
   );

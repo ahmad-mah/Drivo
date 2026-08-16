@@ -12,7 +12,7 @@ export function AppMapView({
   children,
   className,
   ...props
-}: React.ComponentProps<typeof MapView> & {
+}: React.ComponentPropsWithRef<typeof MapView> & {
   children?: ReactNode;
   className?: string;
 }) {
