@@ -11,6 +11,8 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   GOOGLE_MAPS_API_KEY: z.string().optional(),
+  GOOGLE_ROUTES_API_KEY: z.string().optional(),
+  DRIVERS_NEARBY_BROADCAST_MS: z.coerce.number().int().positive().default(2000),
 });
 
 const parsed = envSchema.safeParse(process.env);
