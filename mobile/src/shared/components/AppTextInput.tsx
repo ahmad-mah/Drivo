@@ -68,8 +68,8 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
       <View className="w-full gap-2">
         {title && <Text className="text-lg">{title}</Text>}
         <Pressable
-          className={`py-0.5 px-4 gap-3 border rounded-3xl flex-row items-center bg-gray-200 ${
-            isFocused ? "border-blue-500" : "border-gray-200"
+          className={`py-0.5 px-4 gap-3 border rounded-3xl flex-row items-center bg-gray-100 ${
+            isFocused ? "border-blue-500" : "border-transparent"
           }`}
           onPress={() => {
             inputRef.current?.focus();
