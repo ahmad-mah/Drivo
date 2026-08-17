@@ -27,6 +27,5 @@ export function mapClerkUser(event: UserCreatedOrUpdatedEvent) {
     lastName: last_name,
     phone: primaryPhone?.phone_number ?? null,
     imageUrl: image_url,
-    avatarUrl: image_url,
   };
 }

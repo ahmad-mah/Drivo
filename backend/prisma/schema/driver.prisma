@@ -25,9 +25,13 @@ model DriverProfile {
   isOnline        Boolean        @default(false) @map("is_online")
   latitude        Float?         @map("latitude")
   longitude       Float?         @map("longitude")
+  heading         Float?         @map("heading")
   lastSeenAt      DateTime?      @map("last_seen_at")
+  rides           Ride[]
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
+  @@index([isOnline, approvalStatus])
+  @@index([isOnline, lastSeenAt])
   @@map("driver_profiles")
 }
