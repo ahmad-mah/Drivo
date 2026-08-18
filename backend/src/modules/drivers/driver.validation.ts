@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { coordinatesShape } from "../../shared/validation/coordinates";
 
 export const applyDriverSchema = z.object({
   vehicleType: z.string().min(1, "Vehicle type is required"),
@@ -10,10 +11,10 @@ export const applyDriverSchema = z.object({
 
 export type ApplyDriverDto = z.infer<typeof applyDriverSchema>;
 
-/** REST fallback for background location pings (Lat/Lng from expo-location). */
+/** REST fallback for background location pings (Lat/Lng/Heading from expo-location). */
 export const updateLocationSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  ...coordinatesShape,
+  heading: z.number().min(0).max(360).optional(),
 });
 export type UpdateLocationDto = z.infer<typeof updateLocationSchema>;
 

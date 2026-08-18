@@ -5,5 +5,4 @@ export interface CreateUserFromClerkDto {
   lastName: string | null;
   phone: string | null;
   imageUrl: string | null;
-  avatarUrl: string | null;
 }

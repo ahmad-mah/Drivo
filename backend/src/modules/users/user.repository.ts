@@ -17,7 +17,6 @@ export async function upsertFromClerk(
       lastName: data.lastName,
       phone: data.phone,
       imageUrl: data.imageUrl,
-      avatarUrl: data.avatarUrl,
     },
     create: {
       clerkId: data.clerkId,
@@ -26,7 +25,6 @@ export async function upsertFromClerk(
       lastName: data.lastName,
       phone: data.phone,
       imageUrl: data.imageUrl,
-      avatarUrl: data.avatarUrl,
     },
   });
 }
@@ -43,7 +41,6 @@ export async function findByClerkId(clerkId: string) {
       lastName: true,
       phone: true,
       imageUrl: true,
-      avatarUrl: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -66,7 +63,6 @@ export async function updateByClerkId(
       lastName: true,
       phone: true,
       imageUrl: true,
-      avatarUrl: true,
       createdAt: true,
       updatedAt: true,
     },

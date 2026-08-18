@@ -2,7 +2,7 @@ import { clerkClient } from "@clerk/express";
 import type { Prisma } from "@prisma/client";
 import type { CreateUserFromClerkDto } from "./user.types";
 import type { UpdateProfileDto } from "./user.schema";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { requireUserByClerkId } from "../../shared/require-user";
 import * as userRepository from "./user.repository";
 
 // Fields editable here that Clerk also stores. Extend when a new PATCH field is Clerk-eligible.
@@ -33,26 +33,15 @@ export async function syncUserFromClerk(
 }
 
 export async function getProfileByClerkId(clerkId: string) {
-  const user = await userRepository.findByClerkId(clerkId);
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  return user;
+  return requireUserByClerkId(clerkId);
 }
 
 export async function updateProfileByClerkId(clerkId: string, data: UpdateProfileDto) {
   // Clerk first so a Neon write failure is healed by the user.updated webhook re-sync
   await pushProfileToClerk(clerkId, data);
 
-  const user = await userRepository.updateByClerkId(clerkId, data);
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  return user;
+  // prisma.user.update throws P2025 when the user is missing, so no null check needed
+  return userRepository.updateByClerkId(clerkId, data);
 }
 
 export async function deleteUserFromClerk(

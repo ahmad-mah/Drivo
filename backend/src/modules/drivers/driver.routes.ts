@@ -12,6 +12,7 @@ import {
   updateApplication,
   updateAvailability,
   updateLocation,
+  getNearbyDrivers,
 } from "./driver.controller";
 
 const router = Router();
@@ -21,5 +22,6 @@ router.get("/my-application", requireAuth, getMyApplication);
 router.put("/my-application", requireAuth, validate(applyDriverSchema), updateApplication);
 router.put("/availability", requireAuth, validate(updateAvailabilitySchema), updateAvailability);
 router.post("/location", requireAuth, validate(updateLocationSchema), updateLocation);
+router.get("/nearby", requireAuth, getNearbyDrivers);
 
 export default router;

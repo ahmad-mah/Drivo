@@ -1,8 +1,10 @@
 import { BadRequestError } from "../../errors/BadRequestError";
 import { ConflictError } from "../../errors/ConflictError";
 import { NotFoundError } from "../../errors/NotFoundError";
-import * as userRepository from "../users/user.repository";
+import { requireUserByClerkId } from "../../shared/require-user";
+import { assertValidCoordinates } from "../../shared/validation/coordinates";
 import * as driverRepository from "./driver.repository";
+import { ensureFakeDriversAround } from "./fake-drivers.simulator";
 import type { ApplyDriverDto, UpdateLocationDto } from "./driver.validation";
 import type { DriverPersonalInfo } from "./driver.types";
 import {
@@ -69,37 +71,45 @@ function getDriverPersonalInfo(user: User): DriverPersonalInfo {
   return personal;
 }
 
-/** Resolves the authenticated user or throws. */
-async function requireUser(clerkId: string): Promise<User> {
-  const user = await userRepository.findByClerkId(clerkId);
-  if (!user) throw new NotFoundError("User not found");
-  return user;
-}
-
 /**
- * Submits a new driver application or re-applies after rejection.
+ * Submits or re-submits a driver application.
  *
- * State: null → PENDING  |  REJECTED → PENDING
- * Blocked: existing PENDING or APPROVED applications cannot re-apply.
- * Re-apply is also blocked during the 7-day rejection cooldown.
+ * State: null → PENDING  |  REJECTED → PENDING  |  APPROVED → PENDING (update only)
+ * Blocked: existing PENDING applications cannot be re-submitted; SUSPENDED
+ * drivers cannot use the flow at all; a fresh apply from an APPROVED driver is
+ * rejected (vehicle changes must go through updateApplication).
+ * Rejected drivers must wait out the 7-day re-apply cooldown.
  */
-export async function apply(clerkId: string, data: ApplyDriverDto) {
-  const user = await requireUser(clerkId);
+async function saveApplication(
+  clerkId: string,
+  data: ApplyDriverDto,
+  mode: "apply" | "update",
+) {
+  const user = await requireUserByClerkId(clerkId);
 
   const existing = await driverRepository.findByUserId(user.id);
 
-  // Only REJECTED drivers may re-apply; PENDING/APPROVED are blocked
-  if (existing && existing.approvalStatus !== ApprovalStatus.REJECTED) {
-    throw new BadRequestError(
-      existing.approvalStatus === ApprovalStatus.PENDING
-        ? "Application already submitted and pending review"
-        : "You are already an approved driver",
-    );
+  if (existing?.approvalStatus === ApprovalStatus.PENDING) {
+    throw new BadRequestError("Application already submitted and pending review");
+  }
+  if (existing?.approvalStatus === ApprovalStatus.SUSPENDED) {
+    throw new BadRequestError("Can only update a rejected or approved application");
+  }
+  if (mode === "apply" && existing?.approvalStatus === ApprovalStatus.APPROVED) {
+    throw new BadRequestError("You are already an approved driver");
+  }
+  if (mode === "update" && !existing) {
+    throw new NotFoundError("No driver application found");
   }
 
-  // Strict cooldown: rejected drivers must wait 1 week before re-applying
-  if (existing) assertReapplyWindowReached(existing);
+  // Strict cooldown: rejected drivers must wait 1 week before re-applying.
+  // Approved vehicle changes are exempt — there is no rejection to cool down from.
+  if (existing?.approvalStatus === ApprovalStatus.REJECTED) {
+    assertReapplyWindowReached(existing);
+  }
 
+  // Personal info is re-read from the User so an approved driver can never
+  // resubmit under an old name/phone they have since changed (Model A).
   const personal = getDriverPersonalInfo(user);
 
   // Two concurrent first-time applications could both pass the "no existing
@@ -118,62 +128,23 @@ export async function apply(clerkId: string, data: ApplyDriverDto) {
   }
 }
 
+export const apply = (clerkId: string, data: ApplyDriverDto) =>
+  saveApplication(clerkId, data, "apply");
+
+export const updateApplication = (clerkId: string, data: ApplyDriverDto) =>
+  saveApplication(clerkId, data, "update");
+
 /**
  * Returns the authenticated user's driver application status.
  * Throws if no application exists.
  */
 export async function getMyApplication(clerkId: string) {
-  const user = await requireUser(clerkId);
+  const user = await requireUserByClerkId(clerkId);
 
   const profile = await driverRepository.findByUserId(user.id);
   if (!profile) throw new NotFoundError("No driver application found");
 
   return profile;
-}
-
-/**
- * Updates and re-submits an application.
- *
- * State: REJECTED → PENDING  |  APPROVED → PENDING (vehicle change re-review)
- * Blocked: PENDING and SUSPENDED drivers cannot use this flow.
- * Rejected drivers must wait out the 7-day re-apply cooldown.
- */
-export async function updateApplication(clerkId: string, data: ApplyDriverDto) {
-  const user = await requireUser(clerkId);
-
-  const existing = await driverRepository.findByUserId(user.id);
-  if (!existing) throw new NotFoundError("No driver application found");
-
-  // Re-apply is only permitted after rejection, or when an approved driver
-  // changes their vehicle (drops back to PENDING for re-review)
-  if (
-    existing.approvalStatus !== ApprovalStatus.REJECTED &&
-    existing.approvalStatus !== ApprovalStatus.APPROVED
-  ) {
-    throw new BadRequestError("Can only update a rejected or approved application");
-  }
-
-  // Strict cooldown: rejected drivers must wait 1 week before re-applying.
-  // Approved vehicle changes are exempt — there is no rejection to cool down from.
-  if (existing.approvalStatus === ApprovalStatus.REJECTED) {
-    assertReapplyWindowReached(existing);
-  }
-
-  // Personal info is re-read from the User so an approved driver can never
-  // resubmit under an old name/phone they have since changed (Model A).
-  const personal = getDriverPersonalInfo(user);
-
-  try {
-    return await driverRepository.upsert(user.id, personal, data);
-  } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      throw new ConflictError("Application already submitted");
-    }
-    throw err;
-  }
 }
 
 export interface DriverAvailabilityResult {
@@ -191,7 +162,7 @@ export interface DriverAvailabilityResult {
  * driver concurrently cannot race a stale read into an online flip.
  */
 export async function goOnline(clerkId: string): Promise<DriverAvailabilityResult> {
-  const user = await requireUser(clerkId);
+  const user = await requireUserByClerkId(clerkId);
 
   const result = await driverRepository.setOnlineIfApproved(user.id);
   if (result.count === 0) {
@@ -208,7 +179,7 @@ export async function goOnline(clerkId: string): Promise<DriverAvailabilityResul
  * retry or call it for an already-offline driver; that is a success.
  */
 export async function goOffline(clerkId: string): Promise<DriverAvailabilityResult> {
-  const user = await requireUser(clerkId);
+  const user = await requireUserByClerkId(clerkId);
   await driverRepository.setOffline(user.id);
   return { isOnline: false };
 }
@@ -225,15 +196,13 @@ export async function setAvailability(
   return data.isOnline ? goOnline(clerkId) : goOffline(clerkId);
 }
 
-const INVALID_LOCATION_MSG = "Invalid location coordinates";
-
 /**
  * Registers driver liveness. Offline drivers are swept after a silence window
  * regardless of whether they are moving, so the mobile app pings this on a
  * fixed interval to keep stationary drivers visible on the admin map.
  */
 export async function heartbeat(clerkId: string) {
-  const user = await requireUser(clerkId);
+  const user = await requireUserByClerkId(clerkId);
   await driverRepository.refreshSeen(user.id);
 }
 
@@ -242,17 +211,21 @@ export async function updateLocation(
   clerkId: string,
   location: UpdateLocationDto,
 ) {
-  if (
-    !Number.isFinite(location.latitude) ||
-    !Number.isFinite(location.longitude) ||
-    location.latitude < -90 ||
-    location.latitude > 90 ||
-    location.longitude < -180 ||
-    location.longitude > 180
-  ) {
-    throw new BadRequestError(INVALID_LOCATION_MSG);
-  }
+  assertValidCoordinates(location.latitude, location.longitude);
 
-  const user = await requireUser(clerkId);
+  const user = await requireUserByClerkId(clerkId);
   await driverRepository.updateLocation(user.id, location);
+}
+
+/** Returns the nearest online drivers around a point for the rider map. */
+export async function getNearbyDrivers(
+  latitude: number,
+  longitude: number,
+  radiusKm: number,
+) {
+  assertValidCoordinates(latitude, longitude);
+  // Seeding on query keeps the simulated fleet centered on where riders
+  // actually look, so the home map always has cars without a ride request.
+  await ensureFakeDriversAround(latitude, longitude);
+  return driverRepository.findNearbyDrivers(latitude, longitude, radiusKm);
 }
