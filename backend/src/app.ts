@@ -9,6 +9,9 @@ import userRouter from './modules/users/user.routes';
 import webhookRouter from './modules/webhook/webhook.routes';
 import driverRouter from './modules/drivers/driver.routes';
 import adminRouter from './modules/admin/admin.routes';
+import rideRouter from './modules/rides/ride.routes';
+import placeRouter from './modules/places/place.routes';
+import directionsRouter from './modules/directions/directions.routes';
 
 const app = express();
 
@@ -22,6 +25,9 @@ app.use(clerkMiddleware());
 app.use('/api/users', userRouter);
 app.use('/api/drivers', driverRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/rides', rideRouter);
+app.use('/api/places', placeRouter);
+app.use('/api/directions', directionsRouter);
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
