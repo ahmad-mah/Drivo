@@ -7,7 +7,6 @@ export interface SocketUser {
   role: User["role"];
 }
 
-export const DRIVERS_ROOM = "drivers";
 export const ADMINS_ROOM = "admins";
 
 export const EVENTS = {
@@ -23,6 +22,7 @@ export const EVENTS = {
 export interface DriverLocationPayload {
   latitude: number;
   longitude: number;
+  heading?: number;
 }
 
 export interface AdminDriversSnapshotMember {

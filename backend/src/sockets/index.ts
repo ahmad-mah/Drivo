@@ -1,17 +1,34 @@
 import type { Server as HttpServer } from "node:http";
 import { Server } from "socket.io";
+import { Role } from "@prisma/client";
+import {
+  DRIVER_STALE_MS,
+  STALE_CHECK_INTERVAL_MS,
+  NEARBY_DRIVERS_BROADCAST_MS,
+} from "../config";
 import * as driverRepository from "../modules/drivers/driver.repository";
 import * as driverService from "../modules/drivers/driver.service";
+import { assertValidCoordinates } from "../shared/validation/coordinates";
 import { authenticateSocket } from "./auth";
 import { broadcastDriversSnapshot, sendSnapshotTo } from "./snapshot";
+import { setSocketServer } from "./ride";
 import {
   ADMINS_ROOM,
   EVENTS,
   type DriverLocationPayload,
 } from "./types";
 
-const STALE_MS = 15_000;
-const STALE_CHECK_INTERVAL_MS = 5_000;
+// Socket handlers run outside the Express error pipeline; a rejection here
+// would crash the process, so every handler routes through this catch.
+function safeSocketHandler<T extends unknown[]>(
+  handler: (...args: T) => Promise<void>,
+): (...args: T) => void {
+  return (...args) => {
+    handler(...args).catch((err) => {
+      console.error("[socket] handler error", err);
+    });
+  };
+}
 
 /**
  * Attaches Socket.io to the HTTP server and registers the realtime protocol:
@@ -26,6 +43,8 @@ export function initSocketServer(httpServer: HttpServer) {
     },
   });
 
+  setSocketServer(io);
+
   // Handshake auth: sockets are not HTTP requests, so Clerk's express
   // middleware does not run here — we verify the session token directly.
   io.use(async (socket, next) => {
@@ -38,74 +57,139 @@ export function initSocketServer(httpServer: HttpServer) {
   });
 
   io.on("connection", (socket) => {
-    const { userId, clerkId, role } = socket.data.user;
+    const { clerkId, role } = socket.data.user;
 
-    // Drivers get their own room for targeted broadcasts later (ride matching).
-    if (role === "USER") socket.join(`driver:${userId}`);
+    socket.join(clerkId);
 
-    socket.on(EVENTS.driverOnline, async () => {
-      const payload = await driverService.goOnline(clerkId);
-      socket.emit(EVENTS.driverStatus, payload);
-      if (payload.isOnline) broadcastDriversSnapshot(io);
-    });
+    socket.on(
+      EVENTS.driverOnline,
+      safeSocketHandler(async () => {
+        const payload = await driverService.goOnline(clerkId);
+        socket.emit(EVENTS.driverStatus, payload);
+        if (payload.isOnline) {
+          broadcastDriversSnapshot(io);
+          broadcastNearbyDrivers(io);
+        }
+      }),
+    );
 
-    socket.on(EVENTS.driverOffline, async () => {
-      const payload = await driverService.goOffline(clerkId);
-      socket.emit(EVENTS.driverStatus, payload);
-      broadcastDriversSnapshot(io);
-    });
+    socket.on(
+      EVENTS.driverOffline,
+      safeSocketHandler(async () => {
+        const payload = await driverService.goOffline(clerkId);
+        socket.emit(EVENTS.driverStatus, payload);
+        broadcastDriversSnapshot(io);
+        broadcastNearbyDrivers(io);
+      }),
+    );
 
     socket.on(
       EVENTS.driverLocation,
-      async (location: DriverLocationPayload) => {
+      safeSocketHandler(async (location: DriverLocationPayload) => {
         if (
           !location ||
           typeof location.latitude !== "number" ||
-          typeof location.longitude !== "number" ||
-          Number.isFinite(location.latitude) === false ||
-          Number.isFinite(location.longitude) === false ||
-          location.latitude < -90 ||
-          location.latitude > 90 ||
-          location.longitude < -180 ||
-          location.longitude > 180
+          typeof location.longitude !== "number"
         ) {
           return;
         }
+        try {
+          assertValidCoordinates(location.latitude, location.longitude);
+        } catch {
+          return;
+        }
+        const heading =
+          typeof location.heading === "number" &&
+          location.heading >= 0 &&
+          location.heading <= 360
+            ? location.heading
+            : undefined;
         await driverService.updateLocation(clerkId, {
           latitude: location.latitude,
           longitude: location.longitude,
+          ...(heading !== undefined && { heading }),
         });
         broadcastDriversSnapshot(io);
-      },
+        broadcastNearbyDrivers(io);
+      }),
     );
 
     socket.on(
       EVENTS.driverHeartbeat,
-      async () => {
+      safeSocketHandler(async () => {
         // Liveness only — no coordinate change, so no snapshot broadcast.
         await driverService.heartbeat(clerkId);
-      },
+      }),
     );
 
-    socket.on(EVENTS.adminJoin, async () => {
-      if (role !== "ADMIN") return;
-      await socket.join(ADMINS_ROOM);
-      await sendSnapshotTo(io);
-    });
-
-    socket.on("disconnect", () => {
-      // The stale sweep handles the actual offline flip; disconnecting is just
-      // a hint that the driver may be gone.
-    });
+    socket.on(
+      EVENTS.adminJoin,
+      safeSocketHandler(async () => {
+        if (role !== Role.ADMIN) return;
+        await socket.join(ADMINS_ROOM);
+        await sendSnapshotTo(io);
+      }),
+    );
   });
 
   // Silence is treated as offline: drivers that stop pinging the server are
   // flipped offline so the map never shows ghosts. Broadcast so admins update.
   setInterval(async () => {
-    const cutoff = new Date(Date.now() - STALE_MS);
+    const cutoff = new Date(Date.now() - DRIVER_STALE_MS);
     const result = await driverRepository.markStaleDriversOffline(cutoff);
-    if (result.count > 0) broadcastDriversSnapshot(io);
+    if (result.count > 0) {
+      broadcastDriversSnapshot(io);
+      broadcastNearbyDrivers(io);
+    }
   }, STALE_CHECK_INTERVAL_MS);
 
   return io;
+}
+
+const NEARBY_DRIVERS_THROTTLE_MS = NEARBY_DRIVERS_BROADCAST_MS;
+
+let nearbyDriversTimer: NodeJS.Timeout | null = null;
+let nearbyDriversDirty = false;
+
+async function buildNearbyDriversPayload() {
+  const drivers = await driverRepository.findOnlineFakeDrivers(4);
+  return drivers.map((driver) => ({
+    id: driver.id,
+    firstName: driver.firstName,
+    lastName: driver.lastName,
+    vehicleType: driver.vehicleType,
+    vehicleModel: driver.vehicleModel ?? "",
+    vehicleColor: driver.vehicleColor ?? "",
+    latitude: driver.latitude,
+    longitude: driver.longitude,
+    heading: driver.heading ?? null,
+    rating: null,
+    fare: null,
+    timeMinutes: null,
+    seats: null,
+    carPlate: null,
+    imageUrl: driver.user?.imageUrl ?? null,
+  }));
+}
+
+export function broadcastNearbyDrivers(io: Server) {
+  nearbyDriversDirty = true;
+  if (nearbyDriversTimer) return;
+
+  nearbyDriversTimer = setTimeout(async () => {
+    nearbyDriversTimer = null;
+    if (!nearbyDriversDirty) return;
+    nearbyDriversDirty = false;
+    const payload = await buildNearbyDriversPayload();
+    io.emit("drivers:nearby", payload);
+  }, NEARBY_DRIVERS_THROTTLE_MS);
+}
+
+import { getSocketServer } from "./ride";
+
+export function broadcastNearbyDriversToAll() {
+  const io = getSocketServer();
+  if (io) {
+    broadcastNearbyDrivers(io);
+  }
 }
