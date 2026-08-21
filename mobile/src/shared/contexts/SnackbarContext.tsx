@@ -69,8 +69,8 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    left: 16,
-    right: 16,
+    start: 16,
+    end: 16,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,

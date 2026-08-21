@@ -1,10 +1,7 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useCallback, type ReactNode } from "react";
 import { usePressLock } from "@/shared/hooks/usePressLock";
-
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import { cn } from "@/shared/utils/cn";
 
 type AppButtonProps = {
   title: string;

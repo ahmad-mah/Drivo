@@ -1,6 +1,7 @@
 import { useSignUp } from "@clerk/expo";
 import { useState, useCallback } from "react";
-import { mapClerkError, mapSignUpErrors } from "../data/clerk-error-mapper";
+import { mapSignUpErrors } from "../data/clerk-error-mapper";
+import { runClerk } from "../data/runClerk";
 import type { AuthError } from "../domain/auth-error";
 
 type RegisterParams = {
@@ -23,20 +24,18 @@ export function useSignUpFlow() {
       setIsLoading(true);
       setOperationError(null);
       try {
-        const { error } = await signUp.password({
-          emailAddress: params.email,
-          password: params.password,
-          firstName: params.firstName,
-        });
+        const error = await runClerk(() =>
+          signUp.password({
+            emailAddress: params.email,
+            password: params.password,
+            firstName: params.firstName,
+          }),
+        );
         if (error) {
-          setOperationError(mapClerkError(error));
+          setOperationError(error);
           return false;
         }
-        await signUp.verifications.sendEmailCode();
-        return true;
-      } catch (error) {
-        setOperationError(mapClerkError(error));
-        return false;
+        return (await runClerk(() => signUp.verifications.sendEmailCode())) === null;
       } finally {
         setIsLoading(false);
       }
@@ -49,16 +48,14 @@ export function useSignUpFlow() {
       setIsLoading(true);
       setOperationError(null);
       try {
-        const { error } =
-          await signUp.verifications.verifyEmailCode({ code });
+        const error = await runClerk(() =>
+          signUp.verifications.verifyEmailCode({ code }),
+        );
         if (error) {
-          setOperationError(mapClerkError(error));
+          setOperationError(error);
           return false;
         }
         return signUp.status === "complete";
-      } catch (error) {
-        setOperationError(mapClerkError(error));
-        return false;
       } finally {
         setIsLoading(false);
       }
@@ -69,15 +66,12 @@ export function useSignUpFlow() {
   const finalize = useCallback(async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const { error } = await signUp.finalize();
+      const error = await runClerk(() => signUp.finalize());
       if (error) {
-        setOperationError(mapClerkError(error));
+        setOperationError(error);
         return false;
       }
       return true;
-    } catch (error) {
-      setOperationError(mapClerkError(error));
-      return false;
     } finally {
       setIsLoading(false);
     }
@@ -85,11 +79,8 @@ export function useSignUpFlow() {
 
   const resendCode = useCallback(async () => {
     setOperationError(null);
-    try {
-      await signUp.verifications.sendEmailCode();
-    } catch (error) {
-      setOperationError(mapClerkError(error));
-    }
+    const error = await runClerk(() => signUp.verifications.sendEmailCode());
+    if (error) setOperationError(error);
   }, [signUp]);
 
   return {

@@ -1,7 +1,8 @@
 import { useSignIn } from "@clerk/expo";
 import { useState, useCallback } from "react";
 import { router } from "expo-router";
-import { mapClerkError, mapSignInErrors } from "../data/clerk-error-mapper";
+import { mapSignInErrors } from "../data/clerk-error-mapper";
+import { runClerk } from "../data/runClerk";
 import type { AuthError } from "../domain/auth-error";
 
 type SignInParams = {
@@ -22,32 +23,33 @@ export function useSignInFlow() {
       setIsLoading(true);
       setOperationError(null);
       try {
-        const { error: passwordError } = await signIn.password({
-          emailAddress: params.email,
-          password: params.password,
-        });
+        const passwordError = await runClerk(() =>
+          signIn.password({
+            emailAddress: params.email,
+            password: params.password,
+          }),
+        );
         if (passwordError) {
-          setOperationError(mapClerkError(passwordError));
+          setOperationError(passwordError);
           return false;
         }
 
         if (signIn.status !== "complete") return false;
 
-        const { error: finalizeError } = await signIn.finalize({
-          navigate: ({ session, decorateUrl }) => {
-            if (session?.currentTask) return;
-            router.replace(decorateUrl("/") as any);
-          },
-        });
+        const finalizeError = await runClerk(() =>
+          signIn.finalize({
+            navigate: ({ session, decorateUrl }) => {
+              if (session?.currentTask) return;
+              router.replace(decorateUrl("/") as any);
+            },
+          }),
+        );
         if (finalizeError) {
-          setOperationError(mapClerkError(finalizeError));
+          setOperationError(finalizeError);
           return false;
         }
 
         return true;
-      } catch (error) {
-        setOperationError(mapClerkError(error));
-        return false;
       } finally {
         setIsLoading(false);
       }

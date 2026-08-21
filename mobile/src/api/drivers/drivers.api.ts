@@ -2,6 +2,7 @@ import { apiClient } from "../client";
 import type { ApiResponse } from "../types";
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
 import { VehicleType } from "@/features/drivers/enums/VehicleType";
+import type { NearbyDriver } from "@/features/rides/types/ride.types";
 
 export { DriverApprovalStatus, VehicleType };
 
@@ -69,6 +70,28 @@ export async function updateAvailability(isOnline: boolean) {
 }
 
 /** REST fallback for reporting a position while the app is backgrounded. */
-export async function sendLocation(latitude: number, longitude: number) {
-  await apiClient.post("/api/drivers/location", { latitude, longitude });
+export async function sendLocation(
+  latitude: number,
+  longitude: number,
+  heading?: number,
+) {
+  await apiClient.post("/api/drivers/location", {
+    latitude,
+    longitude,
+    ...(heading !== undefined && { heading }),
+  });
+}
+
+export async function fetchNearbyDrivers(
+  latitude: number,
+  longitude: number,
+  radiusKm = 1,
+): Promise<NearbyDriver[]> {
+  const { data } = await apiClient.get<ApiResponse<NearbyDriver[]>>(
+    "/api/drivers/nearby",
+    {
+      params: { lat: latitude, lng: longitude, radiusKm },
+    },
+  );
+  return data.data;
 }

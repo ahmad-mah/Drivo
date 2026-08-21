@@ -66,9 +66,17 @@ export function mapClerkError(error: unknown): AuthError {
   return { fieldErrors, globalErrors, rawErrors };
 }
 
+type FieldErrorLike = { code: string; message: string; longMessage?: string };
+
+type SignalErrorsLike<F extends string> = {
+  fields: Partial<Record<F, FieldErrorLike | null>>;
+  global?: { code?: string; message: string }[] | null;
+  raw?: unknown[] | null;
+};
+
 function fieldToFieldError(
   field: string,
-  err: { code: string; message: string; longMessage?: string } | null,
+  err: FieldErrorLike | null,
 ): AuthFieldError | null {
   if (!err) return null;
   return {
@@ -79,99 +87,48 @@ function fieldToFieldError(
   };
 }
 
-export function mapSignInErrors(
+function mapSignalErrors<F extends string>(
+  errors: SignalErrorsLike<F> | null | undefined,
+  fieldNames: readonly F[],
+): AuthError | null {
+  if (!errors) return null;
+
+  const fieldErrors: AuthFieldError[] = [];
+  for (const name of fieldNames) {
+    const fieldError = fieldToFieldError(name, errors.fields[name] ?? null);
+    if (fieldError) fieldErrors.push(fieldError);
+  }
+
+  const globalErrors: AuthGlobalError[] = (errors.global ?? []).map((err) => ({
+    code: err.code ?? "unknown",
+    message: err.message,
+  }));
+
+  if (fieldErrors.length === 0 && globalErrors.length === 0) return null;
+
+  return {
+    fieldErrors,
+    globalErrors,
+    rawErrors: errors.raw ?? [],
+  };
+}
+
+export const mapSignInErrors = (
   errors: SignInErrors | undefined | null,
-): AuthError | null {
-  if (!errors) return null;
+): AuthError | null =>
+  mapSignalErrors(errors, ["identifier", "password", "code"]);
 
-  const fieldErrors: AuthFieldError[] = [];
-  const globalErrors: AuthGlobalError[] = [];
-
-  const identifier = fieldToFieldError("identifier", errors.fields.identifier);
-  if (identifier) fieldErrors.push(identifier);
-
-  const password = fieldToFieldError("password", errors.fields.password);
-  if (password) fieldErrors.push(password);
-
-  const code = fieldToFieldError("code", errors.fields.code);
-  if (code) fieldErrors.push(code);
-
-  if (errors.global) {
-    for (const err of errors.global) {
-      globalErrors.push({
-        code: (err as { code?: string }).code ?? "unknown",
-        message: err.message,
-      });
-    }
-  }
-
-  if (fieldErrors.length === 0 && globalErrors.length === 0) return null;
-
-  return {
-    fieldErrors,
-    globalErrors,
-    rawErrors: errors.raw ?? [],
-  };
-}
-
-export function mapSignUpErrors(
+export const mapSignUpErrors = (
   errors: SignUpErrors | undefined | null,
-): AuthError | null {
-  if (!errors) return null;
-
-  const fieldErrors: AuthFieldError[] = [];
-  const globalErrors: AuthGlobalError[] = [];
-
-  const firstName = fieldToFieldError("firstName", errors.fields.firstName);
-  if (firstName) fieldErrors.push(firstName);
-
-  const lastName = fieldToFieldError("lastName", errors.fields.lastName);
-  if (lastName) fieldErrors.push(lastName);
-
-  const emailAddress = fieldToFieldError(
+): AuthError | null =>
+  mapSignalErrors(errors, [
+    "firstName",
+    "lastName",
     "emailAddress",
-    errors.fields.emailAddress,
-  );
-  if (emailAddress) fieldErrors.push(emailAddress);
-
-  const phoneNumber = fieldToFieldError(
     "phoneNumber",
-    errors.fields.phoneNumber,
-  );
-  if (phoneNumber) fieldErrors.push(phoneNumber);
-
-  const password = fieldToFieldError("password", errors.fields.password);
-  if (password) fieldErrors.push(password);
-
-  const username = fieldToFieldError("username", errors.fields.username);
-  if (username) fieldErrors.push(username);
-
-  const code = fieldToFieldError("code", errors.fields.code);
-  if (code) fieldErrors.push(code);
-
-  const captcha = fieldToFieldError("captcha", errors.fields.captcha);
-  if (captcha) fieldErrors.push(captcha);
-
-  const legalAccepted = fieldToFieldError(
+    "password",
+    "username",
+    "code",
+    "captcha",
     "legalAccepted",
-    errors.fields.legalAccepted,
-  );
-  if (legalAccepted) fieldErrors.push(legalAccepted);
-
-  if (errors.global) {
-    for (const err of errors.global) {
-      globalErrors.push({
-        code: (err as { code?: string }).code ?? "unknown",
-        message: err.message,
-      });
-    }
-  }
-
-  if (fieldErrors.length === 0 && globalErrors.length === 0) return null;
-
-  return {
-    fieldErrors,
-    globalErrors,
-    rawErrors: errors.raw ?? [],
-  };
-}
+  ]);

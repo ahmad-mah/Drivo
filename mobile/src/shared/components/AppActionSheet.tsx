@@ -7,7 +7,6 @@ import {
   View,
   Dimensions,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface ActionSheetOption {
   label: string;
@@ -111,8 +110,4 @@ export function AppActionSheet({
       </Pressable>
     </Modal>
   );
-}
-
-export function ActionSheetIcon({ name, size = 24, color = "#666" }: { name: string; size?: number; color?: string }) {
-  return <MaterialCommunityIcons name={name as any} size={size} color={color} />;
 }

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { getCurrentUser, type UserProfile } from "@/api/users/users.api";
+import { toError } from "@/errors";
+import { connectSocket } from "@/shared/services/socket";
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -20,10 +22,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     getCurrentUser()
       .then((profile) => {
-        if (!cancelled) setUser(profile);
+        if (!cancelled) {
+          setUser(profile);
+          void connectSocket();
+        }
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err : new Error("Failed to fetch user"));
+        if (!cancelled) setError(toError(err, "Failed to fetch user"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -41,7 +46,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const profile = await getCurrentUser();
       setUser(profile);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to fetch user"));
+      setError(toError(err, "Failed to fetch user"));
     } finally {
       setLoading(false);
     }
