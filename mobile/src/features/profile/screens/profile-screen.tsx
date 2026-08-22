@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { ProfileInfoForm } from "@/features/profile/components/ProfileInfoForm";
 import { ProfileDriverSection } from "@/features/profile/components/ProfileDriverSection";
-import { ProfileSkeleton } from "@/features/profile/components/ProfileSkeleton";
+import { ProfileSkeleton } from "@/features/profile/skeletons/ProfileSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSignOut } from "@/hooks/useSignOut";
 import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplication";
@@ -20,8 +20,7 @@ export default function ProfileScreen() {
   return (
     <AppSafeArea>
       <ScrollView
-        className="flex-1"
-        style={{ paddingBottom: 0 }}
+        className="flex-1 pb-0"
         // keep bottom content clear of the floating tab bar (height 50 + inset)
         contentContainerStyle={{ paddingBottom: 50 + bottom}}
         showsVerticalScrollIndicator={false}

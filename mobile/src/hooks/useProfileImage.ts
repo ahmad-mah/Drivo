@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useUser } from "@clerk/expo";
 import { updateProfile } from "@/api/users/users.api";
 import { useUserContext } from "@/providers/UserProvider";
+import { getErrorMessage } from "@/errors";
 import {
   requestCameraPermission,
   requestGalleryPermission,
@@ -39,7 +40,7 @@ export function useProfileImage() {
           await refreshUser();
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to update profile photo");
+        setError(getErrorMessage(err, "Failed to update profile photo"));
       } finally {
         setUploading(false);
       }
