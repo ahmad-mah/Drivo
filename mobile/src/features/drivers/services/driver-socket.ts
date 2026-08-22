@@ -3,7 +3,7 @@ import { API_URL } from "@/constants/env";
 import { getAccessToken } from "@/api/token-provider";
 import type { DriverAvailabilityResult } from "@/api/drivers/drivers.api";
 
-export const DRIVER_SOCKET_EVENTS = {
+const DRIVER_SOCKET_EVENTS = {
   online: "driver:online",
   offline: "driver:offline",
   location: "driver:location",
@@ -76,9 +76,9 @@ export function emitGoOffline() {
   socket?.emit(DRIVER_SOCKET_EVENTS.offline);
 }
 
-export function emitLocation(latitude: number, longitude: number) {
+export function emitLocation(latitude: number, longitude: number, heading?: number) {
   if (socket?.connected) {
-    socket.emit(DRIVER_SOCKET_EVENTS.location, { latitude, longitude });
+    socket.emit(DRIVER_SOCKET_EVENTS.location, { latitude, longitude, heading });
   }
 }
 

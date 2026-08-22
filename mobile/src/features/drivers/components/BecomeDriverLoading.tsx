@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { AppSafeArea, AppGap, Shimmer } from "@/shared/components";
-import { DriverFormSkeleton } from "./DriverFormSkeleton";
+import { DriverFormSkeleton } from "../skeletons/DriverFormSkeleton";
 
 export function BecomeDriverLoading() {
   return (

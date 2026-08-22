@@ -42,12 +42,12 @@ TaskManager?.defineTask(DRIVER_LOCATION_TASK, async ({ data, error }) => {
   if (!coords) return;
 
   if (isDriverSocketConnected()) {
-    emitLocation(coords.latitude, coords.longitude);
+    emitLocation(coords.latitude, coords.longitude, coords.heading ?? undefined);
     return;
   }
 
   try {
-    await sendLocation(coords.latitude, coords.longitude);
+    await sendLocation(coords.latitude, coords.longitude, coords.heading ?? undefined);
   } catch (err) {
     // A 401 here (e.g. token provider not registered after a process restart)
     // silently drops visibility — the stale sweep will then flip the driver

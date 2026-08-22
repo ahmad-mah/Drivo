@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { AppImage } from "@/shared/components";
+import { vehicleIconFor } from "@/shared/constants/vehicleIcons";
 import { VehicleType } from "@/features/drivers/enums/VehicleType";
 
 type Props = {
@@ -8,21 +9,11 @@ type Props = {
   onChange: (value: VehicleType) => void;
 };
 
-const vehicleIcons: Record<VehicleType, string> = {
-  [VehicleType.Sedan]: "🚗",
-  [VehicleType.SUV]: "🚙",
-  [VehicleType.Hatchback]: "🚘",
-  [VehicleType.Van]: "🚐",
-  [VehicleType.Truck]: "🛻",
-  [VehicleType.Motorcycle]: "🏍️",
-  [VehicleType.Other]: "📦",
-};
-
 export function VehicleTypePicker({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [anim] = useState(() => new Animated.Value(0));
-  const selected = value ? vehicleIcons[value] ?? "🚗" : null;
+  const selected = value ? vehicleIconFor(value) : null;
 
   const openList = () => {
     setMounted(true);
@@ -112,7 +103,7 @@ export function VehicleTypePicker({ value, onChange }: Props) {
                   selectedOption ? "bg-primary-100" : ""
                 }`}
               >
-                <Text className="text-lg">{vehicleIcons[type] ?? "🚗"}</Text>
+                <Text className="text-lg">{vehicleIconFor(type)}</Text>
                 <Text
                   className={`flex-1 text-base font-Jakarta-Medium ${
                     selectedOption ? "text-primary-500" : "text-secondary-900"

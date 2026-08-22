@@ -43,22 +43,6 @@ export async function requestDriverLocationPermissions(): Promise<DriverLocation
   };
 }
 
-/** Checks current permission state without prompting. */
-export async function hasDriverLocationPermissions() {
-  const foreground = await Location.getForegroundPermissionsAsync();
-
-  if (Platform.OS === "android") {
-    return { foreground: foreground.status === Location.PermissionStatus.GRANTED, background: true };
-  }
-
-  const background = await Location.getBackgroundPermissionsAsync();
-
-  return {
-    foreground: foreground.status === Location.PermissionStatus.GRANTED,
-    background: background.status === Location.PermissionStatus.GRANTED,
-  };
-}
-
 /** Whether the device's location services (GPS master switch) are on.
  *  Separate from app permission — the user can revoke it from quick settings
  *  while the app permission is still granted. */

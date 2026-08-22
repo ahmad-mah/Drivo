@@ -7,7 +7,7 @@ import { hasCompleteProfile, getMissingProfileFields } from "@/shared/utils/prof
 import { useDriverApplication } from "../hooks/useDriverApplication";
 import { DriverDetailsCard } from "../components/DriverDetailsCard";
 import { DriverStatusCard } from "../components/DriverStatusCard";
-import { DriverProfileSkeleton } from "../components/DriverProfileSkeleton";
+import { DriverProfileSkeleton } from "../skeletons/DriverProfileSkeleton";
 import { goBack, goToBecomeDriver } from "@/shared/services/navigation";
 import {
   AppButton,

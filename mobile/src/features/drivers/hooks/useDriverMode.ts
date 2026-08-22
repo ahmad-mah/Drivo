@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateAvailability } from "@/api/drivers/drivers.api";
+import { getErrorMessage } from "@/errors";
 import { useConnectivity } from "@/hooks/useConnectivity";
 import {
   connectDriverSocket,
@@ -231,7 +232,9 @@ export function useDriverMode() {
       setOnline(false);
       setBusy(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update availability");
+      setError(
+        getErrorMessage(err, "Could not update availability"),
+      );
       setBusy(false);
     }
   }, [busy, isOnline, connectivityBlocked, connectivityStatus, setOnline]);
