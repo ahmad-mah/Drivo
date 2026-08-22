@@ -11,11 +11,14 @@ import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplicat
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
 import { goToDriverProfile } from "@/shared/services/navigation";
 import { AppSafeArea, AppGap } from "@/shared/components";
+import { HomeScreenSkeleton } from "../skeletons/HomeScreenSkeleton";
 
 export default function HomeScreen() {
-  const { user } = useCurrentUser();
+  const { user, loading: userLoading } = useCurrentUser();
   const { handleSignOut } = useSignOut();
-  const { application } = useDriverApplication();
+  const { application, loading: applicationLoading } = useDriverApplication();
+
+  if (userLoading || applicationLoading) return <HomeScreenSkeleton />;
 
   return (
     <AppSafeArea>

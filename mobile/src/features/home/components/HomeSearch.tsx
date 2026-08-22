@@ -12,10 +12,7 @@ export function HomeSearch() {
         className="size-7"
         source={require("@/assets/icons/search.png")}
       />
-      <Text
-        className="font-Jakarta text-base text-[#ADADAD]"
-        style={{ fontSize: 15 }}
-      >
+      <Text className="font-Jakarta text-base text-[#ADADAD] text-[15px]">
         Where do you want to go?
       </Text>
     </Pressable>

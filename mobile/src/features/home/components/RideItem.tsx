@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { AppImage } from "@/shared/components";
-import type { Ride } from "../types/ride.types";
+import { formatFare } from "@/shared/utils/format";
+import type { Ride } from "@/features/rides/types/ride.types";
 
 export function RideItem({ item }: { item: Ride }) {
   return (
@@ -13,15 +14,15 @@ export function RideItem({ item }: { item: Ride }) {
       </View>
       <View className="flex-1 gap-0.5">
         <Text className="font-Jakarta-SemiBold text-base" numberOfLines={1}>
-          {item.origin_address} → {item.destination_address}
+          {item.originAddress} → {item.destinationAddress}
         </Text>
         <Text className="font-Jakarta text-sm text-secondary-400">
-          {item.driver.first_name} {item.driver.last_name} · {item.ride_time}{" "}
-          min
+          {item.driverFirstName} {item.driverLastName} ·{" "}
+          {item.rideTimeMinutes} min
         </Text>
       </View>
       <Text className="font-Jakarta-Bold text-base">
-        ${parseInt(item.fare_price).toLocaleString()}
+        ${formatFare(item.fare, 0)}
       </Text>
     </View>
   );
