@@ -33,7 +33,7 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <AppReadyProvider fontsLoaded seenOnboarding={seenOnboarding}>
+    <AppReadyProvider seenOnboarding={seenOnboarding}>
       <ConnectivityProvider>
         <SnackbarProvider>
           <AppContent />

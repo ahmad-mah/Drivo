@@ -22,6 +22,7 @@ export default function RootGroupLayout() {
           name="ride-request"
           options={{ animation: "slide_from_bottom" }}
         />
+        <Stack.Screen name="ride-status" options={{ animation: "fade" }} />
       </Stack>
     </UserProvider>
   );
