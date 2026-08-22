@@ -37,7 +37,7 @@
 
 ## Overview
 
-Drivo is an Uber-like ride-hailing MVP. It combines a driver-delivery mode (sign up → get approved → go online → stream live location) with a live admin map that shows every online driver in real time.
+Drivo is an Uber-like ride-hailing MVP. It combines a driver-delivery mode (sign up → get approved → go online → stream live location) with a live admin map that shows every online driver in real time — plus a full rider flow: pick destination from Google autocomplete, see nearby cars streaming over WebSocket, request a ride and get matched with a driver.
 
 ```mermaid
 flowchart TB
@@ -70,7 +70,19 @@ flowchart TB
     B -->|JWT| C
 ```
 
-**Core flow:** a user becomes a driver → the admin approves the application → the driver goes online from the mobile app → location pings stream over socket.io → the admin's live map renders every online driver in near-real time.
+**Core flows:**
+- **Driver flow:** a user becomes a driver → the admin approves the application → the driver goes online from the mobile app → location pings stream over socket.io → the admin's live map renders every online driver in near-real time.
+- **Rider flow:** pick origin/destination (Google Places autocomplete) → see nearby cars on the map in real time → request a ride → backend matches a driver → rider sees the assigned driver card live.
+
+### Progress
+
+| Phase | Scope | Status |
+|-------|-------|--------|
+| 1 | Auth, onboarding, users, profile, driver applications + admin approval | ✅ Done |
+| 2 | Driver mode: availability, live location streaming, stale sweep, admin live map | ✅ Done |
+| 3 | Ride requests: fare estimate, TTL expiry, cancel, ride history | ✅ Done |
+| 4 | Realtime riders: socket-based nearby drivers, fake-driver matching, driver-assigned UI | ✅ Done |
+| 5 | **Day 7 — Driver requests & matching**: real drivers receive offers, accept/reject, per-offer timeouts, dispatch escalation | 🚧 In progress |
 
 ---
 
@@ -96,7 +108,7 @@ flowchart TB
 | Branch | Contains | Status |
 |--------|----------|--------|
 | `main` | Stable, reviewed milestones | ✅ Live |
-| `dev` | Active development (Phase 2/3: driver mode + live map complete) | ✅ Active |
+| `dev` | Active development (ride requests + realtime matching complete; driver-offer dispatch in progress) | ✅ Active |
 
 Feature branches are cut from `dev` and deleted after merge.
 
@@ -167,6 +179,13 @@ src/
 │   │   └── events/         # user-created / user-updated / user-deleted
 │   ├── drivers/            # Driver applications, availability, live location
 │   │   ├── driver.routes.ts / controller / service / repository / types
+│   │   └── fake-drivers.simulator.ts  # Simulated fleet seeding for the map
+│   ├── rides/               # Ride requests, matching, expiry
+│   │   ├── ride.routes.ts / controller / service / repository / validation
+│   │   ├── ride.notifications.ts      # rider socket pushes (driver:assigned)
+│   │   └── fake-driver.simulator.ts   # auto-assigns fake driver to PENDING rides
+│   ├── places/              # Google Places autocomplete proxy
+│   ├── directions/          # Google Routes distance/duration proxy
 │   └── admin/
 │       └── drivers/        # Admin driver management + live feed endpoint
 ├── sockets/                # Socket.io driver availability & location streaming
@@ -212,6 +231,23 @@ Base URL: `http://localhost:3000/api`
 | PUT | `/drivers/my-application` | Clerk | Update application |
 | PUT | `/drivers/availability` | Clerk | Go online/offline (`{ isOnline: boolean }`) |
 | POST | `/drivers/location` | Clerk | REST fallback for live location |
+| GET | `/drivers/nearby?lat&lng&radiusKm` | Clerk | Online drivers around a point (seeds fake fleet) |
+
+**Rides**
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/rides` | Clerk | Request a ride (fare computed, TTL set) |
+| GET | `/rides/me/active` | Clerk | Current active ride (poll target for searching UI) |
+| DELETE | `/rides/:id/cancel` | Clerk | Cancel a pending ride |
+| GET | `/rides/recent` | Clerk | Recent ride history |
+
+**Places & Directions**
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/places/autocomplete?input&lat&lng` | Clerk | Google Places autocomplete proxy |
+| GET | `/directions?originLat&originLng&destLat&destLng` | Clerk | Route distance/duration (Google Routes) |
 
 **Admin drivers**
 
@@ -269,7 +305,9 @@ src/
 │       ├── onboarding/           # 3-slide carousel
 │       ├── (auth)/               # Welcome → Sign In / Sign Up
 │       └── (root)/               # Authenticated tab layout
-│           └── driver-mode.tsx   # Driver live-mode screen
+│           ├── driver-mode.tsx   # Driver live-mode screen
+│           ├── ride-request.tsx  # Rider: pick destination + request ride
+│           └── ride-status.tsx   # Rider: searching → assigned driver card
 ├── features/
 │   ├── auth/                     # ✅ Complete (screens, hooks, validation)
 │   ├── onboarding/               # ✅ Complete
@@ -279,6 +317,11 @@ src/
 │   │   ├── hooks/useDriverMode.ts
 │   │   ├── screens/              # driver-mode-screen, driver-profile-screen, ...
 │   │   └── api/drivers.api.ts
+│   ├── rides/                    # ✅ Complete (rider side)
+│   │   ├── hooks/                # useRideRequest, useRideSocket, useNearbyDrivers, ...
+│   │   ├── components/           # request form/map, searching card, assigned card
+│   │   ├── enums/RideStatus.ts
+│   │   └── types/ride.types.ts
 │   ├── history/                  # ⬜ Placeholder
 │   ├── chat/                     # ⬜ Placeholder
 │   └── profile/                  # ✅ Profile + driver section
@@ -302,6 +345,18 @@ Driver Profile ("Start Driving")
 ```
 
 A 15s ping timeout on the backend marks the driver stale → offline → the admin map reflects it automatically.
+
+#### Rider Ride Request Flow
+
+```
+Home map (nearby cars stream via drivers:nearby socket)
+  → pick destination (Places autocomplete) + confirm origin
+  → POST /rides            # fare from Routes API (haversine fallback), TTL set
+  → searching card         # GET /rides/me/active poll + ride:assigned socket
+  → fake-driver simulator assigns nearest car (~2.5s)
+  → PENDING → ACCEPTED     # atomic, race-safe vs cancel/expiry
+  → driver info card       # name, vehicle, plate, ETA, fare
+```
 
 #### Environment Variables
 
@@ -385,6 +440,11 @@ Socket.io server at `http://localhost:3000` — all drivers authenticate with th
 | `driver:status` | server → driver | `{ isOnline: boolean, error? }` | ACK/confirm the online transition |
 | `admin:join` | admin → server | — | Subscribes the admin to `drivers:locations` |
 | `drivers:locations` | server → admin | `LiveDriver[]` | Full snapshot broadcast (1s throttle) |
+| `drivers:nearby` | server → rider | `NearbyDriver[]` | Online cars around the rider (throttled broadcast) |
+| `ride:request` | server → rider | `{ rideId }` | Confirms a ride request was created |
+| `ride:assigned` / `driver:assigned` | server → rider | ride + driver payload | Fake matcher accepted; searching card transitions to driver info |
+
+**Ride matching:** every `PENDING` ride is watched by the fake-driver simulator — after ~2.5s the nearest simulated car within 1 km is atomically assigned (`PENDING → ACCEPTED`, guarded against cancel/expiry races) and pushed to the rider's socket. Rides that are never assigned expire via the TTL sweep.
 
 **Stale detection:** no `driver:location` ping for 15s → backend marks the driver offline (checked every 5s) → next snapshot excludes them.
 
