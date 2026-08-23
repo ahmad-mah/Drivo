@@ -82,7 +82,8 @@ flowchart TB
 | 2 | Driver mode: availability, live location streaming, stale sweep, admin live map | ✅ Done |
 | 3 | Ride requests: fare estimate, TTL expiry, cancel, ride history | ✅ Done |
 | 4 | Realtime riders: socket-based nearby drivers, fake-driver matching, driver-assigned UI | ✅ Done |
-| 5 | **Day 7 — Driver requests & matching**: real drivers receive offers, accept/reject, per-offer timeouts, dispatch escalation | 🚧 In progress |
+| 5 | **Day 7 — Driver requests & matching**: real drivers receive offers, accept/reject, per-offer timeouts, dispatch escalation | ✅ Done |
+| 6 | UX hardening: socket-only nearby drivers, offline states, map-pin picking, keyboard/safe-area fixes | ✅ Done |
 
 ---
 
@@ -108,7 +109,7 @@ flowchart TB
 | Branch | Contains | Status |
 |--------|----------|--------|
 | `main` | Stable, reviewed milestones | ✅ Live |
-| `dev` | Active development (ride requests + realtime matching complete; driver-offer dispatch in progress) | ✅ Active |
+| `dev` | Active development (real-driver dispatch + matching complete) | ✅ Active |
 
 Feature branches are cut from `dev` and deleted after merge.
 
@@ -239,8 +240,10 @@ Base URL: `http://localhost:3000/api`
 |--------|------|------|-------------|
 | POST | `/rides` | Clerk | Request a ride (fare computed, TTL set) |
 | GET | `/rides/me/active` | Clerk | Current active ride (poll target for searching UI) |
-| DELETE | `/rides/:id/cancel` | Clerk | Cancel a pending ride |
+| DELETE | `/rides/:id/cancel` | Clerk | Cancel a pending **or accepted** ride |
 | GET | `/rides/recent` | Clerk | Recent ride history |
+| POST | `/rides/:id/accept` | Clerk (driver) | Accept a dispatched offer; atomic claim + expires sibling offers |
+| POST | `/rides/:id/reject` | Clerk (driver) | Decline an offer; dispatcher escalates to next candidate |
 
 **Places & Directions**
 
@@ -274,6 +277,7 @@ Base URL: `http://localhost:3000/api`
 | `STRIPE_SECRET_KEY` | No | Payments (reserved) |
 | `STRIPE_WEBHOOK_SECRET` | No | Payments webhooks (reserved) |
 | `GOOGLE_MAPS_API_KEY` | No | Maps service (reserved) |
+| `DISABLE_FAKE_DRIVERS` | No (default `false`) | Disables the simulated fleet + fake matcher for real-driver testing |
 
 #### Getting Started
 
@@ -345,6 +349,8 @@ Driver Profile ("Start Driving")
 ```
 
 A 15s ping timeout on the backend marks the driver stale → offline → the admin map reflects it automatically.
+
+While online, dispatched ride requests arrive as an incoming card (pickup/dropoff, fare, ETA, live countdown) with **Accept / Reject** — accept atomically claims the ride and notifies the rider; reject or a 20-second timeout escalates the offer to the next-nearest driver. The card auto-dismisses on expiry, going offline, or rider cancel.
 
 #### Rider Ride Request Flow
 
@@ -440,11 +446,13 @@ Socket.io server at `http://localhost:3000` — all drivers authenticate with th
 | `driver:status` | server → driver | `{ isOnline: boolean, error? }` | ACK/confirm the online transition |
 | `admin:join` | admin → server | — | Subscribes the admin to `drivers:locations` |
 | `drivers:locations` | server → admin | `LiveDriver[]` | Full snapshot broadcast (1s throttle) |
-| `drivers:nearby` | server → rider | `NearbyDriver[]` | Online cars around the rider (throttled broadcast) |
+| `drivers:nearby` | server → rider | `NearbyDriver[]` | Online cars around the rider (throttled broadcast + connect-time snapshot) |
 | `ride:request` | server → rider | `{ rideId }` | Confirms a ride request was created |
-| `ride:assigned` / `driver:assigned` | server → rider | ride + driver payload | Fake matcher accepted; searching card transitions to driver info |
+| `ride:new-request` | server → driver | offer payload | Dispatches a ride to the nearest online driver (20s response window) |
+| `ride:expired` | server → rider | `{ rideId }` | Authoritative expiry signal from the TTL sweep |
+| `ride:assigned` / `driver:assigned` | server → rider | ride + driver payload | Driver accepted; searching card transitions to driver info |
 
-**Ride matching:** every `PENDING` ride is watched by the fake-driver simulator — after ~2.5s the nearest simulated car within 1 km is atomically assigned (`PENDING → ACCEPTED`, guarded against cancel/expiry races) and pushed to the rider's socket. Rides that are never assigned expire via the TTL sweep.
+**Ride matching:** every `PENDING` ride is watched by the dispatcher — it offers the nearest online **real** driver via `ride:new-request`, escalates through rejected/timed-out candidates nearest-first, and pushes `driver:assigned` to the rider on accept (atomic, race-safe against cancel/expiry). Rides no real driver can reach fall back to the fake fleet in development, gated by `DISABLE_FAKE_DRIVERS`. Countdowns are server-authoritative: rides carry relative `expiresInSeconds` and offers relative windows — clients never compare absolute epochs against device clocks.
 
 **Stale detection:** no `driver:location` ping for 15s → backend marks the driver offline (checked every 5s) → next snapshot excludes them.
 
