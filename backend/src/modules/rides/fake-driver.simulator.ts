@@ -41,7 +41,9 @@ export function startFakeDriverMatchingSimulator() {
   setInterval(async () => {
     try {
       const pendingRides = await prisma.ride.findMany({
-        where: { status: RideStatus.PENDING },
+        // Rides that reached a real driver via the dispatcher are owned by
+        // real matching — the fake fleet must never steal them.
+        where: { status: RideStatus.PENDING, offers: { none: {} } },
         include: { user: { select: { id: true, clerkId: true } } },
       });
 

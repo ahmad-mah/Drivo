@@ -42,3 +42,23 @@ export const getRecent = asyncHandler(async (req: Request, res: Response) => {
   const rides = await rideService.getRecentRides(userId!);
   res.json({ success: true, data: rides });
 });
+
+/**
+ * POST /api/rides/:id/accept
+ * Driver accepts a dispatched request; 409 when the offer or ride already resolved.
+ */
+export const accept = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+  const ride = await rideService.acceptRideRequest(userId!, req.params.id as string);
+  res.json({ success: true, data: ride });
+});
+
+/**
+ * POST /api/rides/:id/reject
+ * Driver declines a dispatched request; the dispatcher escalates to the next candidate.
+ */
+export const reject = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+  await rideService.rejectRideRequest(userId!, req.params.id as string);
+  res.json({ success: true });
+});

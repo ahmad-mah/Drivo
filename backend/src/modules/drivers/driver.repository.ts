@@ -321,6 +321,64 @@ export async function findNearbyDrivers(
 }
 
 /**
+ * Real (non-simulated) dispatch candidates: online, approved, fresh, inside
+ * the bounding box around a ride origin. Returns the nearest-first list with
+ * each driver's clerkId so the dispatcher can address their socket room.
+ */
+export async function findDispatchCandidates(
+  latitude: number,
+  longitude: number,
+  radiusKm: number,
+) {
+  const latDeg = radiusKm / 111;
+  const lngDeg = Math.min(
+    180,
+    radiusKm / (111 * Math.max(Math.cos((latitude * Math.PI) / 180), 1e-6)),
+  );
+  const freshSince = new Date(Date.now() - DRIVER_STALE_MS);
+
+  const candidates = await prisma.driverProfile.findMany({
+    where: {
+      isOnline: true,
+      approvalStatus: ApprovalStatus.APPROVED,
+      latitude: { not: null, gte: latitude - latDeg, lte: latitude + latDeg },
+      longitude: {
+        not: null,
+        gte: longitude - lngDeg,
+        lte: longitude + lngDeg,
+      },
+      lastSeenAt: { gte: freshSince },
+      user: { clerkId: { not: { startsWith: FAKE_CLERK_PREFIX } } },
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      vehicleType: true,
+      vehicleModel: true,
+      vehicleColor: true,
+      vehiclePlate: true,
+      latitude: true,
+      longitude: true,
+      heading: true,
+      user: { select: { clerkId: true, imageUrl: true } },
+    },
+  });
+
+  return candidates
+    .filter(
+      (driver): driver is typeof driver & { latitude: number; longitude: number } =>
+        driver.latitude !== null && driver.longitude !== null,
+    )
+    .map((driver) => ({
+      ...driver,
+      distanceKm: haversineKm(latitude, longitude, driver.latitude, driver.longitude),
+    }))
+    .filter((driver) => driver.distanceKm <= radiusKm)
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+}
+
+/**
  * Flips drivers offline whose last location ping is older than `before`.
  * Treats silence as offline — the driver's device is not trustworthy here
  * (app killed, connection lost), so the server makes the call.

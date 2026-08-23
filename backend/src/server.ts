@@ -6,13 +6,19 @@ import { initSocketServer } from "./sockets";
 import * as rideService from "./modules/rides/ride.service";
 import { startFakeDriversSimulator } from "./modules/drivers/fake-drivers.simulator";
 import { startFakeDriverMatchingSimulator } from "./modules/rides/fake-driver.simulator";
+import { startRideDispatcher } from "./modules/rides/ride-dispatcher";
 
 await connectDatabase();
 
 const server = http.createServer(app);
 initSocketServer(server);
-startFakeDriversSimulator();
-startFakeDriverMatchingSimulator();
+// The simulated fleet is env-gated so real-device testing gets a clean map
+// and dispatch; flipping DISABLE_FAKE_DRIVERS restores the old behavior.
+if (!env.DISABLE_FAKE_DRIVERS) {
+  startFakeDriversSimulator();
+  startFakeDriverMatchingSimulator();
+}
+startRideDispatcher();
 
 setInterval(() => {
   void rideService.expireOverdueRides();

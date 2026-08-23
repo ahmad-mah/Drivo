@@ -48,5 +48,11 @@ export interface RideResponse {
   driverLastName: string | null;
   nearbyDrivers: number;
   expiresAt: string;
+  /**
+   * Seconds until expiry measured from the server's clock at response time.
+   * Clients must build their countdown from this relative value — comparing
+   * the absolute `expiresAt` against a device clock breaks under skew.
+   */
+  expiresInSeconds: number;
   createdAt: string;
 }

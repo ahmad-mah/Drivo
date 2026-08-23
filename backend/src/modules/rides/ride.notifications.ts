@@ -1,5 +1,26 @@
 import { getSocketServer } from "../../sockets/ride";
 
+/** Ride summary pushed to a driver when they are dispatched a request. */
+export interface IncomingRideRequest {
+  rideId: string;
+  originAddress: string;
+  originLatitude: number;
+  originLongitude: number;
+  destinationAddress: string;
+  destinationLatitude: number;
+  destinationLongitude: number;
+  tripDistanceKm: number;
+  fare: number;
+  currency: string;
+  /** Estimated minutes for the driver to reach the pickup point. */
+  etaMinutes: number;
+  /**
+   * Response window in seconds, relative to receipt. Clients must derive
+   * their deadline locally — an absolute epoch breaks under device clock skew.
+   */
+  respondWithinSeconds: number;
+}
+
 export async function notifyRideRequested(
   clerkId: string,
   rideId: string,
@@ -8,6 +29,22 @@ export async function notifyRideRequested(
   const io = getSocketServer();
   if (!io) return;
   io.to(clerkId).emit("ride:requested", { rideId, nearbyDriversCount });
+}
+
+/** Authoritative expiry signal — riders must not predict expiry from their own clock. */
+export async function notifyRideExpired(clerkId: string, rideId: string) {
+  const io = getSocketServer();
+  if (!io) return;
+  io.to(clerkId).emit("ride:expired", { rideId });
+}
+
+export async function notifyNewRideRequest(
+  clerkId: string,
+  payload: IncomingRideRequest,
+) {
+  const io = getSocketServer();
+  if (!io) return;
+  io.to(clerkId).emit("ride:new-request", payload);
 }
 
 export async function notifyDriverAssigned(

@@ -8,6 +8,15 @@ enum RideStatus {
   @@map("ride_status")
 }
 
+enum RideOfferStatus {
+  OFFERED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+
+  @@map("ride_offer_status")
+}
+
 model Ride {
   id                   String        @id @default(cuid())
   userId               String        @map("user_id")
@@ -28,6 +37,7 @@ model Ride {
   driverFirstName      String?       @map("driver_first_name")
   driverLastName       String?       @map("driver_last_name")
   nearbyDrivers        Int           @default(0) @map("nearby_drivers")
+  offers               RideOffer[]
   expiresAt            DateTime      @map("expires_at")
   cancelledAt          DateTime?     @map("cancelled_at")
   completedAt          DateTime?     @map("completed_at")
@@ -37,4 +47,24 @@ model Ride {
   @@index([userId, status, createdAt])
   @@index([status, expiresAt])
   @@map("rides")
+}
+
+/// One dispatch attempt of a ride to a driver. A ride escalates through
+/// offers nearest-first; the first ACCEPTED offer wins and every other
+/// OFFERED offer is expired atomically in the same transaction.
+model RideOffer {
+  id          String          @id @default(cuid())
+  rideId      String          @map("ride_id")
+  ride        Ride            @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  driverId    String          @map("driver_id")
+  driver      DriverProfile   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  status      RideOfferStatus @default(OFFERED) @map("status")
+  distanceKm  Float           @map("distance_km")
+  offeredAt   DateTime        @default(now()) @map("offered_at")
+  respondedAt DateTime?       @map("responded_at")
+
+  @@unique([rideId, driverId])
+  @@index([driverId, status])
+  @@index([rideId, status])
+  @@map("ride_offers")
 }

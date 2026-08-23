@@ -5,12 +5,16 @@ import {
   RIDE_TTL_MS,
 } from "../../config";
 import { ConflictError } from "../../errors/ConflictError";
+import { ForbiddenError } from "../../errors/ForbiddenError";
 import { NotFoundError } from "../../errors/NotFoundError";
 import { requireUserByClerkId } from "../../shared/require-user";
+import { ApprovalStatus } from "@prisma/client";
 import * as directionsService from "../directions/directions.service";
 import * as driverRepository from "../drivers/driver.repository";
 import * as rideRepository from "./ride.repository";
-import { notifyDriverAssigned } from "./ride.notifications";
+import * as rideOfferRepository from "./ride-offer.repository";
+import { etaMinutesForDistanceKm } from "./dispatch.utils";
+import { notifyDriverAssigned, notifyRideExpired } from "./ride.notifications";
 import type { AssignedDriverDto, RequestRideDto } from "./ride.types";
 import type { RideResponse } from "./ride.types";
 import { RideStatus, type Ride } from "@prisma/client";
@@ -49,6 +53,10 @@ function toResponse(ride: Ride): RideResponse {
     driverLastName: ride.driverLastName,
     nearbyDrivers: ride.nearbyDrivers,
     expiresAt: ride.expiresAt.toISOString(),
+    expiresInSeconds: Math.max(
+      0,
+      Math.round((ride.expiresAt.getTime() - Date.now()) / 1000),
+    ),
     createdAt: ride.createdAt.toISOString(),
   };
 }
@@ -186,9 +194,9 @@ export async function cancelRide(
 ): Promise<RideResponse> {
   const user = await requireUserByClerkId(clerkId);
 
-  const updated = await rideRepository.cancelPending(rideId, user.id);
+  const updated = await rideRepository.cancelActive(rideId, user.id);
   if (updated.count === 0) {
-    throw new ConflictError("Ride is no longer pending");
+    throw new ConflictError("Ride can no longer be cancelled");
   }
 
   // The ride was just cancelled above; the re-read builds the response. A
@@ -209,5 +217,92 @@ export async function getRecentRides(
 
 /** TTL sweep entry point, driven by the interval started in server.ts. */
 export async function expireOverdueRides() {
-  return rideRepository.expireOverdue(new Date());
+  const expired = await rideRepository.expireOverdue(new Date());
+  await Promise.all(
+    expired.map((ride) => notifyRideExpired(ride.user.clerkId, ride.id)),
+  );
+}
+
+/**
+ * Resolves the driver profile behind the caller, enforcing that the user is
+ * actually an approved driver before any ride-offer action.
+ */
+async function requireApprovedDriver(clerkId: string) {
+  const user = await requireUserByClerkId(clerkId);
+  const profile = await driverRepository.findByUserId(user.id);
+  if (!profile || profile.approvalStatus !== ApprovalStatus.APPROVED) {
+    throw new ForbiddenError("Only approved drivers can respond to ride requests");
+  }
+  return profile;
+}
+
+/**
+ * Driver-side PENDING → ACCEPTED transition: the accepting driver claims the
+ * ride inside one transaction with their OFFERED offer (see
+ * `rideOfferRepository.acceptOffer`), then the rider's socket is pushed so
+ * the searching card flips to the driver info card.
+ */
+export async function acceptRideRequest(
+  clerkId: string,
+  rideId: string,
+): Promise<RideResponse> {
+  const profile = await requireApprovedDriver(clerkId);
+
+  const ride = await rideRepository.findByIdWithRider(rideId);
+  if (!ride) throw new NotFoundError("Ride not found");
+
+  const offer = await rideOfferRepository.findByRideAndDriver(
+    ride.id,
+    profile.id,
+  );
+  if (!offer) throw new NotFoundError("No ride request was sent to you");
+
+  let updated: Ride | null;
+  try {
+    updated = await rideOfferRepository.acceptOffer(ride.id, profile.id, ride.userId, {
+      driverFirstName: profile.firstName,
+      driverLastName: profile.lastName,
+    });
+  } catch {
+    // The transaction rolled back the offer acceptance along with the failed
+    // ride claim — the driver's offer stays untouched for a clean retry.
+    throw new ConflictError("Ride is no longer pending");
+  }
+  if (!updated) {
+    throw new ConflictError("Offer already responded or expired");
+  }
+
+  await notifyDriverAssigned(ride.user.clerkId, updated.id, {
+    id: profile.id,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    vehicleType: profile.vehicleType,
+    vehicleModel: profile.vehicleModel,
+    vehicleColor: profile.vehicleColor,
+    latitude: profile.latitude ?? ride.originLatitude,
+    longitude: profile.longitude ?? ride.originLongitude,
+    heading: profile.heading ?? undefined,
+    fare: Number(updated.fare),
+    timeMinutes: etaMinutesForDistanceKm(offer.distanceKm),
+    carPlate: profile.vehiclePlate,
+    imageUrl: undefined,
+  });
+
+  return toResponse(updated);
+}
+
+/**
+ * Driver-side rejection: the offer is flipped REJECTED and the dispatcher's
+ * next tick escalates the still-pending ride to the next-nearest candidate.
+ */
+export async function rejectRideRequest(clerkId: string, rideId: string) {
+  const profile = await requireApprovedDriver(clerkId);
+
+  const ride = await rideRepository.findByIdWithRider(rideId);
+  if (!ride) throw new NotFoundError("Ride not found");
+
+  const rejected = await rideOfferRepository.rejectOffer(ride.id, profile.id);
+  if (rejected.count === 0) {
+    throw new ConflictError("Offer already responded or expired");
+  }
 }

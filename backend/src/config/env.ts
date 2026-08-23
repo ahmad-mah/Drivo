@@ -13,6 +13,12 @@ const envSchema = z.object({
   GOOGLE_MAPS_API_KEY: z.string().optional(),
   GOOGLE_ROUTES_API_KEY: z.string().optional(),
   DRIVERS_NEARBY_BROADCAST_MS: z.coerce.number().int().positive().default(2000),
+  // Kill switch for the simulated fleet (server.ts simulators, rider-map
+  // seeding, nearby broadcast). Strict "true"/"false" — z.coerce.boolean()
+  // would treat the string "false" as true.
+  DISABLE_FAKE_DRIVERS: z
+    .preprocess((v) => v === true || v === "true", z.boolean())
+    .default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);

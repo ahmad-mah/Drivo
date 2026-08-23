@@ -1,6 +1,7 @@
 import type { Server as HttpServer } from "node:http";
 import { Server } from "socket.io";
 import { Role } from "@prisma/client";
+import { env } from "../config";
 import {
   DRIVER_STALE_MS,
   STALE_CHECK_INTERVAL_MS,
@@ -60,6 +61,13 @@ export function initSocketServer(httpServer: HttpServer) {
     const { clerkId, role } = socket.data.user;
 
     socket.join(clerkId);
+
+    // Connect-time snapshot: broadcasts only fire on driver changes, so a
+    // freshly opened rider app would otherwise stare at an empty map until
+    // the next driver movement.
+    void buildNearbyDriversPayload().then((payload) => {
+      if (socket.connected) socket.emit("drivers:nearby", payload);
+    });
 
     socket.on(
       EVENTS.driverOnline,
@@ -152,7 +160,11 @@ let nearbyDriversTimer: NodeJS.Timeout | null = null;
 let nearbyDriversDirty = false;
 
 async function buildNearbyDriversPayload() {
-  const drivers = await driverRepository.findOnlineFakeDrivers(4);
+  // With the fleet disabled the rider map streams real online drivers
+  // instead, so a real-device test still sees cars on the map.
+  const drivers = env.DISABLE_FAKE_DRIVERS
+    ? await driverRepository.findOnlineDrivers()
+    : await driverRepository.findOnlineFakeDrivers(4);
   return drivers.map((driver) => ({
     id: driver.id,
     firstName: driver.firstName,

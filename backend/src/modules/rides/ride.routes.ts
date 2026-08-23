@@ -16,4 +16,8 @@ router.get("/me/active", requireAuth, rideController.getActive);
 router.delete("/:id/cancel", requireAuth, rideController.cancel);
 router.get("/recent", requireAuth, rideController.getRecent);
 
+// Driver-side dispatch responses
+router.post("/:id/accept", requireAuth, rideController.accept);
+router.post("/:id/reject", requireAuth, rideController.reject);
+
 export default router;

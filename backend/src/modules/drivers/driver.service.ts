@@ -1,6 +1,7 @@
 import { BadRequestError } from "../../errors/BadRequestError";
 import { ConflictError } from "../../errors/ConflictError";
 import { NotFoundError } from "../../errors/NotFoundError";
+import { env } from "../../config";
 import { requireUserByClerkId } from "../../shared/require-user";
 import { assertValidCoordinates } from "../../shared/validation/coordinates";
 import * as driverRepository from "./driver.repository";
@@ -226,6 +227,9 @@ export async function getNearbyDrivers(
   assertValidCoordinates(latitude, longitude);
   // Seeding on query keeps the simulated fleet centered on where riders
   // actually look, so the home map always has cars without a ride request.
-  await ensureFakeDriversAround(latitude, longitude);
+  // Skipped entirely while the fleet is disabled for real-driver testing.
+  if (!env.DISABLE_FAKE_DRIVERS) {
+    await ensureFakeDriversAround(latitude, longitude);
+  }
   return driverRepository.findNearbyDrivers(latitude, longitude, radiusKm);
 }

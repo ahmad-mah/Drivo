@@ -28,6 +28,7 @@ model DriverProfile {
   heading         Float?         @map("heading")
   lastSeenAt      DateTime?      @map("last_seen_at")
   rides           Ride[]
+  offers          RideOffer[]
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
