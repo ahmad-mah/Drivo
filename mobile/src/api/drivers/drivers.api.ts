@@ -95,3 +95,34 @@ export async function fetchNearbyDrivers(
   );
   return data.data;
 }
+
+/** Ride request pushed to a driver over the socket (ride:new-request). */
+export interface IncomingRideRequest {
+  rideId: string;
+  originAddress: string;
+  originLatitude: number;
+  originLongitude: number;
+  destinationAddress: string;
+  destinationLatitude: number;
+  destinationLongitude: number;
+  tripDistanceKm: number;
+  fare: number;
+  currency: string;
+  etaMinutes: number;
+  /** Response window in seconds from receipt — derive the deadline locally
+   *  instead of comparing an absolute epoch against the device clock. */
+  respondWithinSeconds: number;
+}
+
+/** Claims the ride; 409 when the offer or ride already resolved. */
+export async function acceptRideRequest(rideId: string) {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/api/rides/${rideId}/accept`,
+  );
+  return data.data;
+}
+
+/** Declines the offer; the dispatcher escalates to the next-nearest driver. */
+export async function rejectRideRequest(rideId: string) {
+  await apiClient.post(`/api/rides/${rideId}/reject`);
+}

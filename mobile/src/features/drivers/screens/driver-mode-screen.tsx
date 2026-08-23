@@ -3,10 +3,12 @@ import { useCurrentLocation } from "@/features/home/hooks/useCurrentLocation";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { goBack } from "@/shared/services/navigation";
 import { useDriverMode } from "../hooks/useDriverMode";
+import { useIncomingRide } from "../hooks/useIncomingRide";
 import { ConnectivityBanner } from "../components/ConnectivityBanner";
 import { DriverModeFooter } from "../components/DriverModeFooter";
 import { DriverModeHeader } from "../components/DriverModeHeader";
 import { DriverModeMap } from "../components/DriverModeMap";
+import { IncomingRideSheet } from "../components/IncomingRideSheet";
 import { PermissionRequiredDialog } from "../components/PermissionRequiredDialog";
 
 export function DriverModeScreen() {
@@ -23,8 +25,10 @@ export function DriverModeScreen() {
     toggleOnline,
   } = useDriverMode();
   const location = useCurrentLocation();
+  const incomingRide = useIncomingRide(isOnline);
 
   useErrorSnackbar(error);
+  useErrorSnackbar(incomingRide.error);
 
   return (
     <View className="flex-1">
@@ -36,6 +40,15 @@ export function DriverModeScreen() {
       />
       {(autoOffline || backOnline) && (
         <ConnectivityBanner autoOffline={autoOffline} backOnline={backOnline} />
+      )}
+      {incomingRide.request && (
+        <IncomingRideSheet
+          request={incomingRide.request}
+          secondsLeft={incomingRide.secondsLeft}
+          responding={incomingRide.responding}
+          onAccept={incomingRide.accept}
+          onReject={incomingRide.reject}
+        />
       )}
       <DriverModeFooter
         isOnline={isOnline}
