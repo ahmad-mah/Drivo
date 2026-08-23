@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Image } from "expo-image";
+import { View } from "react-native";
 import { Marker } from "react-native-maps";
 import type { NearbyDriver } from "../types/ride.types";
 import { AvatarCircle } from "./AvatarCircle";
@@ -20,6 +21,7 @@ interface DriverMarkerProps {
 export function DriverMarker({ driver, selected, onPress }: DriverMarkerProps) {
   const markerRef = useRef<React.ElementRef<typeof Marker>>(null);
   const hasAvatarImage = !!driver.imageUrl;
+  const isOffline = driver.isOnline === false;
   const [avatarReady, setAvatarReady] = useState(!hasAvatarImage);
   const prevCoord = useRef({
     latitude: driver.latitude,
@@ -85,23 +87,26 @@ export function DriverMarker({ driver, selected, onPress }: DriverMarkerProps) {
       flat
       onPress={(e) => {
         e?.stopPropagation?.();
+        if (isOffline) return;
         onPress(driver);
       }}
     >
-      {showAvatar ? (
-        <AvatarCircle
-          imageUrl={driver.imageUrl}
-          fallbackLabel={driver.firstName.charAt(0)}
-          size={44}
-          borderColor="#34C759"
-          borderWidth={1}
-          fallbackClassName="bg-general-200"
-          fallbackTextClassName="text-secondary-400"
-          onImageLoad={handleImageLoad}
-        />
-      ) : (
-        <CarIcon heading={driver.heading} onLoad={handleImageLoad} />
-      )}
+      <View style={{ opacity: isOffline ? 0.35 : 1 }}>
+        {showAvatar ? (
+          <AvatarCircle
+            imageUrl={driver.imageUrl}
+            fallbackLabel={driver.firstName.charAt(0)}
+            size={44}
+            borderColor="#34C759"
+            borderWidth={1}
+            fallbackClassName="bg-general-200"
+            fallbackTextClassName="text-secondary-400"
+            onImageLoad={handleImageLoad}
+          />
+        ) : (
+          <CarIcon heading={driver.heading} onLoad={handleImageLoad} />
+        )}
+      </View>
     </Marker>
   );
 }

@@ -22,11 +22,15 @@ export function DriverListItem({
   selected,
   onPress,
 }: DriverListItemProps) {
+  const isOffline = driver.isOnline === false;
+
   return (
     <Pressable
+      disabled={isOffline}
       className={cn(
         "flex-row items-center gap-3.5 p-3.5 transition-all",
         selected ? "bg-primary-300" : "bg-white",
+        isOffline && "opacity-50",
       )}
       onPress={onPress}
     >
@@ -60,15 +64,25 @@ export function DriverListItem({
           >
             {driver.firstName} {driver.lastName}
           </Text>
-          <View className="flex-row flex-2 items-center gap-1">
-            <AppImage
-              source={require("@/assets/icons/star.png")}
-              className="size-3.5"
-            />
-            <Text className="font-Jakarta-SemiBold text-xs text-secondary-800">
-              {driverRating(driver)}
-            </Text>
-          </View>
+          {isOffline ? (
+            <View className="flex-2 items-end">
+              <View className="rounded-full bg-general-200 px-2.5 py-1">
+                <Text className="font-Jakarta-SemiBold text-[10px] text-secondary-500">
+                  Offline
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View className="flex-row flex-2 items-center gap-1">
+              <AppImage
+                source={require("@/assets/icons/star.png")}
+                className="size-3.5"
+              />
+              <Text className="font-Jakarta-SemiBold text-xs text-secondary-800">
+                {driverRating(driver)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Row: price | divider | time | divider | seats */}

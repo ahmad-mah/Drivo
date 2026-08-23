@@ -1,4 +1,5 @@
 import { FlatList, Text, View } from "react-native";
+import { RecentRidesEmptyState } from "./RecentRidesEmptyState";
 import { RideItem } from "./RideItem";
 import { RideItemSkeleton } from "../skeletons/RideItemSkeleton";
 import { useRides } from "../hooks/useRides";
@@ -24,11 +25,7 @@ export function HomeRidesList() {
           </Text>
         </View>
       ) : rides.length === 0 ? (
-        <View className="rounded-xl bg-white px-4 py-6">
-          <Text className="font-Jakarta text-center text-secondary-400">
-            No rides yet. Your completed trips will show up here.
-          </Text>
-        </View>
+        <RecentRidesEmptyState />
       ) : (
         <FlatList
           data={rides}

@@ -16,3 +16,4 @@ export { AppLoadingOverlay } from "./AppLoadingOverlay";
 export { OfflineScreen } from "./OfflineScreen";
 export { RootErrorFallback } from "./RootErrorFallback";
 export { UserLocationMarker } from "./UserLocationMarker";
+export { RecenterButton } from "./RecenterButton";
