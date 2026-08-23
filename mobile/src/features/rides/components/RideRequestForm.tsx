@@ -1,8 +1,12 @@
+import { useRef } from "react";
+import type { TextInput } from "react-native";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppGap, AppImage } from "@/shared/components";
 import { PlaceField } from "./PlaceField";
-import type { PlaceSuggestion } from "../types/ride.types";
+import type { PickField, PlaceSuggestion } from "../types/ride.types";
+
+export type { PickField };
 
 interface RideRequestFormProps {
   from: string;
@@ -18,6 +22,26 @@ interface RideRequestFormProps {
   onSelectSuggestion: (suggestion: PlaceSuggestion) => void;
   onFindNow: () => void;
   findNowLoading: boolean;
+  pickingField: PickField | null;
+  onRequestPickMap: (field: PickField) => void;
+}
+
+function PickOnMapButton({
+  active,
+  onPress,
+}: {
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} hitSlop={8}>
+      <AppImage
+        source={require("@/assets/icons/map.png")}
+        className="size-6"
+        tintColor={active ? "#0286FF" : "#858585"}
+      />
+    </Pressable>
+  );
 }
 
 /** Bottom sheet for the ride request flow: from/to addresses and Find now. */
@@ -35,8 +59,11 @@ export function RideRequestForm({
   onSelectSuggestion,
   onFindNow,
   findNowLoading,
+  pickingField,
+  onRequestPickMap,
 }: RideRequestFormProps) {
   const insets = useSafeAreaInsets();
+  const toFieldRef = useRef<TextInput>(null);
 
   return (
     <View
@@ -63,16 +90,25 @@ export function RideRequestForm({
         suggestions={fromSuggestions}
         suggestionsLoading={fromSuggestionsLoading}
         onSelect={onSelectFromSuggestion}
+        returnKeyType="next"
+        onSubmitEditing={() => toFieldRef.current?.focus()}
         iconEnd={
-          <Pressable onPress={onUseCurrentLocation} hitSlop={8}>
-            <AppImage
-              source={require("@/assets/icons/target.png")}
-              className="size-6"
+          <View className="flex-row items-center gap-3">
+            <PickOnMapButton
+              active={pickingField === "from"}
+              onPress={() => onRequestPickMap("from")}
             />
-          </Pressable>
+            <Pressable onPress={onUseCurrentLocation} hitSlop={8}>
+              <AppImage
+                source={require("@/assets/icons/target.png")}
+                className="size-6"
+              />
+            </Pressable>
+          </View>
         }
       />
       <PlaceField
+        ref={toFieldRef}
         title="To"
         placeholder="To location"
         value={to}
@@ -81,16 +117,24 @@ export function RideRequestForm({
         suggestions={suggestions}
         suggestionsLoading={suggestionsLoading}
         onSelect={onSelectSuggestion}
+        // Done closes the keyboard — the default "submit" would keep it open.
+        submitBehavior="blurAndSubmit"
         iconEnd={
-          <AppImage source={require("@/assets/icons/map.png")} className="size-6" />
+          <PickOnMapButton
+            active={pickingField === "to"}
+            onPress={() => onRequestPickMap("to")}
+          />
         }
       />
       <AppGap height={8} />
-      <AppButton
-        title="Find now"
-        onPress={onFindNow}
-        loading={findNowLoading}
-      />
+      {/* Hidden while picking so the sheet shrinks and exposes more map. */}
+      {!pickingField && (
+        <AppButton
+          title="Find now"
+          onPress={onFindNow}
+          loading={findNowLoading}
+        />
+      )}
     </View>
   );
 }

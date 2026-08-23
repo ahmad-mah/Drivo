@@ -14,11 +14,19 @@ function formatAddress(address: Location.LocationGeocodedAddress): string {
 export async function reverseGeocodeAddress(
   location: Location.LocationObject,
 ): Promise<string | null> {
+  return reverseGeocodeCoords(
+    location.coords.latitude,
+    location.coords.longitude,
+  );
+}
+
+/** Reverse geocodes a raw coordinate pair (e.g. a map-pin pick). */
+export async function reverseGeocodeCoords(
+  latitude: number,
+  longitude: number,
+): Promise<string | null> {
   try {
-    const results = await Location.reverseGeocodeAsync({
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    });
+    const results = await Location.reverseGeocodeAsync({ latitude, longitude });
     const first = results?.[0];
     if (!first) return null;
     return formatAddress(first);

@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage } from "@/shared/components";
 import { formatFare } from "@/shared/utils/format";
 import type { Ride } from "../types/ride.types";
@@ -14,10 +15,13 @@ export function RideDriverAssignedCard({
   onCancel,
   cancelling,
 }: RideDriverAssignedCardProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View
-      className="gap-4 rounded-t-4xl bg-white px-5 pt-6 pb-8"
+      className="gap-4 rounded-t-4xl bg-white px-5 pt-6"
       style={{
+        paddingBottom: insets.bottom + 24,
         shadowColor: "#101010",
         shadowOffset: { width: 0, height: -4 },
         shadowRadius: 16,
@@ -91,7 +95,7 @@ export function RideDriverAssignedCard({
       </View>
 
       <AppButton
-        title="Back"
+        title="Cancel ride"
         variant="outline"
         onPress={onCancel}
         loading={cancelling}

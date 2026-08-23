@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage } from "@/shared/components";
 import { formatFare } from "@/shared/utils/format";
 import type { Ride } from "../types/ride.types";
@@ -10,10 +11,8 @@ interface RideSearchingCardProps {
   cancelling: boolean;
 }
 
-function formatTimeLeft(expiresAt: string) {
-  const now = Date.now();
-  const expiry = new Date(expiresAt).getTime();
-  const diff = Math.max(0, Math.ceil((expiry - now) / 1000));
+function formatTimeLeft(deadlineMs: number) {
+  const diff = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000));
   const minutes = Math.floor(diff / 60);
   const seconds = diff % 60;
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -24,19 +23,26 @@ export function RideSearchingCard({
   onCancel,
   cancelling,
 }: RideSearchingCardProps) {
-  const [timeLeft, setTimeLeft] = useState(formatTimeLeft(ride.expiresAt));
+  const insets = useSafeAreaInsets();
+
+  // Local deadline built from the server's relative TTL — comparing the
+  // absolute expiresAt against this device's clock breaks under skew and
+  // makes the ride appear to outlive its real server-side expiry.
+  const [deadline] = useState(() => Date.now() + ride.expiresInSeconds * 1000);
+  const [timeLeft, setTimeLeft] = useState(formatTimeLeft(deadline));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(formatTimeLeft(ride.expiresAt));
+      setTimeLeft(formatTimeLeft(deadline));
     }, 1000);
     return () => clearInterval(timer);
-  }, [ride.expiresAt]);
+  }, [deadline]);
 
   return (
     <View
-      className="gap-4 rounded-t-4xl bg-white px-5 pt-6 pb-8"
+      className="gap-4 rounded-t-4xl bg-white px-5 pt-6"
       style={{
+        paddingBottom: insets.bottom + 24,
         shadowColor: "#101010",
         shadowOffset: { width: 0, height: -4 },
         shadowRadius: 16,

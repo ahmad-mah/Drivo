@@ -28,6 +28,14 @@ export type AppTextInputProps = {
     | "search";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   onSubmitEditing?: () => void;
+  /**
+   * Controls what the action button does on submit:
+   * - "submit": fire onSubmitEditing, keep focus + keyboard open (default —
+   *   used by flows that chain into another field)
+   * - "blurAndSubmit": blur and dismiss the keyboard
+   * - "newline": insert a newline (multiline inputs)
+   */
+  submitBehavior?: "submit" | "blurAndSubmit" | "newline";
   value?: string;
   onChangeText?: (text: string) => void;
   onBlur?: () => void;
@@ -48,6 +56,7 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
       inputMode,
       autoCapitalize,
       onSubmitEditing,
+      submitBehavior = "submit",
       value,
       onChangeText,
       onBlur,
@@ -97,7 +106,7 @@ const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
             autoCapitalize={autoCapitalize}
             onSubmitEditing={onSubmitEditing}
             cursorColor={"#0286ff"}
-            submitBehavior="submit"
+            submitBehavior={submitBehavior}
             maxLength={maxLength}
           />
           {iconEnd && !isPassword && iconEnd}

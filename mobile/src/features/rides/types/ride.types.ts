@@ -12,6 +12,9 @@ export interface RouteCoordinate {
   longitude: number;
 }
 
+/** Which ride endpoint a map-pin pick will fill. */
+export type PickField = "from" | "to";
+
 export interface NearbyDriver {
   id: string;
   firstName: string;
@@ -28,6 +31,12 @@ export interface NearbyDriver {
   timeMinutes?: number;
   seats?: number;
   carPlate?: string;
+  /**
+   * Set by the nearby-drivers hook: false once the backend stops reporting
+   * the driver (went offline / stale). Absent means online — server payloads
+   * only ever contain online drivers.
+   */
+  isOnline?: boolean;
 }
 
 /** A destination suggestion returned by the Google Places proxy. */
@@ -67,5 +76,9 @@ export interface Ride {
   driverImageUrl: string | null;
   nearbyDrivers: number;
   expiresAt: string;
+  /** Server-computed seconds to expiry at response time — countdowns must be
+   *  built from this locally; comparing expiresAt to the device clock breaks
+   *  under clock skew. */
+  expiresInSeconds: number;
   createdAt: string;
 }

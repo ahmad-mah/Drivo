@@ -1,20 +1,20 @@
-import { useEffect, useRef } from "react";
-import { Pressable, View } from "react-native";
+import type MapView from "react-native-maps";
 import type { LocationObject } from "expo-location";
-import { Image } from "expo-image";
-import MapView, { Circle, Polyline } from "react-native-maps";
-import { AppImage, AppMapView } from "@/shared/components";
-import type { NearbyDriver, RidePoint, RouteCoordinate } from "../types/ride.types";
+import { Circle, Polyline } from "react-native-maps";
+import { Text, View } from "react-native";
+import { AppMapView, RecenterButton } from "@/shared/components";
+import type {
+  NearbyDriver,
+  PickField,
+  RidePoint,
+  RouteCoordinate,
+} from "../types/ride.types";
 import { DriverMarker } from "./DriverMarker";
 import { RidePointMarkers } from "./RidePointMarkers";
 import { SelfMarker } from "./SelfMarker";
+import { useMapCamera } from "../hooks/useMapCamera";
 import { useRideMapSelection } from "../hooks/useRideMapSelection";
-import {
-  liftedRegionForPoint,
-  regionFor,
-  regionForRoute,
-  regionFromCoords,
-} from "../utils/mapRegion";
+import { regionFor } from "../utils/mapRegion";
 
 interface RideRequestMapProps {
   location: LocationObject | null;
@@ -28,13 +28,17 @@ interface RideRequestMapProps {
   onSelectDriver?: (driver: NearbyDriver | null) => void;
   userImageUrl?: string | null;
   userName?: string | null;
+  /** When set, the next map tap drops a pin for that field instead of
+   *  selecting a driver. */
+  pickingField?: PickField | null;
+  onMapPick?: (latitude: number, longitude: number) => void;
 }
 
 /**
- * Full-screen map for the ride request flow. Centers on the rider once the
- * first GPS fix lands, then stays pannable. Supports tapping drivers to see
- * their green-bordered avatar and tapping the rider to see their blue-bordered
- * avatar; the map itself never moves on marker presses.
+ * Full-screen map for the ride request flow. Pure presentation over three
+ * hooks: camera choreography (useMapCamera), marker selection
+ * (useRideMapSelection) and — while a pick is active — map-tap-to-fill for
+ * the From/To fields.
  */
 export function RideRequestMap({
   location,
@@ -48,60 +52,36 @@ export function RideRequestMap({
   onSelectDriver,
   userImageUrl,
   userName,
+  pickingField = null,
+  onMapPick,
 }: RideRequestMapProps) {
-  const mapRef = useRef<MapView>(null);
+  const { mapRef, recenterToUser } = useMapCamera({
+    location,
+    focusedDriver: focusedDriver ?? null,
+    origin: origin ?? null,
+    destination: destination ?? null,
+  });
 
-  const { selectedDriverId, isSelfSelected, handleMapPress, handleDriverPress, handleSelfPress } =
-    useRideMapSelection({
-      controlledSelectedDriverId,
-      onSelectDriver,
-    });
+  const {
+    selectedDriverId,
+    isSelfSelected,
+    handleMapPress: handleDriverMapPress,
+    handleDriverPress,
+    handleSelfPress,
+  } = useRideMapSelection({
+    controlledSelectedDriverId,
+    onSelectDriver,
+  });
 
-  // Prefetch rider avatar image immediately
-  useEffect(() => {
-    if (userImageUrl) {
-      void Image.prefetch(userImageUrl);
+  const handleMapPress = (
+    event: Parameters<NonNullable<React.ComponentProps<typeof MapView>["onPress"]>>[0],
+  ) => {
+    if (pickingField && onMapPick) {
+      const { latitude, longitude } = event.nativeEvent.coordinate;
+      onMapPick(latitude, longitude);
+      return;
     }
-  }, [userImageUrl]);
-
-  // Skip the centering animation when a fix is already available at mount
-  const didCenter = useRef(location !== null);
-
-  useEffect(() => {
-    if (!location || didCenter.current) return;
-    didCenter.current = true;
-    mapRef.current?.animateToRegion(regionFor(location), 500);
-  }, [location]);
-
-  useEffect(() => {
-    const region =
-      origin && destination
-        ? regionForRoute(origin, destination)
-        : origin
-          ? liftedRegionForPoint(origin.latitude, origin.longitude)
-          : destination
-            ? regionFromCoords(destination.latitude, destination.longitude)
-            : null;
-    if (region) mapRef.current?.animateToRegion(region, 500);
-  }, [origin, destination]);
-
-  // Picking a driver from the sheet list pans the map to their marker so the
-  // rider sees which car they are choosing; the ref guard keeps the polling
-  // updates to `drivers` from re-triggering the animation for the same pick.
-  const lastFocusedDriverId = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!focusedDriver || lastFocusedDriverId.current === focusedDriver.id) return;
-    lastFocusedDriverId.current = focusedDriver.id;
-    mapRef.current?.animateToRegion(
-      liftedRegionForPoint(focusedDriver.latitude, focusedDriver.longitude),
-      500,
-    );
-  }, [focusedDriver]);
-
-  const recenterToUser = () => {
-    if (!location) return;
-    mapRef.current?.animateToRegion(regionFor(location), 500);
+    handleDriverMapPress();
   };
 
   return (
@@ -164,25 +144,19 @@ export function RideRequestMap({
       </AppMapView>
 
       <View className="absolute inset-e-4 top-[30%] -translate-y-1/2">
-        <Pressable
-          onPress={recenterToUser}
-          hitSlop={8}
-          className="rounded-full bg-green-500 p-3"
-          style={{
-            shadowColor: "#101010",
-            shadowOffset: { width: 0, height: 2 },
-            shadowRadius: 8,
-            shadowOpacity: 0.2,
-            elevation: 3,
-          }}
-        >
-          <AppImage
-            source={require("@/assets/icons/target.png")}
-            className="size-6"
-            tintColor="#FFFFFF"
-          />
-        </Pressable>
+        <RecenterButton onPress={recenterToUser} />
       </View>
+
+      {pickingField && (
+        <View
+          pointerEvents="none"
+          className="absolute inset-x-12 top-4 items-center rounded-full bg-secondary-900/90 px-4 py-2"
+        >
+          <Text className="text-center font-Jakarta-SemiBold text-xs text-white">
+            Tap the map to set your {pickingField === "from" ? "pickup" : "destination"}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
