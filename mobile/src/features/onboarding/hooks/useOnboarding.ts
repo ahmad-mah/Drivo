@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { goToWelcome } from "@/shared/services/navigation";
+import { useAppReady } from "@/lib/app-ready-context";
 import {
   FlatList,
   NativeScrollEvent,
@@ -13,6 +13,7 @@ import {
 import { markOnboardingSeen } from "../constants/onboarding.storage";
 
 export function useOnboarding() {
+  const { completeOnboarding } = useAppReady();
   const flatListRef = useRef<FlatList<OnboardingSlide>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { width } = useWindowDimensions();
@@ -24,21 +25,23 @@ export function useOnboarding() {
     const index = Math.round(offsetX / width);
     setCurrentIndex(index);
   };
-  const onSkip = async () => {
+  const finishOnboarding = useCallback(async () => {
     await markOnboardingSeen();
-    goToWelcome();
-  };
+    completeOnboarding();
+  }, [completeOnboarding]);
+
+  const onSkip = finishOnboarding;
 
   const onNext = useCallback(async () => {
     if (isLastSlide) {
-      await onSkip();
+      await finishOnboarding();
       return;
     }
     flatListRef.current?.scrollToIndex({
       index: currentIndex + 1,
       animated: true,
     });
-  }, [currentIndex, isLastSlide]);
+  }, [currentIndex, isLastSlide, finishOnboarding]);
 
   return {
     flatListRef,

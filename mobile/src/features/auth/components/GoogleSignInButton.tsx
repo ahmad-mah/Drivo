@@ -1,10 +1,8 @@
 import { AppButton, AppImage } from "@/shared/components";
 import { useGoogleSignInFlow } from "../hooks/useGoogleSignInFlow";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
-import Constants from "expo-constants";
 
 export function GoogleSignInButton() {
-  console.log(Constants.expoConfig?.extra);
   const { signInWithGoogle, isLoading, authError } = useGoogleSignInFlow();
 
   const errorMessage = authError
