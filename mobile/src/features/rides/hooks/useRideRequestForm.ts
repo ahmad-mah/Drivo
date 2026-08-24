@@ -1,21 +1,36 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCurrentLocation } from "@/features/home/hooks/useCurrentLocation";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import type { PlaceSuggestion, RidePoint } from "../types/ride.types";
 import { reverseGeocodeAddress } from "../utils/geocode";
+import { usePickedRidePoints } from "./usePickedRidePoints";
 import { useRidePlacesAutocomplete } from "./useRidePlacesAutocomplete";
 import { useRideRequest } from "./useRideRequest";
+import { useRideRequestSubmit } from "./useRideRequestSubmit";
 
 interface UseRideRequestFormOptions {
   onFindNowSuccess?: (origin: RidePoint, destination: RidePoint) => void;
 }
 
+/**
+ * Owns the ride-request field state: the From/To text, autocomplete wiring,
+ * and the derived origin/destination points (current location, suggestion,
+ * or map pin — pin wins as the user's explicit last action). Submission is
+ * delegated to `useRideRequestSubmit`.
+ */
 export function useRideRequestForm(options?: UseRideRequestFormOptions) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const location = useCurrentLocation();
+  const {
+    pickedFrom,
+    pickedTo,
+    clearPickedFrom,
+    clearPickedTo,
+    applyPickedPoint,
+  } = usePickedRidePoints();
 
   const {
     suggestions: fromSuggestions,
@@ -42,7 +57,11 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
   useErrorSnackbar(locationError);
   useErrorSnackbar(error);
 
-  const buildOrigin = (): RidePoint | null => {
+  // Memoized on primitive fields — returning a fresh object each render made
+  // consumers' effects (e.g. useDirections) refetch on every render and burn
+  // the Google Routes quota with identical requests.
+  const origin: RidePoint | null = useMemo(() => {
+    if (pickedFrom) return pickedFrom;
     if (!location) return null;
     return usingCurrentLocation
       ? {
@@ -55,37 +74,23 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         };
-  };
-
-  const buildPoints = (
-    fallbackDestination: PlaceSuggestion | null = null,
-  ): { origin: RidePoint; destination: RidePoint } | null => {
-    const destination = selectedTo ?? fallbackDestination;
-    const origin = buildOrigin();
-    if (!origin || !destination) return null;
-    return {
-      origin,
-      destination: {
-        address: destination.address,
-        latitude: destination.latitude,
-        longitude: destination.longitude,
-      },
-    };
-  };
-
-  const completeRequest = async (points: {
-    origin: RidePoint;
-    destination: RidePoint;
-  }) => {
-    if (options?.onFindNowSuccess) {
-      options.onFindNowSuccess(points.origin, points.destination);
-      return;
-    }
-    await submit(points.origin, points.destination);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pickedFrom?.address,
+    pickedFrom?.latitude,
+    pickedFrom?.longitude,
+    usingCurrentLocation,
+    selectedFrom?.address,
+    selectedFrom?.latitude,
+    selectedFrom?.longitude,
+    from,
+    location?.coords.latitude,
+    location?.coords.longitude,
+  ]);
 
   const handleUseCurrentLocation = async () => {
     if (!location) return;
+    clearPickedFrom();
     const address = await reverseGeocodeAddress(location);
     if (address) {
       setFrom(address);
@@ -97,55 +102,62 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
 
   const handleChangeFrom = (text: string) => {
     setFrom(text);
+    clearPickedFrom();
     setUsingCurrentLocation(false);
   };
 
   const handleSelectFromSuggestion = (suggestion: PlaceSuggestion) => {
     setFrom(suggestion.address);
+    clearPickedFrom();
     setUsingCurrentLocation(false);
     selectFrom(suggestion);
   };
 
   const handleSelectToSuggestion = (suggestion: PlaceSuggestion) => {
     setTo(suggestion.address);
+    clearPickedTo();
     selectTo(suggestion);
   };
 
-  const handleFindNow = async () => {
-    if (!location) {
-      setLocationError("Could not get your current location.");
-      return;
+  /** Commits a map-pin pick for one of the two fields and fills its text. */
+  const applyPickAndFillText = (
+    field: "from" | "to",
+    point: RidePoint,
+  ) => {
+    applyPickedPoint(field, point);
+    if (field === "from") {
+      setFrom(point.address);
+      setUsingCurrentLocation(false);
+    } else {
+      setTo(point.address);
     }
-    if (!from.trim()) {
-      setLocationError("Enter your pickup location.");
-      return;
-    }
-    if (!to.trim()) {
-      setLocationError("Enter your destination.");
-      return;
-    }
-    if (!selectedTo) {
-      // If the user typed a destination and there's a matching suggestion, fallback to first suggestion
-      if (suggestions.length === 0) {
-        setLocationError("Choose a destination from the suggestions.");
-        return;
-      }
-      selectTo(suggestions[0]);
-      const points = buildPoints(suggestions[0]);
-      if (points) await completeRequest(points);
-      return;
-    }
-
-    const points = buildPoints();
-    if (points) await completeRequest(points);
   };
+
+  const { handleFindNow } = useRideRequestSubmit(
+    { onFindNowSuccess: options?.onFindNowSuccess },
+    {
+      location,
+      from,
+      to,
+      origin,
+      selectedTo,
+      pickedTo,
+      suggestions,
+      selectTo,
+      setLocationError,
+      submit,
+    },
+  );
 
   return {
     location,
     from,
     to,
     onChangeFrom: handleChangeFrom,
-    onChangeTo: setTo,
+    onChangeTo: (text: string) => {
+      clearPickedTo();
+      setTo(text);
+    },
     onUseCurrentLocation: handleUseCurrentLocation,
     fromSuggestions: usingCurrentLocation ? [] : fromSuggestions,
     fromSuggestionsLoading,
@@ -156,10 +168,11 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
     onFindNow: handleFindNow,
     findNowLoading: submitting,
     usingCurrentLocation,
-    origin: buildOrigin(),
-    // Preview the top suggestion while typing so the map follows the new
-    // address before the user commits to a pick (selection still wins).
+    applyPickedPoint: applyPickAndFillText,
+    origin,
+    // A map pin beats autocomplete — it was the user's explicit last action.
     destination:
+      pickedTo ??
       selectedTo ??
       (to.trim() && suggestions.length > 0 ? suggestions[0] : null),
   };

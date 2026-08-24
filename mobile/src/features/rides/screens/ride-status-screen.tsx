@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { useCurrentLocation } from "@/features/home/hooks/useCurrentLocation";
@@ -18,22 +18,29 @@ import { coordsWithinTolerance } from "../utils/distance";
 
 export function RideStatusScreen() {
   const { ride, loading, error, cancel } = useActiveRide();
-  const { socketRide } = useRideSocket();
+  const [serverExpired, setServerExpired] = useState(false);
+  const { socketRide } = useRideSocket(() => setServerExpired(true));
   const [cancelling, setCancelling] = useState(false);
 
   useErrorSnackbar(error);
 
-  const displayRide = socketRide ?? ride;
+  const displayRide = serverExpired ? null : (socketRide ?? ride);
+
+  // Cancelling is allowed while PENDING *or* ACCEPTED (interim until trip
+  // lifecycle lands) — otherwise a stale accepted ride would block every new
+  // request with no way to clear it from the UI.
+  const cancellable =
+    displayRide?.status === RideStatus.PENDING ||
+    displayRide?.status === RideStatus.ACCEPTED;
 
   const handleCancel = async () => {
-    const targetRide = displayRide;
-    if (!targetRide || targetRide.status !== RideStatus.PENDING) {
+    if (!cancellable) {
       goBack();
       return;
     }
     setCancelling(true);
     try {
-      await cancel(targetRide.id);
+      await cancel(displayRide!.id);
     } finally {
       setCancelling(false);
     }
@@ -41,7 +48,7 @@ export function RideStatusScreen() {
   };
 
   const handleBack = () => {
-    if (displayRide && displayRide.status === RideStatus.PENDING) {
+    if (cancellable) {
       void handleCancel();
     } else {
       goBack();
@@ -49,20 +56,39 @@ export function RideStatusScreen() {
   };
 
   const location = useCurrentLocation();
-  const origin: RidePoint | null = displayRide
-    ? {
-        address: displayRide.originAddress,
-        latitude: displayRide.originLatitude,
-        longitude: displayRide.originLongitude,
-      }
-    : null;
-  const destination: RidePoint | null = displayRide
-    ? {
-        address: displayRide.destinationAddress,
-        latitude: displayRide.destinationLatitude,
-        longitude: displayRide.destinationLongitude,
-      }
-    : null;
+  // Memoized on primitive fields: rebuilding these objects every render made
+  // useDirections refetch the Routes API on each nearby-driver/poll update
+  // (identical coordinates) and burned through the Google quota (429s).
+  const origin: RidePoint | null = useMemo(
+    () =>
+      displayRide
+        ? {
+            address: displayRide.originAddress,
+            latitude: displayRide.originLatitude,
+            longitude: displayRide.originLongitude,
+          }
+        : null,
+    [
+      displayRide?.originAddress,
+      displayRide?.originLatitude,
+      displayRide?.originLongitude,
+    ],
+  );
+  const destination: RidePoint | null = useMemo(
+    () =>
+      displayRide
+        ? {
+            address: displayRide.destinationAddress,
+            latitude: displayRide.destinationLatitude,
+            longitude: displayRide.destinationLongitude,
+          }
+        : null,
+    [
+      displayRide?.destinationAddress,
+      displayRide?.destinationLatitude,
+      displayRide?.destinationLongitude,
+    ],
+  );
   const { route } = useDirections(origin, destination);
   const { drivers } = useNearbyDrivers(location);
   const originIsCurrentLocation = !!(
