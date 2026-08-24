@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import "../../global.css";
 import { Stack, usePathname, type ErrorBoundaryProps } from "expo-router";
+import { useRef } from "react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { AppReadyProvider } from "@/lib/app-ready-context";
 import { SnackbarProvider } from "@/shared/contexts/SnackbarContext";
@@ -46,17 +47,23 @@ export default function RootLayout() {
 function AppContent() {
   const { status } = useConnectivity();
   const pathname = usePathname();
+  // Latches true the first time connectivity is confirmed. After that, the
+  // auth tree is never unmounted again on transient drops — remounting
+  // Clerk + expo-router mid-hydration on flaky mobile networks churns
+  // synchronous re-renders fast enough to trip React's update-depth limit.
+  const everOnlineRef = useRef(false);
+  if (status === "online") {
+    everOnlineRef.current = true;
+  }
+  const offline = status === "no-internet" || status === "server-down";
 
   // Startup-only gate: the authenticated tree (Clerk + auth + router) mounts
   // only once the API (or internet behind it) is confirmed reachable, so Clerk
-  // never hydrates against a dead network (which would leave the auth-guarded
-  // layouts returning null forever after reconnect).
+  // never hydrates against a dead network. Before that first success, a drop
+  // still shows the global offline screen.
   if (status === "checking") return null;
-  if (status === "no-internet" || status === "server-down") {
-    // Driver mode owns its offline state (inline banner + styled map), so the
-    // global offline screen must not unmount it — keep the tree mounted and
-    // let the driver-mode screen reflect the dropped connectivity.
-    if (pathname !== "/driver-mode") return <OfflineScreen />;
+  if (offline && !everOnlineRef.current && pathname !== "/driver-mode") {
+    return <OfflineScreen />;
   }
 
   return (
