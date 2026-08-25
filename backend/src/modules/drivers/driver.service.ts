@@ -178,10 +178,21 @@ export async function goOnline(clerkId: string): Promise<DriverAvailabilityResul
 /**
  * Flips the driver offline. Intentionally idempotent — the mobile app may
  * retry or call it for an already-offline driver; that is a success.
+ * Blocked while the driver holds an active trip: dropping a driver mid-trip
+ * would strand the rider with no way to finish the ride. The check and the
+ * flip run in one transaction so an accept racing this call cannot slip past.
  */
 export async function goOffline(clerkId: string): Promise<DriverAvailabilityResult> {
   const user = await requireUserByClerkId(clerkId);
-  await driverRepository.setOffline(user.id);
+
+  const { blocked } = await driverRepository.setOfflineUnlessOnTrip(user.id);
+  if (blocked) {
+    return {
+      isOnline: true,
+      error: "Finish your active trip before going offline",
+    };
+  }
+
   return { isOnline: false };
 }
 

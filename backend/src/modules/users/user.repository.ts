@@ -47,6 +47,10 @@ export async function findByClerkId(clerkId: string) {
   });
 }
 
+export async function findById(id: string) {
+  return prisma.user.findUnique({ where: { id } });
+}
+
 export async function updateByClerkId(
   clerkId: string,
   data: { firstName?: string | null; lastName?: string | null; phone?: string | null; imageUrl?: string | null },

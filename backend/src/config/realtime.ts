@@ -6,4 +6,4 @@ export const STALE_CHECK_INTERVAL_MS = 5_000;
 
 /** Coalescing window for nearby-driver socket broadcasts; kept well below the
  * fake fleet's 10s movement tick so each new position ships without lag. */
-export const NEARBY_DRIVERS_BROADCAST_MS = 2_000;
+export const NEARBY_DRIVERS_BROADCAST_MS = 1_000;

@@ -2,8 +2,10 @@ import { prisma } from "../../config/database";
 import { DRIVER_STALE_MS } from "../../config";
 import {
   ApprovalStatus,
+  RideStatus,
   type Prisma,
 } from "@prisma/client";
+import { ACTIVE_RIDE_STATUSES } from "../rides/trip-state-machine";
 import type { DriverPersonalInfo } from "./driver.types";
 import type { ApplyDriverDto } from "./driver.validation";
 
@@ -17,6 +19,26 @@ export async function findById(id: string) {
   return prisma.driverProfile.findUnique({
     where: { id },
     include: { user: true },
+  });
+}
+
+/** Socket-room lookup only — avoids pulling the full profile + user row. */
+export async function findClerkIdByDriverId(id: string) {
+  const driver = await prisma.driverProfile.findUnique({
+    where: { id },
+    select: { user: { select: { clerkId: true } } },
+  });
+  return driver?.user.clerkId ?? null;
+}
+
+/** Denormalized rating aggregates — called inside the rating transaction. */
+export function incrementDriverRating(driverId: string, stars: number) {
+  return prisma.driverProfile.update({
+    where: { id: driverId },
+    data: {
+      ratingSum: { increment: stars },
+      ratingCount: { increment: 1 },
+    },
   });
 }
 
@@ -34,6 +56,7 @@ export async function upsert(
     vehicleType: data.vehicleType,
     vehicleModel: data.vehicleModel,
     vehicleColor: data.vehicleColor,
+    seats: data.seats,
     vehiclePlate: data.vehiclePlate,
     licenseNumber: data.licenseNumber,
   };
@@ -298,6 +321,9 @@ export async function findNearbyDrivers(
       vehicleType: true,
       vehicleModel: true,
       vehicleColor: true,
+      seats: true,
+      ratingSum: true,
+      ratingCount: true,
       latitude: true,
       longitude: true,
       heading: true,
@@ -349,6 +375,8 @@ export async function findDispatchCandidates(
       },
       lastSeenAt: { gte: freshSince },
       user: { clerkId: { not: { startsWith: FAKE_CLERK_PREFIX } } },
+      // A driver holding an active trip cannot take another offer.
+      rides: { none: { status: { in: ACTIVE_RIDE_STATUSES } } },
     },
     select: {
       id: true,
@@ -358,6 +386,9 @@ export async function findDispatchCandidates(
       vehicleModel: true,
       vehicleColor: true,
       vehiclePlate: true,
+      seats: true,
+      ratingSum: true,
+      ratingCount: true,
       latitude: true,
       longitude: true,
       heading: true,
@@ -376,6 +407,38 @@ export async function findDispatchCandidates(
     }))
     .filter((driver) => driver.distanceKm <= radiusKm)
     .sort((a, b) => a.distanceKm - b.distanceKm);
+}
+
+/**
+ * Flips a driver offline unless they hold an active trip, inside one
+ * transaction so an accept racing the check cannot slip past the guard
+ * (the TOCTOU window of the old read-then-write version).
+ */
+export async function setOfflineUnlessOnTrip(
+  userId: string,
+): Promise<{ blocked: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const profile = await tx.driverProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!profile) return { blocked: false };
+
+    const activeTrip = await tx.ride.findFirst({
+      where: {
+        driverId: profile.id,
+        status: { in: ACTIVE_RIDE_STATUSES },
+      },
+      select: { id: true },
+    });
+    if (activeTrip) return { blocked: true };
+
+    await tx.driverProfile.updateMany({
+      where: { userId },
+      data: { isOnline: false, lastSeenAt: null },
+    });
+    return { blocked: false };
+  });
 }
 
 /**

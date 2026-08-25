@@ -1,7 +1,10 @@
 import http from "node:http";
 import app from "./app";
 import { env, connectDatabase, disconnectDatabase } from "./config";
-import { RIDE_EXPIRY_SWEEP_INTERVAL_MS } from "./config";
+import {
+  RIDE_EXPIRY_SWEEP_INTERVAL_MS,
+  STUCK_TRIP_LOG_INTERVAL_MS,
+} from "./config";
 import { initSocketServer } from "./sockets";
 import * as rideService from "./modules/rides/ride.service";
 import { startFakeDriversSimulator } from "./modules/drivers/fake-drivers.simulator";
@@ -23,6 +26,12 @@ startRideDispatcher();
 setInterval(() => {
   void rideService.expireOverdueRides();
 }, RIDE_EXPIRY_SWEEP_INTERVAL_MS);
+
+// Observability only — matched rides abandoned by their driver surface in the
+// logs instead of silently blocking the rider's "one active ride" invariant.
+setInterval(() => {
+  void rideService.logStuckTrips();
+}, STUCK_TRIP_LOG_INTERVAL_MS);
 
 server.listen(env.PORT, () => {
   console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);

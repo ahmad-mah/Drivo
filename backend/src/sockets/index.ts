@@ -76,7 +76,8 @@ export function initSocketServer(httpServer: HttpServer) {
         socket.emit(EVENTS.driverStatus, payload);
         if (payload.isOnline) {
           broadcastDriversSnapshot(io);
-          broadcastNearbyDrivers(io);
+          // Instant reflection: waiting riders see the car appear right away.
+          await flushNearbyDriversNow();
         }
       }),
     );
@@ -198,6 +199,21 @@ export function broadcastNearbyDrivers(io: Server) {
 }
 
 import { getSocketServer } from "./ride";
+
+/**
+ * Bypasses the throttle timer and emits the snapshot immediately — used when
+ * a driver comes online so waiting riders see the car appear instantly.
+ */
+export async function flushNearbyDriversNow() {
+  const io = getSocketServer();
+  if (!io) return;
+  if (nearbyDriversTimer) {
+    clearTimeout(nearbyDriversTimer);
+    nearbyDriversTimer = null;
+  }
+  nearbyDriversDirty = false;
+  io.emit("drivers:nearby", await buildNearbyDriversPayload());
+}
 
 export function broadcastNearbyDriversToAll() {
   const io = getSocketServer();

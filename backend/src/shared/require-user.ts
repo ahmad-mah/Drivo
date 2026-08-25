@@ -8,3 +8,10 @@ export async function requireUserByClerkId(clerkId: string): Promise<User> {
   if (!user) throw new NotFoundError("User not found");
   return user;
 }
+
+/** Resolves a user by primary key, or throws. */
+export async function requireUserById(id: string): Promise<User> {
+  const user = await userRepository.findById(id);
+  if (!user) throw new NotFoundError("User not found");
+  return user;
+}
