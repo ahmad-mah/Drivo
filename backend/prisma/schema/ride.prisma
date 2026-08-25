@@ -1,6 +1,8 @@
 enum RideStatus {
   PENDING
   ACCEPTED
+  ARRIVED
+  IN_PROGRESS
   CANCELLED
   EXPIRED
   COMPLETED
@@ -38,6 +40,12 @@ model Ride {
   driverLastName       String?       @map("driver_last_name")
   nearbyDrivers        Int           @default(0) @map("nearby_drivers")
   offers               RideOffer[]
+  arrivedAt            DateTime?     @map("arrived_at")
+  startedAt            DateTime?     @map("started_at")
+  cancelReason         String?       @map("cancel_reason")
+  riderRating          Int?
+  riderComment         String?       @map("rider_comment")
+  seats                Int?
   expiresAt            DateTime      @map("expires_at")
   cancelledAt          DateTime?     @map("cancelled_at")
   completedAt          DateTime?     @map("completed_at")
