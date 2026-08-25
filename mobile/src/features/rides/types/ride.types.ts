@@ -1,3 +1,4 @@
+import type { CancellationReason } from "../enums/CancellationReason";
 import type { RideStatus } from "../enums/RideStatus";
 
 export interface RidePoint {
@@ -69,6 +70,8 @@ export interface Ride {
   driverLongitude: number | null;
   driverHeading: number | null;
   driverRating: number | null;
+  riderRating: number | null;
+  seats: number | null;
   driverFare: number | null;
   driverEtaMinutes: number | null;
   driverSeats: number | null;
@@ -80,5 +83,13 @@ export interface Ride {
    *  built from this locally; comparing expiresAt to the device clock breaks
    *  under clock skew. */
   expiresInSeconds: number;
+  arrivedAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  cancelReason: CancellationReason | null;
+  /** Only while ARRIVED: seconds until the driver may mark a no-show. */
+  noShowInSeconds: number | null;
+  /** Only while IN_PROGRESS: seconds since the trip started (relative). */
+  tripElapsedSeconds: number | null;
   createdAt: string;
 }
