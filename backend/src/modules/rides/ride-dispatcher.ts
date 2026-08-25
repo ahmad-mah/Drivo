@@ -1,6 +1,9 @@
-import { DISPATCH_RADIUS_KM, OFFER_TTL_MS } from "../../config";
+import { OFFER_TTL_MS, REOFFER_COOLDOWN_MS } from "../../config";
 import * as driverRepository from "../drivers/driver.repository";
-import { etaMinutesForDistanceKm } from "./dispatch.utils";
+import {
+  dispatchRadiusForAttempts,
+  etaMinutesForDistanceKm,
+} from "./dispatch.utils";
 import {
   notifyNewRideRequest,
   type IncomingRideRequest,
@@ -17,24 +20,33 @@ type DispatchableRide = Awaited<
  * unambiguous (no two drivers both seeing "accept" with one silently losing).
  */
 async function dispatchToNextCandidate(ride: DispatchableRide): Promise<boolean> {
+  // Progressive search: the radius widens as offers fail, so nearby drivers
+  // are exhausted before further ones are pulled in.
+  const failedOffers = await rideOfferRepository.countRespondedOffers(ride.id);
+  const radiusKm = dispatchRadiusForAttempts(failedOffers);
+
   const candidates = await driverRepository.findDispatchCandidates(
     ride.originLatitude,
     ride.originLongitude,
-    DISPATCH_RADIUS_KM,
+    radiusKm,
   );
   if (candidates.length === 0) {
     // The #1 "driver sees nothing" cause: no approved+online+fresh driver
-    // inside DISPATCH_RADIUS_KM of the pickup point.
+    // inside the current search radius of the pickup point.
     console.log(
-      `[dispatcher] ride ${ride.id}: no dispatchable drivers within ${DISPATCH_RADIUS_KM}km`,
+      `[dispatcher] ride ${ride.id}: no dispatchable drivers within ${radiusKm}km (${failedOffers} failed offers)`,
     );
     return false;
   }
 
-  // Drivers who already rejected or let an offer expire for this ride are
-  // excluded — escalation must move forward, not loop over the same person.
+  // Drivers who rejected or let an offer lapse recently are excluded —
+  // escalation moves forward first, but after the cooldown they become
+  // eligible again (rejection is a cooldown, not a lifetime ban).
   const triedDriverIds = new Set(
-    await rideOfferRepository.findRespondedDriverIds(ride.id),
+    await rideOfferRepository.findRecentlyRespondedDriverIds(
+      ride.id,
+      REOFFER_COOLDOWN_MS,
+    ),
   );
   const next = candidates.find((candidate) => !triedDriverIds.has(candidate.id));
   if (!next) {

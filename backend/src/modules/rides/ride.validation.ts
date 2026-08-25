@@ -12,3 +12,9 @@ export const requestRideSchema = z.object({
 });
 
 export type RequestRideDto = z.infer<typeof requestRideSchema>;
+
+/** Rider rates the driver on a completed ride. */
+export const rateRideSchema = z.object({
+  stars: z.number().int().min(1, "Pick 1–5 stars").max(5, "Pick 1–5 stars"),
+  comment: z.string().max(500).optional(),
+});

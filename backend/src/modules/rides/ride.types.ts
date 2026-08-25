@@ -54,5 +54,21 @@ export interface RideResponse {
    * the absolute `expiresAt` against a device clock breaks under skew.
    */
   expiresInSeconds: number;
+  arrivedAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  cancelReason: string | null;
+  seats: number | null;
+  /** Average of ratings received by the assigned driver (null when unrated). */
+  driverRating: number | null;
+  /** Stars the requesting rider gave on a completed ride (null = not rated yet). */
+  riderRating: number | null;
+  /**
+   * Only while ARRIVED: seconds until the driver may mark the rider a
+   * no-show (relative — clients count down locally).
+   */
+  noShowInSeconds: number | null;
+  /** Only while IN_PROGRESS: seconds since the trip started (relative). */
+  tripElapsedSeconds: number | null;
   createdAt: string;
 }
