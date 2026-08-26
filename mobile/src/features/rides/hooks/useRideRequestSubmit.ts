@@ -15,7 +15,11 @@ interface RideFormSnapshot {
   suggestions: PlaceSuggestion[];
   selectTo: (suggestion: PlaceSuggestion) => void;
   setLocationError: (message: string | null) => void;
-  submit: (origin: RidePoint, destination: RidePoint) => Promise<unknown>;
+  submit: (
+    origin: RidePoint,
+    destination: RidePoint,
+    onSuccess?: () => void,
+  ) => Promise<unknown>;
 }
 
 /**
@@ -30,7 +34,8 @@ export function useRideRequestSubmit(
   const buildPoints = (
     fallbackDestination: PlaceSuggestion | null = null,
   ): { origin: RidePoint; destination: RidePoint } | null => {
-    const destination = snapshot.pickedTo ?? snapshot.selectedTo ?? fallbackDestination;
+    const destination =
+      snapshot.pickedTo ?? snapshot.selectedTo ?? fallbackDestination;
     if (!snapshot.origin || !destination) return null;
     return {
       origin: snapshot.origin,

@@ -15,14 +15,13 @@ export default function RootGroupLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: "#F6F8FA" },
+          // One unified motion for the whole app: push slides in from the
+          // right, pop reverses automatically (native-stack handles it).
+          animation: "slide_from_right",
         }}
       >
-        <Stack.Screen name="driver-mode" options={{ animation: "fade" }} />
-        <Stack.Screen
-          name="ride-request"
-          options={{ animation: "slide_from_bottom" }}
-        />
-        <Stack.Screen name="ride-status" options={{ animation: "fade" }} />
+        <Stack.Screen name="driver-mode" />
+        <Stack.Screen name="ride-request" />
       </Stack>
     </UserProvider>
   );

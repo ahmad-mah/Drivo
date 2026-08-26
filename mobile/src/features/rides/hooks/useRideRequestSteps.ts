@@ -1,15 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { BackHandler, LayoutAnimation } from "react-native";
 import { goBack } from "@/shared/services/navigation";
-import type { SheetStep } from "../constants/rideSheets";
+import { SheetStep } from "../enums/SheetStep";
+
+interface UseRideStepsOptions {
+  /** Opens the cancel confirmation dialog when back is pressed during searching/trip. */
+  showCancelConfirm?: () => void;
+  /** Whether an action is currently in flight (disables back to prevent double-action). */
+  busy?: boolean;
+  /** When true, back is fully blocked during the TRIP phase — no cancel dialog, no navigation. */
+  midTrip?: boolean;
+}
 
 /**
- * The ride-request sheet flow: form → drivers → ride-info. Forward navigation
- * is event-driven (Find now / Select Ride); back — hardware or header — walks
- * the steps in reverse and only then leaves the screen.
+ * Manages the 5-step ride sheet flow: form → drivers → rideInfo → searching → trip.
+ *
+ * Back navigation opens cancel confirmation during searching/trip:
+ * - trip → (cancel confirm) → stays on trip
+ * - searching → (cancel confirm) → stays on searching
+ * - rideInfo → drivers
+ * - drivers → form
+ * - form → exit (goBack to Home)
  */
-export function useRideRequestSteps() {
-  const [activeSheet, setActiveSheetState] = useState<SheetStep>("form");
+export function useRideSteps({
+  showCancelConfirm,
+  busy = false,
+  midTrip = false,
+}: UseRideStepsOptions = {}) {
+  const [activeSheet, setActiveSheetState] = useState<SheetStep>(SheetStep.FORM);
 
   const setActiveSheet = useCallback((step: SheetStep) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -17,22 +35,32 @@ export function useRideRequestSteps() {
   }, []);
 
   const goToPreviousStep = useCallback(() => {
-    if (activeSheet === "rideInfo") {
-      setActiveSheet("drivers");
+    if (busy) return true;
+
+    if (activeSheet === SheetStep.TRIP) {
+      if (midTrip) return true;
+      showCancelConfirm?.();
       return true;
     }
-    if (activeSheet === "drivers") {
-      setActiveSheet("form");
+    if (activeSheet === SheetStep.SEARCHING) {
+      showCancelConfirm?.();
+      return true;
+    }
+    if (activeSheet === SheetStep.RIDE_INFO) {
+      setActiveSheet(SheetStep.DRIVERS);
+      return true;
+    }
+    if (activeSheet === SheetStep.DRIVERS) {
+      setActiveSheet(SheetStep.FORM);
       return true;
     }
     return false;
-  }, [activeSheet, setActiveSheet]);
+  }, [activeSheet, setActiveSheet, showCancelConfirm, busy, midTrip]);
 
   const handleBack = useCallback(() => {
     if (!goToPreviousStep()) goBack();
   }, [goToPreviousStep]);
 
-  // Handle hardware back on Android without exiting the whole flow
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",

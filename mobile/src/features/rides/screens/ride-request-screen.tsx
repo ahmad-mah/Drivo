@@ -1,98 +1,118 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, DeviceEventEmitter, View } from "react-native";
+import { RIDE_COMPLETED_EVENT } from "@/features/home/hooks/useRides";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useKeyboardHeight } from "@/shared/hooks/useKeyboardHeight";
-import { NearbyDriversSheet } from "../components/NearbyDriversSheet";
-import { RideInfoSheet } from "../components/RideInfoSheet";
-import { RideRequestForm } from "../components/RideRequestForm";
+import { useSnackbar } from "@/shared/contexts/SnackbarContext";
+import { RideBottomSheet } from "../components/RideBottomSheet";
+import { RideConnectivityBanner } from "../components/RideConnectivityBanner";
 import { RideRequestHeader } from "../components/RideRequestHeader";
 import { RideRequestMap } from "../components/RideRequestMap";
+import { CancelRideConfirmDialog } from "../components/CancelRideConfirmDialog";
+import { TripHelpDialog } from "../components/TripHelpDialog";
+import { RidePhase } from "../utils/ridePhase";
+import { SheetStep } from "../enums/SheetStep";
+import { RideStatus } from "../enums/RideStatus";
 import { SHEET_TITLES } from "../constants/rideSheets";
 import { useDirections } from "../hooks/useDirections";
 import { useDriverSelection } from "../hooks/useDriverSelection";
 import { useFindNowFeedback } from "../hooks/useFindNowFeedback";
 import { useNearbyDrivers } from "../hooks/useNearbyDrivers";
 import { usePickMode } from "../hooks/usePickMode";
+import { useRideFormState } from "../hooks/useRideFormState";
+import { useRideLifecycle } from "../hooks/useRideLifecycle";
 import { useRideRequest } from "../hooks/useRideRequest";
-import { useRideRequestForm } from "../hooks/useRideRequestForm";
-import { useRideRequestSteps } from "../hooks/useRideRequestSteps";
-import type { PlaceSuggestion, RidePoint } from "../types/ride.types";
+import { useRideRoute } from "../hooks/useRideRoute";
+import { useRideSteps } from "../hooks/useRideRequestSteps";
+import { goBack } from "@/shared/services/navigation";
+import type { NearbyDriver } from "../types/ride.types";
 
 export function RideRequestScreen() {
-  // Cached ride points after "Find now" — they pin the map/route to what was
-  // searched even as the user keeps typing underneath.
-  const [rideOrigin, setRideOrigin] = useState<RidePoint | null>(null);
-  const [rideDestination, setRideDestination] = useState<RidePoint | null>(null);
-  const keyboardHeight = useKeyboardHeight();
   const { user } = useCurrentUser();
-
-  const { activeSheet, setActiveSheet, handleBack } = useRideRequestSteps();
-
-  const { submitting: confirmLoading, submit } = useRideRequest();
-
-  // The form's success callback fires before the feedback hook exists below
-  // (it needs the driver count, which needs the form's location), so the
-  // starter is delivered through a ref instead of hook-order gymnastics.
-  const startFindNowRef = useRef<() => void>(() => {});
+  const { show: showSnackbar } = useSnackbar();
 
   const {
-    location,
-    origin: formOrigin,
-    destination: formDestination,
-    usingCurrentLocation,
-    applyPickedPoint,
-    ...formProps
-  } = useRideRequestForm({
-    onFindNowSuccess: (origin, destination) => {
-      setRideOrigin(origin);
-      setRideDestination(destination);
-      startFindNowRef.current();
-    },
+    ridePhase,
+    displayRide,
+    activeRideLoading,
+    cancelling,
+    handleRate,
+    ratingSubmitting,
+    ratedLocally,
+    endedMessage,
+    socketConnected,
+    expired,
+    cancelConfirmVisible,
+    showCancelConfirm,
+    hideCancelConfirm,
+    confirmCancel,
+    resetForNewRide,
+  } = useRideLifecycle();
+
+  const isMidTrip = displayRide?.status === RideStatus.IN_PROGRESS;
+
+  const {
+    activeSheet,
+    setActiveSheet,
+    handleBack: stepsBack,
+  } = useRideSteps({
+    showCancelConfirm,
+    busy: cancelling || ratingSubmitting,
+    midTrip: isMidTrip,
   });
 
-  const effectiveOrigin = rideOrigin ?? formOrigin;
-  const effectiveDestination = rideDestination ?? formDestination;
+  const [helpVisible, setHelpVisible] = useState(false);
 
-  // Editing the form after "Find now" invalidates the cached ride points so the
-  // map re-renders the newly picked/typed location instead of the stale route.
-  const resetRidePoints = useCallback(() => {
-    setRideOrigin(null);
-    setRideDestination(null);
-  }, []);
+  const endedSnackbarShownRef = useRef(false);
 
-  const formPropsWithReset = {
-    ...formProps,
-    onChangeFrom: (text: string) => {
-      formProps.onChangeFrom(text);
-      resetRidePoints();
-    },
-    onChangeTo: (text: string) => {
-      formProps.onChangeTo(text);
-      resetRidePoints();
-    },
-    onSelectFromSuggestion: (suggestion: PlaceSuggestion) => {
-      formProps.onSelectFromSuggestion(suggestion);
-      resetRidePoints();
-    },
-    onSelectSuggestion: (suggestion: PlaceSuggestion) => {
-      formProps.onSelectSuggestion(suggestion);
-      resetRidePoints();
-    },
-    onUseCurrentLocation: () => {
-      void formProps.onUseCurrentLocation();
-      resetRidePoints();
-    },
-  };
+  // Single effect: ridePhase → activeSheet + snackbar
+  useEffect(() => {
+    if (ridePhase === RidePhase.IDLE) {
+      endedSnackbarShownRef.current = false;
+      return;
+    }
 
+    if (ridePhase === RidePhase.SEARCHING) {
+      endedSnackbarShownRef.current = false;
+      setActiveSheet(SheetStep.SEARCHING);
+    } else if (ridePhase === RidePhase.TRIP) {
+      setActiveSheet(SheetStep.TRIP);
+    } else if (ridePhase === RidePhase.ENDED) {
+      setActiveSheet(SheetStep.DRIVERS);
+      if (endedMessage && !endedSnackbarShownRef.current) {
+        endedSnackbarShownRef.current = true;
+        showSnackbar(endedMessage);
+      }
+    }
+  }, [ridePhase, endedMessage, setActiveSheet, showSnackbar]);
+
+  // Dismiss the cancel dialog if the ride transitions to mid-trip while it is
+  // still open (e.g. ARRIVED → IN_PROGRESS with stale dialog).
+  useEffect(() => {
+    if (isMidTrip) hideCancelConfirm();
+  }, [isMidTrip, hideCancelConfirm]);
+
+  // ── Form + ride request ────────────────────────────────────────
+  const {
+    location,
+    effectiveOrigin,
+    effectiveDestination,
+    usingCurrentLocation,
+    applyPickedPoint,
+    formProps,
+    findNowLoading: formFindNowLoading,
+    startFindNowRef,
+  } = useRideFormState();
+
+  const { submitting: confirmLoading, submit } = useRideRequest();
   const { route } = useDirections(effectiveOrigin, effectiveDestination);
   const { drivers, loading: driversLoading } = useNearbyDrivers(location);
   const { findNowLoading, startFindNow } = useFindNowFeedback(
     drivers.length,
-    () => setActiveSheet("drivers"),
+    () => setActiveSheet(SheetStep.DRIVERS),
   );
   useEffect(() => {
     startFindNowRef.current = startFindNow;
-  }, [startFindNow]);
+  }, [startFindNow, startFindNowRef]);
 
   const {
     selectedDriver,
@@ -104,32 +124,62 @@ export function RideRequestScreen() {
   const { pickingField, handleMapPick, handleRequestPickMap } =
     usePickMode(applyPickedPoint);
 
-  const handleSelectRide = useCallback(() => {
-    if (selectedDriver) {
-      setActiveSheet("rideInfo");
-    }
-  }, [selectedDriver, setActiveSheet]);
+  const handlePickAndShowInfo = useCallback(
+    (driver: NearbyDriver) => {
+      handlePickDriverFromList(driver);
+      setActiveSheet(SheetStep.RIDE_INFO);
+    },
+    [handlePickDriverFromList, setActiveSheet],
+  );
 
   const handleConfirmRide = useCallback(async () => {
-    const origin = effectiveOrigin;
-    const destination = effectiveDestination;
+    if (!effectiveOrigin || !effectiveDestination) return;
+    resetForNewRide();
+    await submit(effectiveOrigin, effectiveDestination, () =>
+      setActiveSheet(SheetStep.SEARCHING),
+    );
+  }, [effectiveOrigin, effectiveDestination, submit, setActiveSheet, resetForNewRide]);
 
-    if (!origin || !destination) return;
+  const rateAndGoHome = useCallback(
+    async (stars: number, comment?: string) => {
+      await handleRate(stars, comment);
+      DeviceEventEmitter.emit(RIDE_COMPLETED_EVENT);
+      goBack();
+    },
+    [handleRate],
+  );
 
-    await submit(origin, destination);
-  }, [effectiveOrigin, effectiveDestination, submit]);
+  const handleTryAgain = useCallback(() => {
+    setActiveSheet(SheetStep.FORM);
+  }, [setActiveSheet]);
 
-  const headerTitle = SHEET_TITLES[activeSheet];
+  const handleHelpReport = useCallback(() => {
+    setHelpVisible(false);
+    showSnackbar("Thank you for your report. We'll look into it.");
+  }, [showSnackbar]);
+
+  const {
+    origin: rideOriginPoint,
+    destination: rideDestinationPoint,
+    route: rideRoute,
+  } = useRideRoute(displayRide);
+
+  const isSearchingOrTrip =
+    activeSheet === SheetStep.SEARCHING || activeSheet === SheetStep.TRIP;
+
+  const showConnectivityBanner =
+    isSearchingOrTrip && ridePhase !== RidePhase.ENDED;
 
   return (
     <View className="flex-1">
-      {/* Full-screen map behind the sheet stack */}
       <View className="absolute inset-0">
         <RideRequestMap
           location={location}
-          origin={effectiveOrigin}
-          destination={effectiveDestination}
-          route={route}
+          origin={isSearchingOrTrip ? rideOriginPoint : effectiveOrigin}
+          destination={
+            isSearchingOrTrip ? rideDestinationPoint : effectiveDestination
+          }
+          route={isSearchingOrTrip ? rideRoute : route}
           drivers={drivers}
           originIsCurrentLocation={usingCurrentLocation && !pickingField}
           selectedDriverId={selectedDriver?.id ?? null}
@@ -137,57 +187,64 @@ export function RideRequestScreen() {
           onSelectDriver={handleSelectDriver}
           userImageUrl={user?.imageUrl}
           userName={user?.firstName}
-          pickingField={activeSheet === "form" ? pickingField : null}
-          onMapPick={(latitude, longitude) =>
-            void handleMapPick(latitude, longitude)
-          }
+          pickingField={activeSheet === SheetStep.FORM ? pickingField : null}
+          onMapPick={(lat, lng) => void handleMapPick(lat, lng)}
         />
       </View>
 
-      {/* Floating Header */}
-      <RideRequestHeader title={headerTitle} onBack={handleBack} />
+      <RideConnectivityBanner
+        visible={showConnectivityBanner}
+        connected={socketConnected}
+      />
 
-      {/* Bottom sheet overlay. The ride-info step sizes to its content so all
-          details fit without scrolling; the other steps keep a fixed height.
-          The form step lifts by the exact keyboard height (see
-          useKeyboardHeight — resize mode is dead under edge-to-edge). */}
-      <View
-        className={`absolute inset-x-0 bottom-0 justify-end ${
-          activeSheet === "rideInfo" ? "max-h-[92%]" : "h-[60%]"
-        }`}
-        style={
-          activeSheet === "form" ? { paddingBottom: keyboardHeight } : undefined
-        }
-      >
-        {activeSheet === "form" && (
-          <RideRequestForm
-            {...formPropsWithReset}
-            findNowLoading={findNowLoading || formProps.findNowLoading}
-            pickingField={pickingField}
-            onRequestPickMap={handleRequestPickMap}
-          />
-        )}
+      <RideRequestHeader title={SHEET_TITLES[activeSheet]} onBack={stepsBack} hidden={isMidTrip} />
 
-        {activeSheet === "drivers" && (
-          <NearbyDriversSheet
-            drivers={drivers}
-            loading={driversLoading}
-            selectedDriverId={selectedDriver?.id ?? null}
-            onSelectDriver={handlePickDriverFromList}
-            onSelectRide={handleSelectRide}
-          />
-        )}
+      {activeRideLoading && (
+        <View className="absolute inset-0 items-center justify-center">
+          <ActivityIndicator />
+        </View>
+      )}
 
-        {activeSheet === "rideInfo" && selectedDriver && (
-          <RideInfoSheet
-            driver={selectedDriver}
-            origin={effectiveOrigin}
-            destination={effectiveDestination}
-            onConfirm={handleConfirmRide}
-            confirmLoading={confirmLoading}
-          />
-        )}
-      </View>
+      <RideBottomSheet
+        activeSheet={activeSheet}
+        busy={cancelling || ratingSubmitting}
+        formProps={formProps}
+        findNowLoading={findNowLoading || formFindNowLoading}
+        pickingField={pickingField}
+        onRequestPickMap={handleRequestPickMap}
+        drivers={drivers}
+        driversLoading={driversLoading}
+        expired={expired}
+        onPickDriverFromList={handlePickAndShowInfo}
+        onTryAgain={handleTryAgain}
+        selectedDriver={selectedDriver}
+        effectiveOrigin={effectiveOrigin}
+        effectiveDestination={effectiveDestination}
+        onConfirmRide={handleConfirmRide}
+        confirmLoading={confirmLoading}
+        displayRide={displayRide}
+        onRequestCancel={showCancelConfirm}
+        cancelling={cancelling}
+        onRequestHelp={() => setHelpVisible(true)}
+        onRate={rateAndGoHome}
+        ratingSubmitting={ratingSubmitting}
+        alreadyRated={ratedLocally}
+        onDone={goBack}
+      />
+
+      <CancelRideConfirmDialog
+        visible={cancelConfirmVisible}
+        variant={isMidTrip ? "mid-trip" : "pre-trip"}
+        onConfirm={confirmCancel}
+        onDismiss={hideCancelConfirm}
+        loading={cancelling}
+      />
+
+      <TripHelpDialog
+        visible={helpVisible}
+        onReport={handleHelpReport}
+        onClose={() => setHelpVisible(false)}
+      />
     </View>
   );
 }
