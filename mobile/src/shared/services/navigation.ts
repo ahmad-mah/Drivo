@@ -37,9 +37,9 @@ export const Routes = {
     driverProfile: "/(app)/(root)/driver-profile" as const,
     driverMode: "/(app)/(root)/driver-mode" as const,
     rideRequest: "/(app)/(root)/ride-request" as const,
-    rideStatus: "/(app)/(root)/ride-status" as const,
     tabs: {
       home: "/(app)/(root)/(tabs)/home" as const,
+      history: "/(app)/(root)/(tabs)/history" as const,
     },
   },
 } as const;
@@ -68,6 +68,11 @@ export function goToHome() {
   guardedNav(() => router.replace(Routes.root.tabs.home));
 }
 
+/** Tab switch — push keeps the tab bar visible. */
+export function goToHistoryTab() {
+  guardedNav(() => router.push(Routes.root.tabs.history));
+}
+
 export function goToBecomeDriver() {
   guardedNav(() => router.push(Routes.root.becomeDriver));
 }
@@ -82,13 +87,6 @@ export function goToDriverMode() {
 
 export function goToRideRequest() {
   guardedNav(() => router.push(Routes.root.rideRequest));
-}
-
-export function goToRideStatus() {
-  // Push (not replace) so the ride-request screen stays in the stack. After a
-  // cancel or a back press on the searching screen, goBack() returns to the
-  // request screen (the previous page) instead of jumping straight to Home.
-  guardedNav(() => router.push(Routes.root.rideStatus));
 }
 
 export function goBack() {

@@ -25,8 +25,6 @@ export function SelfMarker({
   };
 
   const markerRef = useRef<React.ElementRef<typeof Marker>>(null);
-  // Only the selected branch renders an async image; with no image to decode,
-  // the snapshot is static and can be frozen immediately.
   const [tracking, setTracking] = useState(!!userImageUrl);
 
   const handleImageLoad = useCallback(() => {
@@ -34,20 +32,19 @@ export function SelfMarker({
     setTracking(false);
   }, []);
 
-  if (isSelfSelected) {
-    return (
-      <Marker
-        ref={markerRef}
-        key="selected-self-marker"
-        coordinate={coordinate}
-        anchor={{ x: 0.5, y: 0.5 }}
-        zIndex={101}
-        tracksViewChanges={tracking}
-        onPress={(e) => {
-          e?.stopPropagation?.();
-          onPress();
-        }}
-      >
+  return (
+    <Marker
+      ref={markerRef}
+      coordinate={coordinate}
+      anchor={{ x: 0.5, y: 0.5 }}
+      zIndex={isSelfSelected ? 101 : 100}
+      tracksViewChanges={isSelfSelected ? tracking : false}
+      onPress={(e) => {
+        e?.stopPropagation?.();
+        onPress();
+      }}
+    >
+      {isSelfSelected ? (
         <AvatarCircle
           imageUrl={userImageUrl}
           fallbackLabel={userName ? userName.charAt(0).toUpperCase() : "ME"}
@@ -56,23 +53,9 @@ export function SelfMarker({
           borderWidth={1}
           onImageLoad={handleImageLoad}
         />
-      </Marker>
-    );
-  }
-
-  return (
-    <Marker
-      key="unselected-self-marker"
-      coordinate={coordinate}
-      anchor={{ x: 0.5, y: 0.5 }}
-      zIndex={100}
-      tracksViewChanges={false}
-      onPress={(e) => {
-        e?.stopPropagation?.();
-        onPress();
-      }}
-    >
-      <View className="rounded-full bg-blue-500 size-4.5 border border-white" />
+      ) : (
+        <View className="rounded-full bg-blue-500 size-4.5 border border-white" />
+      )}
     </Marker>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage } from "@/shared/components";
+import { vehicleIconFor } from "@/shared/constants/vehicleIcons";
 import { formatFare } from "@/shared/utils/format";
 import type { NearbyDriver, RidePoint } from "../types/ride.types";
 import {
@@ -9,7 +10,10 @@ import {
   driverFare,
   driverRating,
   driverSeats,
+  driverVehicleLabel,
 } from "../utils/driverDisplay";
+import { DriverInfoSkeleton } from "../skeletons/DriverInfoSkeleton";
+import { StatCard } from "./StatCard";
 
 interface RideInfoSheetProps {
   driver: NearbyDriver | null;
@@ -19,10 +23,6 @@ interface RideInfoSheetProps {
   confirmLoading: boolean;
 }
 
-/**
- * Bottom sheet confirming a ride before booking. Shows the driver profile,
- * a fare/pickup/seats card, the route endpoints, and a Confirm Ride CTA.
- */
 export function RideInfoSheet({
   driver,
   origin,
@@ -33,128 +33,153 @@ export function RideInfoSheet({
   const insets = useSafeAreaInsets();
   const [imageError, setImageError] = useState(false);
 
+  if (!driver) {
+    return (
+      <View
+        className="flex-1 rounded-t-4xl bg-white"
+        style={{
+          paddingBottom: insets.bottom + 16,
+          shadowColor: "#101010",
+          shadowOffset: { width: 0, height: -2 },
+          shadowRadius: 12,
+          shadowOpacity: 0.08,
+          elevation: 8,
+        }}
+      >
+        <DriverInfoSkeleton />
+      </View>
+    );
+  }
+
   return (
     <View
-      className="flex-1 gap-6 rounded-t-4xl bg-white px-5 pt-5"
+      className="flex-1 rounded-t-4xl bg-white"
       style={{
-        paddingBottom: insets.bottom + 16,
+        paddingBottom: insets.bottom + 20,
         shadowColor: "#101010",
-        shadowOffset: { width: 0, height: -4 },
-        shadowRadius: 16,
-        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: -2 },
+        shadowRadius: 12,
+        shadowOpacity: 0.08,
         elevation: 8,
       }}
     >
-      <Text className="font-Jakarta-Bold text-xl text-secondary-900">
-        Ride Information
-      </Text>
+      {/* Handle bar */}
+      <View className="items-center pt-3 pb-2">
+        <View className="h-1 w-10 rounded-full bg-general-300" />
+      </View>
 
-      {/* Full-width divider, edge to edge, light grey */}
-      <View className="-mx-5 h-px bg-gray-300" />
-
-      {/* Driver profile, centered */}
-      <View className="items-center gap-2">
-        <View className="size-20 overflow-hidden rounded-full bg-white shadow-sm">
-          {driver?.imageUrl && !imageError ? (
-            <AppImage
-              source={{ uri: driver.imageUrl }}
-              className="size-full"
-              contentFit="cover"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <View className="size-full items-center justify-center bg-general-200">
-              <Text className="font-Jakarta-Bold text-2xl text-secondary-400">
-                {driver ? driver.firstName.charAt(0) : "?"}
-              </Text>
+      <View className="flex-1 gap-5 px-5 pt-2">
+        {/* ── Driver Hero ─────────────────────────── */}
+        <View className="items-center gap-3">
+          <View className="relative">
+            <View className="size-[76px] overflow-hidden rounded-full border-[3px] border-primary-200">
+              {driver.imageUrl && !imageError ? (
+                <AppImage
+                  source={{ uri: driver.imageUrl }}
+                  className="size-full"
+                  contentFit="cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <View className="size-full items-center justify-center bg-primary-100">
+                  <Text className="font-Jakarta-Bold text-2xl text-primary-500">
+                    {driver.firstName.charAt(0)}
+                  </Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
+            <View className="absolute -bottom-1 -right-1 size-6 items-center justify-center rounded-full bg-green-500">
+              <AppImage
+                source={require("@/assets/icons/check.png")}
+                className="size-3"
+                tintColor="#FFFFFF"
+              />
+            </View>
+          </View>
 
-        <View className="flex-row items-center gap-1.5">
-          <Text className="font-Jakarta-Bold text-lg text-secondary-900">
-            {driver ? `${driver.firstName} ${driver.lastName}` : "Any available driver"}
-          </Text>
-          {driver && (
-            <View className="flex-row items-center gap-1">
+          <View className="items-center gap-1">
+            <Text className="font-Jakarta-Bold text-xl text-secondary-900">
+              {driver.firstName} {driver.lastName}
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-lg">{vehicleIconFor(driver.vehicleType)}</Text>
+              <Text className="font-Jakarta text-sm text-secondary-500">
+                {driverVehicleLabel(driver)}
+              </Text>
+              {driver.carPlate && (
+                <>
+                  <View className="h-3 w-px bg-general-300" />
+                  <Text className="font-Jakarta-SemiBold text-sm text-secondary-700">
+                    {driver.carPlate}
+                  </Text>
+                </>
+              )}
+            </View>
+            <View className="flex-row items-center gap-1 rounded-full bg-primary-100 px-2.5 py-1">
               <AppImage
                 source={require("@/assets/icons/star.png")}
-                className="size-3.5"
+                className="size-3"
               />
-              <Text className="font-Jakarta-Bold text-sm text-secondary-700">
+              <Text className="font-Jakarta-Bold text-xs text-primary-600">
                 {driverRating(driver)}
               </Text>
             </View>
-          )}
+          </View>
         </View>
-      </View>
 
-      {/* Fare / pickup / seats card */}
-      <View className="rounded-3xl bg-primary-200 px-4 py-2">
-        <View className="flex-row items-center justify-between py-3">
-          <Text className="font-Jakarta-Medium text-base text-black">
-            Ride Price
-          </Text>
-          <Text className="font-Jakarta-SemiBold text-base text-[#34C759]">
-            {driver ? `$${formatFare(driverFare(driver))}` : "Calculating..."}
-          </Text>
+        {/* ── Route Card ──────────────────────────── */}
+        <View
+          className="gap-3 rounded-2xl bg-general-500 px-4 py-4"
+        >
+          <View className="flex-row items-start gap-3">
+            <View className="items-center gap-1 pt-0.5">
+              <View className="size-2 rounded-full bg-secondary-900" />
+              <View className="h-8 w-px bg-general-300" />
+              <View className="size-2 rounded-full bg-green-500" />
+            </View>
+            <View className="flex-1 gap-4">
+              <Text
+                className="font-Jakarta-SemiBold text-sm text-secondary-800"
+                numberOfLines={2}
+              >
+                {origin?.address || "Current location"}
+              </Text>
+              <Text
+                className="font-Jakarta text-sm text-secondary-500"
+                numberOfLines={2}
+              >
+                {destination?.address || "Selected destination"}
+              </Text>
+            </View>
+          </View>
         </View>
-        <View className="h-0.5 bg-white" />
-        <View className="flex-row items-center justify-between py-3">
-          <Text className="font-Jakarta-Medium text-base text-black">
-            Pickup time
-          </Text>
-          <Text className="font-Jakarta-SemiBold text-base text-secondary-900">
-            {driver ? `${driverEtaMinutes(driver)} min` : "~5 min"}
-          </Text>
-        </View>
-        <View className="h-0.5 bg-white" />
-        <View className="flex-row items-center justify-between py-3">
-          <Text className="font-Jakarta-Medium text-base text-black">
-            Car seats
-          </Text>
-          <Text className="font-Jakarta-SemiBold text-base text-secondary-900">
-            {driver ? driverSeats(driver) : "4"}
-          </Text>
-        </View>
-      </View>
 
-      {/* Route endpoints, framed top and bottom with a divider between */}
-      <View>
-        <View className="h-px bg-gray-200" />
-        <View className="flex-row items-center gap-3 py-4">
-          <AppImage
-            source={require("@/assets/icons/to.png")}
-            className="size-6"
+        {/* ── Trip Stats ──────────────────────────── */}
+        <View className="flex-row gap-3">
+          <StatCard
+            label="Price"
+            value={`$${formatFare(driverFare(driver))}`}
+            highlight
           />
-          <Text
-            className="flex-1 font-Jakarta-SemiBold text-base text-black"
-            numberOfLines={1}
-          >
-            {destination?.address || "Selected destination"}
-          </Text>
-        </View>
-        <View className="h-px bg-gray-200" />
-        <View className="flex-row items-center gap-3 py-4">
-          <AppImage
-            source={require("@/assets/icons/point.png")}
-            className="size-6"
+          <StatCard
+            label="Pickup"
+            value={`${driverEtaMinutes(driver)} min`}
           />
-          <Text
-            className="flex-1 font-Jakarta-SemiBold text-base text-black"
-            numberOfLines={1}
-          >
-            {origin?.address || "Current Location"}
-          </Text>
+          <StatCard
+            label="Seats"
+            value={String(driverSeats(driver))}
+          />
         </View>
-        <View className="h-px bg-gray-200" />
       </View>
 
-      <AppButton
-        title="Confirm Ride"
-        onPress={onConfirm}
-        loading={confirmLoading}
-      />
+      {/* ── Confirm CTA ─────────────────────────── */}
+      <View className="px-5 pt-4">
+        <AppButton
+          title="Confirm Ride"
+          onPress={onConfirm}
+          loading={confirmLoading}
+        />
+      </View>
     </View>
   );
 }

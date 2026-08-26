@@ -17,6 +17,7 @@ export function RidePointMarkers({
     <>
       {origin && !originIsCurrentLocation && (
         <Marker
+          key="ride-origin"
           coordinate={{ latitude: origin.latitude, longitude: origin.longitude }}
           title="From"
           anchor={{ x: 0.5, y: 1 }}
@@ -31,6 +32,7 @@ export function RidePointMarkers({
       )}
       {destination && (
         <Marker
+          key="ride-destination"
           coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
           title="To"
           pinColor="#34C759"

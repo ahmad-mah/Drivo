@@ -14,10 +14,6 @@ interface CarMarkerProps {
  */
 const CarMarkerImpl = memo(function CarMarkerImpl({ driver, onPress }: CarMarkerProps) {
   const markerRef = useRef<React.ElementRef<typeof Marker>>(null);
-  const prevCoord = useRef({
-    latitude: driver.latitude,
-    longitude: driver.longitude,
-  });
 
   const handleImageLoad = useCallback(() => {
     markerRef.current?.redraw();
@@ -26,24 +22,6 @@ const CarMarkerImpl = memo(function CarMarkerImpl({ driver, onPress }: CarMarker
   useEffect(() => {
     markerRef.current?.redraw();
   }, [driver.heading]);
-
-  useEffect(() => {
-    const prev = prevCoord.current;
-    if (
-      prev.latitude === driver.latitude &&
-      prev.longitude === driver.longitude
-    ) {
-      return;
-    }
-    prevCoord.current = {
-      latitude: driver.latitude,
-      longitude: driver.longitude,
-    };
-    markerRef.current?.animateMarkerToCoordinate(
-      { latitude: driver.latitude, longitude: driver.longitude },
-      500,
-    );
-  }, [driver.latitude, driver.longitude]);
 
   return (
     <Marker

@@ -28,45 +28,45 @@ export function DriverListItem({
     <Pressable
       disabled={isOffline}
       className={cn(
-        "flex-row items-center gap-3.5 p-3.5 transition-all",
-        selected ? "bg-primary-300" : "bg-white",
+        "flex-row items-center gap-3.5 rounded-2xl p-3.5",
+        selected ? "bg-primary-100" : "bg-general-500",
         isOffline && "opacity-50",
       )}
       onPress={onPress}
     >
-      {/* Driver Avatar */}
+      {/* Avatar */}
       <View
         className={cn(
-          "size-12 overflow-hidden rounded-full bg-general-100",
+          "size-12 overflow-hidden rounded-full bg-general-200",
           selected
-            ? "border-[2.5px] border-[#34C759]"
-            : "border border-[#E5E5E5]",
+            ? "border-[2.5px] border-primary-500"
+            : "border-2 border-general-300",
         )}
       >
         {driver.imageUrl ? (
           <AppImage source={{ uri: driver.imageUrl }} className="size-full" />
         ) : (
-          <View className="size-full items-center justify-center bg-general-200">
-            <Text className="font-Jakarta-Bold text-lg text-secondary-400">
+          <View className="size-full items-center justify-center bg-primary-100">
+            <Text className="font-Jakarta-Bold text-base text-primary-500">
               {driver.firstName.charAt(0)}
             </Text>
           </View>
         )}
       </View>
 
-      {/* Driver Details */}
+      {/* Details */}
       <View className="flex-1 gap-1.5">
-        {/* Row: name + rating */}
+        {/* Name + rating */}
         <View className="flex-row items-center justify-between gap-2">
           <Text
             numberOfLines={1}
-            className="flex-3 font-Jakarta-SemiBold text-base text-secondary-900"
+            className="flex-3 font-Jakarta-SemiBold text-sm text-secondary-900"
           >
             {driver.firstName} {driver.lastName}
           </Text>
           {isOffline ? (
             <View className="flex-2 items-end">
-              <View className="rounded-full bg-general-200 px-2.5 py-1">
+              <View className="rounded-full bg-general-200 px-2 py-0.5">
                 <Text className="font-Jakarta-SemiBold text-[10px] text-secondary-500">
                   Offline
                 </Text>
@@ -76,7 +76,7 @@ export function DriverListItem({
             <View className="flex-row flex-2 items-center gap-1">
               <AppImage
                 source={require("@/assets/icons/star.png")}
-                className="size-3.5"
+                className="size-3"
               />
               <Text className="font-Jakarta-SemiBold text-xs text-secondary-800">
                 {driverRating(driver)}
@@ -85,41 +85,26 @@ export function DriverListItem({
           )}
         </View>
 
-        {/* Row: price | divider | time | divider | seats */}
-        <View className="flex-row items-center gap-4">
-          <View className="flex-row items-center gap-1">
-            <AppImage
-              source={require("@/assets/icons/dollar.png")}
-              className="size-3.5 "
-            />
-            <Text className="font-Jakarta-Bold text-xs text-general-900">
-              ${formatFare(driverFare(driver))}
-            </Text>
-          </View>
-
-          <View className="h-3.5 w-px bg-general-200" />
-
-          <Text className="font-Jakarta-SemiBold text-xs text-gray-500">
+        {/* Stats row */}
+        <View className="flex-row items-center gap-3">
+          <Text className="font-Jakarta-Bold text-xs text-primary-600">
+            ${formatFare(driverFare(driver))}
+          </Text>
+          <View className="h-3 w-px bg-general-300" />
+          <Text className="font-Jakarta text-xs text-secondary-500">
             {driverEtaMinutes(driver)} min
           </Text>
-
-          <View className="h-3.5 w-px bg-general-200" />
-
-          <View className="flex-row items-center gap-1">
-            <AppImage
-              source={require("@/assets/icons/person.png")}
-              className="size-3.5"
-              tintColor="#737373"
-            />
-            <Text className="font-Jakarta-SemiBold text-xs text-gray-500">
-              {driverSeats(driver) + " Seats"}
-            </Text>
-          </View>
+          <View className="h-3 w-px bg-general-300" />
+          <Text className="font-Jakarta text-xs text-secondary-500">
+            {driverSeats(driver)} seats
+          </Text>
         </View>
       </View>
 
-      {/* Vehicle icon (same emojis as the become-driver form) */}
-      <Text className="text-4xl">{vehicleIconFor(driver.vehicleType)}</Text>
+      {/* Vehicle icon */}
+      <View className="size-10 items-center justify-center rounded-xl bg-general-500">
+        <Text className="text-xl">{vehicleIconFor(driver.vehicleType)}</Text>
+      </View>
     </Pressable>
   );
 }

@@ -15,18 +15,13 @@ interface DriverMarkerProps {
 /**
  * One marker per nearby driver, kept mounted so selection only swaps the child
  * view instead of recreating the native marker (which flashes the default pin).
- * Position updates use animateMarkerToCoordinate so old coordinates never ghost
- * on the map when tracksViewChanges is frozen.
+ * Position updates are handled by the coordinate prop (instant reposition).
  */
 export function DriverMarker({ driver, selected, onPress }: DriverMarkerProps) {
   const markerRef = useRef<React.ElementRef<typeof Marker>>(null);
   const hasAvatarImage = !!driver.imageUrl;
   const isOffline = driver.isOnline === false;
   const [avatarReady, setAvatarReady] = useState(!hasAvatarImage);
-  const prevCoord = useRef({
-    latitude: driver.latitude,
-    longitude: driver.longitude,
-  });
 
   useEffect(() => {
     if (!selected || avatarReady || !hasAvatarImage) return;
@@ -58,24 +53,6 @@ export function DriverMarker({ driver, selected, onPress }: DriverMarkerProps) {
     if (showAvatar) return;
     markerRef.current?.redraw();
   }, [driver.heading, showAvatar]);
-
-  useEffect(() => {
-    const prev = prevCoord.current;
-    if (
-      prev.latitude === driver.latitude &&
-      prev.longitude === driver.longitude
-    ) {
-      return;
-    }
-    prevCoord.current = {
-      latitude: driver.latitude,
-      longitude: driver.longitude,
-    };
-    markerRef.current?.animateMarkerToCoordinate(
-      { latitude: driver.latitude, longitude: driver.longitude },
-      500,
-    );
-  }, [driver.latitude, driver.longitude]);
 
   return (
     <Marker

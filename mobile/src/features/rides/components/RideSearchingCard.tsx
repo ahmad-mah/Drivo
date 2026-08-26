@@ -1,100 +1,125 @@
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage } from "@/shared/components";
-import { formatFare } from "@/shared/utils/format";
-import type { Ride } from "../types/ride.types";
 
 interface RideSearchingCardProps {
-  ride: Ride;
-  onCancel: () => void;
-  cancelling: boolean;
+  onRequestCancel: () => void;
+  cancelling?: boolean;
 }
 
-function formatTimeLeft(deadlineMs: number) {
-  const diff = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000));
-  const minutes = Math.floor(diff / 60);
-  const seconds = diff % 60;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
+const ESCALATION_THRESHOLD_MS = 40_000;
+
+const MESSAGES = [
+  "Waiting for a driver to respond",
+  "Still looking for a driver…",
+] as const;
 
 export function RideSearchingCard({
-  ride,
-  onCancel,
-  cancelling,
+  onRequestCancel,
+  cancelling = false,
 }: RideSearchingCardProps) {
   const insets = useSafeAreaInsets();
-
-  // Local deadline built from the server's relative TTL — comparing the
-  // absolute expiresAt against this device's clock breaks under skew and
-  // makes the ride appear to outlive its real server-side expiry.
-  const [deadline] = useState(() => Date.now() + ride.expiresInSeconds * 1000);
-  const [timeLeft, setTimeLeft] = useState(formatTimeLeft(deadline));
+  const [elapsed, setElapsed] = useState(0);
+  const [fade] = useState(() => new Animated.Value(1));
+  const [pulse] = useState(() => new Animated.Value(1));
+  const prevIndex = useRef(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(formatTimeLeft(deadline));
-    }, 1000);
+    const start = Date.now();
+    const timer = setInterval(() => setElapsed(Date.now() - start), 1000);
     return () => clearInterval(timer);
-  }, [deadline]);
+  }, []);
+
+  // Pulsing ring animation
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1.15,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const messageIndex = elapsed >= ESCALATION_THRESHOLD_MS ? 1 : 0;
+
+  useEffect(() => {
+    if (messageIndex === prevIndex.current) return;
+    Animated.sequence([
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    prevIndex.current = messageIndex;
+  }, [messageIndex, fade]);
 
   return (
     <View
-      className="gap-4 rounded-t-4xl bg-white px-5 pt-6"
+      className="rounded-t-4xl bg-white px-5 pt-8"
       style={{
         paddingBottom: insets.bottom + 24,
         shadowColor: "#101010",
-        shadowOffset: { width: 0, height: -4 },
-        shadowRadius: 16,
-        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: -2 },
+        shadowRadius: 12,
+        shadowOpacity: 0.08,
         elevation: 8,
       }}
     >
-      <View className="flex-row items-center gap-3">
-        <View className="rounded-full bg-green-500 p-3">
-          <AppImage
-            source={require("@/assets/icons/marker.png")}
-            className="size-5"
-            tintColor="#FFFFFF"
+      {/* Hero: pulsing circle */}
+      <View className="items-center gap-6">
+        <View className="relative items-center justify-center">
+          <Animated.View
+            className="absolute size-24 rounded-full bg-primary-100"
+            style={{ transform: [{ scale: pulse }] }}
           />
+          <View className="z-10 size-16 items-center justify-center rounded-full bg-primary-500">
+            <AppImage
+              source={require("@/assets/icons/search.png")}
+              className="size-7"
+              tintColor="#FFFFFF"
+            />
+          </View>
         </View>
-        <View className="flex-1 gap-0.5">
+
+        {/* Text */}
+        <View className="items-center gap-2">
           <Text className="font-Jakarta-Bold text-xl text-secondary-900">
-            I&apos;m requesting a ride.
+            Finding your ride
           </Text>
-          <Text
-            className="font-Jakarta text-sm text-secondary-400"
-            numberOfLines={1}
-          >
-            {ride.destinationAddress}
-          </Text>
+           <Animated.View style={{ opacity: fade }}>
+             <Text className="text-center font-Jakarta text-sm text-secondary-500">
+               {MESSAGES[messageIndex]}
+             </Text>
+           </Animated.View>
         </View>
       </View>
-      <View className="h-px bg-general-300" />
-      <View className="flex-row items-center justify-between">
-        <Text className="font-Jakarta text-sm text-secondary-400">
-          {ride.nearbyDrivers} driver{ride.nearbyDrivers === 1 ? "" : "s"}{" "}
-          nearby
-        </Text>
-        <Text className="font-Jakarta text-sm text-secondary-400">
-          Expires in {timeLeft}
-        </Text>
+
+      {/* Cancel */}
+      <View className="mt-8">
+        <AppButton
+          title="Cancel ride"
+          variant="danger"
+          onPress={onRequestCancel}
+          loading={cancelling}
+        />
       </View>
-      <View className="h-px bg-general-300" />
-      <View className="flex-row items-center justify-between">
-        <Text className="font-Jakarta text-sm text-secondary-400">
-          Fare
-        </Text>
-        <Text className="font-Jakarta-Bold text-lg text-secondary-900">
-          ${formatFare(ride.fare)}
-        </Text>
-      </View>
-      <AppButton
-        title="Cancel ride"
-        variant="outline"
-        onPress={onCancel}
-        loading={cancelling}
-      />
     </View>
   );
 }
