@@ -29,6 +29,7 @@ export interface AdminDriver {
   vehicleType: string;
   vehicleModel: string;
   vehicleColor: string;
+  seats: number;
   vehiclePlate: string;
   licenseNumber: string;
   approvalStatus: DriverApprovalStatus;

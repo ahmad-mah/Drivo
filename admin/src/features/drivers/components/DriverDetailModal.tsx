@@ -124,6 +124,7 @@ export function DriverDetailModal({
                   <DetailRow label="Type" value={driver.vehicleType} />
                   <DetailRow label="Model" value={driver.vehicleModel} />
                   <DetailRow label="Color" value={driver.vehicleColor} />
+                  <DetailRow label="Seats" value={String(driver.seats)} />
                   <DetailRow label="Plate" value={driver.vehiclePlate} />
                   <DetailRow label="License" value={driver.licenseNumber} />
                 </dl>
