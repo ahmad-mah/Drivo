@@ -1,3 +1,5 @@
-import HistoryScreen from '@/features/history/screens/history-screen';
+import { HistoryScreen } from "@/features/history/screens/history-screen";
 
-export default HistoryScreen;
+export default function History() {
+  return <HistoryScreen />;
+}

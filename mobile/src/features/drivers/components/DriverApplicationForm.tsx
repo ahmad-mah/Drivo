@@ -26,6 +26,13 @@ const vehicleFields: FieldConfig[] = [
     autoCapitalize: "words",
   },
   {
+    name: "seats",
+    title: "Car Seats",
+    placeholder: "e.g. 4",
+    keyboardType: "phone-pad" as const,
+    inputMode: "text" as const,
+  },
+  {
     name: "vehiclePlate",
     title: "Vehicle Plate",
     placeholder: "License plate number",

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
 import { useDriverApplication } from "./useDriverApplication";
@@ -16,12 +16,15 @@ export function useDriverApplicationForm() {
   const isEditing = isReapply || isVehicleChange;
 
   const form = useForm<DriverApplicationFormData>({
-    resolver: zodResolver(applyDriverSchema),
+    // z.coerce makes the schema's input type differ from its output; the cast
+    // aligns react-hook-form with the resolved (post-coercion) shape.
+    resolver: zodResolver(applyDriverSchema) as Resolver<DriverApplicationFormData>,
     mode: "all",
     defaultValues: {
       vehicleType: undefined,
       vehicleModel: "",
       vehicleColor: "",
+      seats: undefined,
       vehiclePlate: "",
       licenseNumber: "",
     },
@@ -35,6 +38,7 @@ export function useDriverApplicationForm() {
       vehicleType: application.vehicleType,
       vehicleModel: application.vehicleModel,
       vehicleColor: application.vehicleColor,
+      seats: application.seats ?? undefined,
       vehiclePlate: application.vehiclePlate,
       licenseNumber: application.licenseNumber,
     });

@@ -15,6 +15,7 @@ export interface DriverProfile {
   vehicleType: VehicleType;
   vehicleModel: string;
   vehicleColor: string;
+  seats: number;
   vehiclePlate: string;
   licenseNumber: string;
   approvalStatus: DriverApprovalStatus;
@@ -112,17 +113,4 @@ export interface IncomingRideRequest {
   /** Response window in seconds from receipt — derive the deadline locally
    *  instead of comparing an absolute epoch against the device clock. */
   respondWithinSeconds: number;
-}
-
-/** Claims the ride; 409 when the offer or ride already resolved. */
-export async function acceptRideRequest(rideId: string) {
-  const { data } = await apiClient.post<ApiResponse<unknown>>(
-    `/api/rides/${rideId}/accept`,
-  );
-  return data.data;
-}
-
-/** Declines the offer; the dispatcher escalates to the next-nearest driver. */
-export async function rejectRideRequest(rideId: string) {
-  await apiClient.post(`/api/rides/${rideId}/reject`);
 }
