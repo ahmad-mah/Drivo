@@ -38,6 +38,19 @@ export async function notifyRideExpired(clerkId: string, rideId: string) {
   io.to(clerkId).emit("ride:expired", { rideId });
 }
 
+/**
+ * Generic lifecycle broadcast: every trip transition (accept/cancel/
+ * arrive/start/complete) lands here for both the rider's and the driver's
+ * rooms. Clients refetch their active ride on receipt.
+ */
+export async function notifyRideUpdated(clerkIds: string[], rideId: string) {
+  const io = getSocketServer();
+  if (!io) return;
+  for (const clerkId of clerkIds) {
+    io.to(clerkId).emit("ride:updated", { rideId });
+  }
+}
+
 export async function notifyNewRideRequest(
   clerkId: string,
   payload: IncomingRideRequest,

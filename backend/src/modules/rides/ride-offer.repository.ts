@@ -2,16 +2,27 @@ import { prisma } from "../../config/database";
 import { RideOfferStatus } from "@prisma/client";
 
 /**
- * Creates a dispatch offer. The (rideId, driverId) unique index makes a
- * re-offer of the same driver idempotent — the dispatcher may re-scan a ride
- * before the previous offer expired, and the second create simply loses.
+ * Creates a dispatch offer. The (rideId, driverId) unique index makes this
+ * idempotent across escalation cycles — re-offering a driver after their
+ * cooldown simply revives the existing row back to OFFERED.
  */
 export async function createOffer(data: {
   rideId: string;
   driverId: string;
   distanceKm: number;
 }) {
-  return prisma.rideOffer.create({ data });
+  return prisma.rideOffer.upsert({
+    where: {
+      rideId_driverId: { rideId: data.rideId, driverId: data.driverId },
+    },
+    update: {
+      status: RideOfferStatus.OFFERED,
+      distanceKm: data.distanceKm,
+      offeredAt: new Date(),
+      respondedAt: null,
+    },
+    create: data,
+  });
 }
 
 export async function findByRideAndDriver(rideId: string, driverId: string) {
@@ -86,13 +97,55 @@ export async function findRidesNeedingEscalation(rideIds: string[]) {
   });
 }
 
-/** Driver ids that already received an offer on this ride (any terminal state). */
-export async function findRespondedDriverIds(rideId: string) {
+/**
+ * Driver ids excluded from dispatch right now: anyone whose previous offer
+ * on this ride was rejected (or silently expired) within the cooldown
+ * window. Older responders become eligible again — a rejection is a
+ * cooldown, not a lifetime ban.
+ */
+export async function findRecentlyRespondedDriverIds(
+  rideId: string,
+  cooldownMs: number,
+) {
+  const cutoff = new Date(Date.now() - cooldownMs);
   const rows = await prisma.rideOffer.findMany({
-    where: { rideId, status: { not: RideOfferStatus.OFFERED } },
+    where: {
+      rideId,
+      status: { not: RideOfferStatus.OFFERED },
+      OR: [
+        { respondedAt: { gte: cutoff } },
+        { respondedAt: null, offeredAt: { gte: cutoff } },
+      ],
+    },
     select: { driverId: true },
   });
   return rows.map((row) => row.driverId);
+}
+
+/** Total responded offers on a ride — drives the radius-widening ladder. */
+export async function countRespondedOffers(rideId: string) {
+  return prisma.rideOffer.count({
+    where: { rideId, status: { not: RideOfferStatus.OFFERED } },
+  });
+}
+
+/**
+ * Expires every OFFERED offer on a ride and returns the holding drivers'
+ * clerkIds — used when a rider cancels so waiting drivers dismiss their
+ * cards instantly.
+ */
+export async function expireOpenOffers(rideId: string): Promise<string[]> {
+  const open = await prisma.rideOffer.findMany({
+    where: { rideId, status: RideOfferStatus.OFFERED },
+    select: { driver: { select: { user: { select: { clerkId: true } } } } },
+  });
+
+  await prisma.rideOffer.updateMany({
+    where: { rideId, status: RideOfferStatus.OFFERED },
+    data: { status: RideOfferStatus.EXPIRED },
+  });
+
+  return open.map((offer) => offer.driver.user.clerkId);
 }
 
 /**
@@ -110,7 +163,11 @@ export async function acceptOffer(
   rideId: string,
   driverId: string,
   rideOwnerUserId: string,
-  driver: { driverFirstName: string; driverLastName: string },
+  driver: {
+    driverFirstName: string;
+    driverLastName: string;
+    seats: number;
+  },
 ) {
   return prisma.$transaction(async (tx) => {
     const offer = await tx.rideOffer.updateMany({
@@ -133,7 +190,9 @@ export async function acceptOffer(
       data: {
         status: "ACCEPTED",
         driverId,
-        ...driver,
+        seats: driver.seats,
+        driverFirstName: driver.driverFirstName,
+        driverLastName: driver.driverLastName,
       },
     });
     if (ride.count === 0) {
