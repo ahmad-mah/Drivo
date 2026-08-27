@@ -13,20 +13,31 @@ const DRIVER_SOCKET_EVENTS = {
   status: "driver:status",
   heartbeat: "driver:heartbeat",
   newRideRequest: "ride:new-request",
+  rideUpdated: "ride:updated",
 } as const;
 
 type StatusListener = (status: DriverAvailabilityResult) => void;
 type ConnectionListener = (connected: boolean) => void;
 type IncomingRideListener = (request: IncomingRideRequest) => void;
+/** Receives the rideId so subscribers can filter for their own ride. */
+type RideUpdateListener = (rideId: string) => void;
 /** Fires on every successful (re)connect — the hook uses it to re-assert an
  *  online state that a connectivity drop may have let the server sweep. */
 type ConnectListener = () => void;
 
+/**
+ * Listener registry: single slots for screen-owned events, a Set for
+ * ride:updated which several hooks subscribe to at once.
+ */
+const listeners = {
+  status: null as StatusListener | null,
+  connection: null as ConnectionListener | null,
+  connect: null as ConnectListener | null,
+  incomingRide: null as IncomingRideListener | null,
+  rideUpdate: new Set<RideUpdateListener>(),
+};
+
 let socket: Socket | null = null;
-let statusListener: StatusListener | null = null;
-let connectionListener: ConnectionListener | null = null;
-let connectListener: ConnectListener | null = null;
-let incomingRideListener: IncomingRideListener | null = null;
 
 /**
  * Connects the driver's realtime socket. Socket.io re-auths the handshake on
@@ -37,14 +48,14 @@ export async function connectDriverSocket(
   onStatus: StatusListener,
   onConnected?: ConnectListener,
 ) {
-  connectListener = onConnected ?? null;
+  listeners.connect = onConnected ?? null;
 
   if (socket?.connected) {
-    statusListener = onStatus;
+    listeners.status = onStatus;
     return socket;
   }
 
-  statusListener = onStatus;
+  listeners.status = onStatus;
 
   socket = io(API_URL, {
     transports: ["websocket"],
@@ -55,24 +66,29 @@ export async function connectDriverSocket(
   });
 
   socket.on(DRIVER_SOCKET_EVENTS.status, (payload: DriverAvailabilityResult) => {
-    statusListener?.(payload);
+    listeners.status?.(payload);
   });
 
   socket.on(DRIVER_SOCKET_EVENTS.newRideRequest, (payload: IncomingRideRequest) => {
-    incomingRideListener?.(payload);
+    listeners.incomingRide?.(payload);
+  });
+
+  socket.on(DRIVER_SOCKET_EVENTS.rideUpdated, (payload: { rideId: string }) => {
+    // Payload carries the rideId so subscribers filter for their own ride.
+    listeners.rideUpdate.forEach((listener) => listener(payload?.rideId));
   });
 
   socket.on("connect", () => {
-    connectionListener?.(true);
-    connectListener?.();
+    listeners.connection?.(true);
+    listeners.connect?.();
   });
-  socket.on("disconnect", () => connectionListener?.(false));
+  socket.on("disconnect", () => listeners.connection?.(false));
 
   return socket;
 }
 
 export function setConnectionListener(listener: ConnectionListener | null) {
-  connectionListener = listener;
+  listeners.connection = listener;
   // Surface the current state immediately so callers don't miss a transition
   // that already happened (e.g. screen focused after the socket connected).
   listener?.(socket?.connected ?? false);
@@ -80,11 +96,20 @@ export function setConnectionListener(listener: ConnectionListener | null) {
 
 /**
  * Registers the handler for dispatched ride requests. Only one screen shows
- * the incoming-request card at a time, so a single slot (like the status
- * listener) is enough — re-mounts simply overwrite it.
+ * the incoming-request card at a time, so a single slot is enough —
+ * re-mounts simply overwrite it.
  */
 export function setIncomingRideListener(listener: IncomingRideListener | null) {
-  incomingRideListener = listener;
+  listeners.incomingRide = listener;
+}
+
+/** Registers a trip-lifecycle handler; returns its unsubscribe function. */
+export function setRideUpdateListener(listener: RideUpdateListener | null) {
+  if (!listener) return () => {};
+  listeners.rideUpdate.add(listener);
+  return () => {
+    listeners.rideUpdate.delete(listener);
+  };
 }
 
 export function emitGoOnline() {
@@ -112,10 +137,11 @@ export function isDriverSocketConnected() {
 }
 
 export function disposeDriverSocket() {
-  statusListener = null;
-  connectionListener = null;
-  connectListener = null;
-  incomingRideListener = null;
+  listeners.status = null;
+  listeners.connection = null;
+  listeners.connect = null;
+  listeners.incomingRide = null;
+  listeners.rideUpdate.clear();
   socket?.disconnect();
   socket = null;
 }

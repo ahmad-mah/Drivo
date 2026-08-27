@@ -3,12 +3,11 @@ import { useCurrentLocation } from "@/features/home/hooks/useCurrentLocation";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { goBack } from "@/shared/services/navigation";
 import { useDriverMode } from "../hooks/useDriverMode";
+import { useDriverTrip } from "../hooks/useDriverTrip";
 import { useIncomingRide } from "../hooks/useIncomingRide";
-import { ConnectivityBanner } from "../components/ConnectivityBanner";
-import { DriverModeFooter } from "../components/DriverModeFooter";
 import { DriverModeHeader } from "../components/DriverModeHeader";
 import { DriverModeMap } from "../components/DriverModeMap";
-import { IncomingRideSheet } from "../components/IncomingRideSheet";
+import { DriverModeOverlays } from "../components/DriverModeOverlays";
 import { PermissionRequiredDialog } from "../components/PermissionRequiredDialog";
 
 export function DriverModeScreen() {
@@ -26,38 +25,68 @@ export function DriverModeScreen() {
   } = useDriverMode();
   const location = useCurrentLocation();
   const incomingRide = useIncomingRide(isOnline);
+  const {
+    trip,
+    loading: tripLoading,
+    acting: tripActing,
+    error: tripError,
+    arrive,
+    start,
+    complete,
+    cancel: cancelTrip,
+    noShow: markNoShow,
+    dismiss: dismissTrip,
+  } = useDriverTrip();
 
   useErrorSnackbar(error);
-  useErrorSnackbar(incomingRide.error);
+  useErrorSnackbar(tripError);
+
+  // One action at a time: while anything is in flight (toggle, trip action,
+  // offer response) every control on this screen goes inert. The pressed
+  // control keeps its own spinner.
+  const screenBusy = busy || tripActing || incomingRide.responding;
 
   return (
     <View className="flex-1">
       <DriverModeMap location={location} autoOffline={autoOffline} />
       <DriverModeHeader
-        isOnline={isOnline}
+        isOnline={isOnline || !!trip}
         autoOffline={autoOffline}
         onBack={goBack}
       />
-      {(autoOffline || backOnline) && (
-        <ConnectivityBanner autoOffline={autoOffline} backOnline={backOnline} />
-      )}
-      {incomingRide.request && (
-        <IncomingRideSheet
-          request={incomingRide.request}
-          secondsLeft={incomingRide.secondsLeft}
-          responding={incomingRide.responding}
-          onAccept={incomingRide.accept}
-          onReject={incomingRide.reject}
+
+      <View pointerEvents={screenBusy ? "none" : "auto"}>
+        <DriverModeOverlays
+          autoOffline={autoOffline}
+          backOnline={backOnline}
+          availability={{
+            isOnline,
+            busy,
+            gpsAvailable,
+            socketConnected,
+            onToggle: toggleOnline,
+          }}
+          incoming={{
+            request: incomingRide.request,
+            secondsLeft: incomingRide.secondsLeft,
+            responding: incomingRide.responding,
+            onAccept: incomingRide.accept,
+            onReject: incomingRide.reject,
+          }}
+          trip={{
+            trip,
+            loading: tripLoading,
+            acting: tripActing,
+            onArrive: arrive,
+            onStart: start,
+            onComplete: complete,
+            onCancel: () => void cancelTrip(),
+            onNoShow: () => void markNoShow(),
+            onDismissSummary: () => void dismissTrip(),
+          }}
         />
-      )}
-      <DriverModeFooter
-        isOnline={isOnline}
-        autoOffline={autoOffline}
-        busy={busy}
-        gpsAvailable={gpsAvailable}
-        socketConnected={socketConnected}
-        onToggle={toggleOnline}
-      />
+      </View>
+
       <PermissionRequiredDialog
         visible={permissionDenied}
         onClose={closePermissionDialog}

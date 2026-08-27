@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   acceptRideRequest,
   rejectRideRequest,
-  type IncomingRideRequest,
-} from "@/api/drivers/drivers.api";
+} from "@/api/rides/driver-trips.api";
+import type { IncomingRideRequest } from "@/api/drivers/drivers.api";
 import { getErrorMessage } from "@/errors";
-import { setIncomingRideListener } from "../services/driver-socket";
+import {
+  setIncomingRideListener,
+  setRideUpdateListener,
+} from "../services/driver-socket";
 
 const COUNTDOWN_TICK_MS = 500;
 
@@ -36,6 +39,28 @@ export function useIncomingRide(isOnline: boolean) {
       setDeadline(Date.now() + incoming.respondWithinSeconds * 1000);
     });
     return () => setIncomingRideListener(null);
+  }, []);
+
+  // A rider cancel (or any lifecycle change on this ride) invalidates the
+  // offer — dismiss the card instantly instead of letting a dead Accept sit.
+  // The listener is registered once (`[]` deps) and reads rideId from a ref
+  // so there is never a gap between unsubscribe and re-subscribe that could
+  // drop the second cancel event.
+  const rideIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    rideIdRef.current = request?.rideId ?? null;
+  });
+
+  useEffect(() => {
+    const unsubscribe = setRideUpdateListener((rideId) => {
+      setRequest((current) =>
+        current?.rideId === rideId ? null : current,
+      );
+      if (rideIdRef.current === rideId) {
+        setDeadline(0);
+      }
+    });
+    return unsubscribe;
   }, []);
 
   // Going offline invalidates any pending offer (the backend sweeps offline

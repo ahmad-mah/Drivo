@@ -93,7 +93,7 @@ export function IncomingRideSheet({
         />
         <AppButton
           title="Reject"
-          variant="outline"
+          variant="danger"
           onPress={onReject}
           disabled={responding}
         />
