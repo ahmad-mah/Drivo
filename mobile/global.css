@@ -72,5 +72,10 @@
     --color-general-600: #e6f3ff;
     --color-general-700: #ebebeb;
     --color-general-800: #adadad;
+
+    /* ── Shadows ────────────────────────────────── */
+    --shadow-card: 0 1px 3px rgba(16, 16, 16, 0.06);
+    --shadow-sheet: 0 -4px 16px rgba(16, 16, 16, 0.08);
+    --shadow-button: 0 4px 12px rgba(2, 134, 255, 0.25);
   }
 }
