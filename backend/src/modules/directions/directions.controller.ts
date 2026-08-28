@@ -35,3 +35,32 @@ export const getDirections = asyncHandler(
     res.json({ success: true, data });
   },
 );
+
+/**
+ * GET /api/directions/eta?fromLat=&fromLng=&toLat=&toLng=
+ * Driving ETA in minutes between two points — used for live trip ETAs.
+ */
+export const getEta = asyncHandler(async (req: Request, res: Response) => {
+  const fromLat = coord(req.query.fromLat);
+  const fromLng = coord(req.query.fromLng);
+  const toLat = coord(req.query.toLat);
+  const toLng = coord(req.query.toLng);
+
+  if (
+    fromLat === undefined ||
+    fromLng === undefined ||
+    toLat === undefined ||
+    toLng === undefined
+  ) {
+    res.status(400).json({ success: false, message: "Invalid coordinates." });
+    return;
+  }
+
+  const durationMinutes = await directionsService.getRouteDuration(
+    fromLat,
+    fromLng,
+    toLat,
+    toLng,
+  );
+  res.json({ success: true, data: { durationMinutes } });
+});

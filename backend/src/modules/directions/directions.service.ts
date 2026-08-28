@@ -10,6 +10,7 @@ async function callRoutesApi(
   toLat: number,
   toLng: number,
   fieldMask: string,
+  extra?: Record<string, unknown>,
 ) {
   if (!env.GOOGLE_ROUTES_API_KEY) {
     throw new Error("GOOGLE_ROUTES_API_KEY is not configured");
@@ -22,6 +23,7 @@ async function callRoutesApi(
     },
     travelMode: "DRIVE",
     polylineEncoding: "ENCODED_POLYLINE",
+    ...extra,
   };
 
   const response = await fetch(ROUTES_URL, {
@@ -41,6 +43,7 @@ async function callRoutesApi(
   return (await response.json()) as {
     routes?: Array<{
       distanceMeters?: number;
+      duration?: string;
       polyline?: { encodedPolyline?: string };
     }>;
   };
@@ -92,4 +95,36 @@ export async function getRouteDistanceMeters(
     throw new Error("Routes API returned no distance");
   }
   return distance;
+}
+
+/**
+ * Returns the driving duration in minutes between two points. Used for
+ * real-time ETA calculations during an active trip.
+ */
+export async function getRouteDuration(
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number,
+): Promise<number> {
+  const data = await callRoutesApi(
+    fromLat,
+    fromLng,
+    toLat,
+    toLng,
+    "routes.duration",
+  );
+
+  const duration = data.routes?.[0]?.duration;
+  if (!duration) {
+    throw new Error("Routes API returned no duration");
+  }
+
+  // Google Returns duration as "123s" (ISO 8601 duration format)
+  const seconds = parseInt(duration.replace("s", ""), 10);
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new Error("Routes API returned invalid duration");
+  }
+
+  return Math.max(1, Math.round(seconds / 60));
 }

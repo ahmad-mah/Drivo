@@ -4,6 +4,7 @@ import * as directionsController from "./directions.controller";
 
 const router = Router();
 
+router.get("/eta", requireAuth, directionsController.getEta);
 router.get("/", requireAuth, directionsController.getDirections);
 
 export default router;
