@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import * as ridesApi from "@/api/rides/rides.api";
-import { RideStatus } from "@/features/rides/enums/RideStatus";
+import { TERMINAL_RIDE_STATUSES } from "@/features/rides/enums/RideStatus";
+import { toLiveRide } from "@/features/rides/utils/ridePhase";
 import { ApiError, getErrorMessage } from "@/errors";
 import type { Ride } from "../types/ride.types";
 
 const POLL_INTERVAL_MS = 5_000;
 
 /**
- * Polls the rider's active ride every 5s for the full-screen searching view.
- * Stops polling once the ride leaves PENDING: a 404 means it expired or was
- * cancelled (no active ride), and a terminal status means the same for Day 6
- * where acceptance lands in a later milestone.
+ * Polls the rider's active ride every 5s for the full-screen status view.
+ * Polling continues through the whole trip lifecycle (PENDING → ACCEPTED →
+ * ARRIVED → IN_PROGRESS) and stops only on terminal states: a 404 means the
+ * ride expired or was cancelled, and COMPLETED/CANCELLED/EXPIRED end the flow.
  */
 export function useActiveRide() {
   const [ride, setRide] = useState<Ride | null>(null);
@@ -27,6 +28,10 @@ export function useActiveRide() {
     }
   }, []);
 
+  const clearRide = useCallback(() => {
+    setRide(null);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     stoppedRef.current = false;
@@ -36,9 +41,10 @@ export function useActiveRide() {
       try {
         const result = await ridesApi.getActiveRide();
         if (cancelled) return;
-        setRide(result);
+        const live = toLiveRide(result);
+        setRide(live);
         setError(null);
-        if (result.status !== RideStatus.PENDING) {
+        if (!live) {
           stoppedRef.current = true;
           stopPolling();
         }
@@ -46,8 +52,6 @@ export function useActiveRide() {
         if (cancelled) return;
         if (err instanceof ApiError && err.statusCode === 404) {
           setRide(null);
-          stoppedRef.current = true;
-          stopPolling();
         } else {
           setError(getErrorMessage(err, "Failed to check ride status"));
         }
@@ -80,16 +84,19 @@ export function useActiveRide() {
   const cancel = useCallback(
     async (rideId: string) => {
       try {
-        const cancelledRide = await ridesApi.cancelRide(rideId);
-        stoppedRef.current = true;
-        stopPolling();
-        setRide(cancelledRide);
+        await ridesApi.cancelRide(rideId);
+        // Clear locally but keep polling — the rider may request again soon.
+        setRide(null);
       } catch (err) {
         setError(getErrorMessage(err, "Failed to cancel the ride"));
       }
     },
-    [stopPolling],
+    [],
   );
 
-  return { ride, loading, error, cancel };
+  const restartPolling = useCallback(() => {
+    stoppedRef.current = false;
+  }, []);
+
+  return { ride, loading, error, cancel, clearRide, restartPolling };
 }
