@@ -60,10 +60,10 @@ export function AppButton({
       )}
       style={{
         shadowColor: "#101010",
-        shadowOffset: { width: 4, height: 8 },
-        shadowRadius: 24,
-        shadowOpacity: 0.15,
-        elevation: 1.4,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 8,
+        shadowOpacity: variant === "primary" ? 0.18 : 0.06,
+        elevation: 2,
       }}
       onPress={handlePress}
       disabled={isDisabled}

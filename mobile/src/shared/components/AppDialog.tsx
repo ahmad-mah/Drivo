@@ -5,19 +5,30 @@ type AppDialogProps = {
   visible: boolean;
   onClose?: () => void;
   children: ReactNode;
+  animationType?: "fade" | "none" | "slide";
+  /** When false, tapping the backdrop or the hardware back button won't
+   *  dismiss — the caller must close it explicitly. Defaults to true. */
+  dismissOnBackdrop?: boolean;
 };
 
-export function AppDialog({ visible, onClose, children }: AppDialogProps) {
+export function AppDialog({
+  visible,
+  onClose,
+  children,
+  animationType = "fade",
+  dismissOnBackdrop = true,
+}: AppDialogProps) {
+  const handleDismiss = dismissOnBackdrop ? onClose : undefined;
   return (
     <Modal
       transparent
-      animationType="fade"
+      animationType={animationType}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleDismiss}
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={handleDismiss} />
         <View style={styles.dialog}>{children}</View>
       </View>
     </Modal>
@@ -27,8 +38,9 @@ export function AppDialog({ visible, onClose, children }: AppDialogProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
+    paddingHorizontal: 24,
   },
   backdrop: {
     position: "absolute",
@@ -36,11 +48,9 @@ const styles = StyleSheet.create({
   },
   dialog: {
     backgroundColor: "white",
-    marginHorizontal: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-
-    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    borderRadius: 20,
     alignItems: "center",
   },
 });

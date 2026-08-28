@@ -38,9 +38,15 @@ export const DEFAULT_MAP_STYLE: MapStyleElement[] = [
     elementType: "geometry",
     stylers: [{ color: "#E5E5E5" }],
   },
+  // Man-made structures (buildings) tinted with the brand primary color.
+  {
+    featureType: "landscape.man_made",
+    elementType: "geometry",
+    stylers: [{ color: "#EEF1F9" }],
+  },
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: "#E5E5E5" }],
+    stylers: [{ color: "#AAD3DF" }],
   },
 ];
