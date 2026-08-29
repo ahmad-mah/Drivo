@@ -4,23 +4,17 @@
 
 **Full-stack ride-hailing MVP — React Native + Express + PostgreSQL**
 
-[![Expo](https://img.shields.io/badge/Expo-SDK_56-000020?style=flat-square&logo=expo)](https://expo.dev)
-[![React Native](https://img.shields.io/badge/React_Native-0.85-61DAFB?style=flat-square&logo=react)](https://reactnative.dev)
-[![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express)](https://expressjs.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-316192?style=flat-square&logo=postgresql)](https://neon.tech)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
-
-Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/timeout — a complete Uber-like system in a single repository.
-
 <p align="center">
 
 ![Expo](https://img.shields.io/badge/Expo-SDK_56-000020?style=for-the-badge&logo=expo) ![React_Native](https://img.shields.io/badge/React_Native-0.85-61DAFB?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript) ![Tailwind_CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss)
 
 ![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express) ![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=for-the-badge&logo=node.js) ![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-316192?style=for-the-badge&logo=postgresql)
 
-![Socket.io](https://img.shields.io/badge/Socket.io-4-010101?style=for-the-badge&logo=socket.io) ![React](https://img.shields.io/badge/React_19-19-61DAFB?style=for-the-badge&logo=react) ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite) ![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet)
+![Socket.io](https://img.shields.io/badge/Socket.io-4-010101?style=for-the-badge&logo=socket.io) ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react) ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite) ![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet)
 
 </p>
+
+Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/timeout — a complete Uber-like system in a single repository.
 
 [Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [WebSocket Events](#websocket-events)
 
