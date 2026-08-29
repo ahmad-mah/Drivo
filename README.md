@@ -54,11 +54,18 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 
 ## Tech Stack
 
-| Layer | Stack |
-|-------|-------|
-| **Mobile** | Expo SDK 56 · React Native 0.85 · Expo Router · NativeWind 5 / Tailwind CSS 4 · react-native-maps · expo-location · expo-task-manager · socket.io-client · Axios · Zod |
-| **Backend** | Express 4 · TypeScript 5 · Prisma 6 · PostgreSQL (Neon) · socket.io 4 · Clerk (JWT + webhooks) · Zod · SVix |
-| **Admin** | Vite 8 · React 19 · TypeScript 6 · Tailwind CSS 4 · Leaflet + react-leaflet · socket.io-client |
+<p align="center">
+
+| | |
+|---|---|
+| ![Expo](https://img.shields.io/badge/Expo-SDK_56-000020?style=for-the-badge&logo=expo) | ![React Native](https://img.shields.io/badge/React_Native-0.85-61DAFB?style=for-the-badge&logo=react) |
+| ![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express) | ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript) |
+| ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-316192?style=for-the-badge&logo=postgresql) | ![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma) |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss) | ![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=for-the-badge&logo=node.js) |
+| ![Socket.io](https://img.shields.io/badge/Socket.io-4-010101?style=for-the-badge&logo=socket.io) | ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react) |
+| ![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet) | ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite) |
+
+</p>
 
 ## Getting Started
 
