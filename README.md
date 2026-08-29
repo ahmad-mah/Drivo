@@ -48,8 +48,8 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 | **Trip Summary** | Post-trip summary dialog with fare, distance, duration, rating |
 | **Ride History** | Paginated history with date grouping, filter tabs, pull-to-refresh |
 | **Ride Cards** | Redesigned cards with map thumbnails, origin/destination icons, fare, distance, rating |
-| **Rating System** | 5-star rating with optional feedback after ride completion |
-| **Real-Time ETA** | Live ETA updates during trip via Google Routes API polling |
+| **Rating System** | 5-star rating with optional feedback — available on trip card and inline in history |
+| **Real-Time ETA** | Live ETA updates during trip via Google Routes API polling (20s interval) |
 | **Nearby Drivers** | Rider sees nearby online cars as map markers in real time |
 
 ## Tech Stack
