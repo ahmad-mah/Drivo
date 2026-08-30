@@ -31,9 +31,8 @@ module.exports = () => ({
         "expo-splash-screen",
         {
           backgroundColor: "#208AEF",
-          image: "./assets/images/splash.png",
-          resizeMode: "cover",
-          android: {},
+          image: "./assets/images/splash-icon.png",
+          imageWidth: 300,
         },
       ],
       "@clerk/expo",

@@ -1,9 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-// Registers expo-modules (e.g. @clerk/expo) into the app — generates
-// ExpoModulesPackageList so their native modules are discoverable at runtime.
-apply plugin: "expo-autolinking"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
