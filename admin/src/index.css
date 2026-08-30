@@ -1,1 +1,327 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-arabic: "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand colors (same for both themes) */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+
+  /* Surface scale (shared reference) */
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
+
+  /* ─── Light theme (default) ─── */
+  --color-bg-primary: var(--color-surface-50);
+  --color-bg-secondary: var(--color-surface-100);
+  --color-bg-tertiary: var(--color-surface-200);
+  --color-bg-glass: rgba(255, 255, 255, 0.8);
+  --color-bg-glass-strong: rgba(255, 255, 255, 0.95);
+
+  --color-text-primary: var(--color-surface-950);
+  --color-text-secondary: var(--color-surface-700);
+  --color-text-muted: var(--color-surface-500);
+  --color-text-inverse: var(--color-surface-50);
+
+  --color-border-subtle: var(--color-surface-200);
+  --color-border-default: var(--color-surface-300);
+  --color-border-strong: var(--color-surface-400);
+
+  --color-status-info: var(--color-blue-600);
+  --color-status-success: var(--color-emerald-600);
+  --color-status-warning: var(--color-amber-600);
+  --color-status-danger: var(--color-red-600);
+  --color-status-purple: var(--color-purple-600);
+
+  /* ─── Dark theme (activated via .dark on html) ─── */
+  --color-bg-primary-dark: var(--color-surface-950);
+  --color-bg-secondary-dark: var(--color-surface-900);
+  --color-bg-tertiary-dark: var(--color-surface-800);
+  --color-bg-glass-dark: rgba(30, 41, 59, 0.5);
+  --color-bg-glass-strong-dark: rgba(15, 23, 42, 0.8);
+
+  --color-text-primary-dark: var(--color-surface-50);
+  --color-text-secondary-dark: var(--color-surface-400);
+  --color-text-muted-dark: var(--color-surface-500);
+  --color-text-inverse-dark: var(--color-surface-950);
+
+  --color-border-subtle-dark: rgba(255, 255, 255, 0.06);
+  --color-border-default-dark: rgba(255, 255, 255, 0.1);
+  --color-border-strong-dark: rgba(255, 255, 255, 0.2);
+
+  --color-status-info-dark: var(--color-blue-400);
+  --color-status-success-dark: var(--color-emerald-400);
+  --color-status-warning-dark: var(--color-amber-400);
+  --color-status-danger-dark: var(--color-red-400);
+  --color-status-purple-dark: var(--color-purple-400);
+}
+
+/* ─── Dark mode variable overrides ─── */
+.dark {
+  --color-bg-primary: var(--color-bg-primary-dark);
+  --color-bg-secondary: var(--color-bg-secondary-dark);
+  --color-bg-tertiary: var(--color-bg-tertiary-dark);
+  --color-bg-glass: var(--color-bg-glass-dark);
+  --color-bg-glass-strong: var(--color-bg-glass-strong-dark);
+
+  --color-text-primary: var(--color-text-primary-dark);
+  --color-text-secondary: var(--color-text-secondary-dark);
+  --color-text-muted: var(--color-text-muted-dark);
+  --color-text-inverse: var(--color-text-inverse-dark);
+
+  --color-border-subtle: var(--color-border-subtle-dark);
+  --color-border-default: var(--color-border-default-dark);
+  --color-border-strong: var(--color-border-strong-dark);
+
+  --color-status-info: var(--color-status-info-dark);
+  --color-status-success: var(--color-status-success-dark);
+  --color-status-warning: var(--color-status-warning-dark);
+  --color-status-danger: var(--color-status-danger-dark);
+  --color-status-purple: var(--color-status-purple-dark);
+}
+
+/* ─── Base resets ──────────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Arabic font when lang=ar */
+html[lang="ar"] body,
+html[lang="ar"] input,
+html[lang="ar"] select,
+html[lang="ar"] textarea,
+html[lang="ar"] button {
+  font-family: var(--font-arabic), var(--font-sans);
+  line-height: 1.75;
+}
+
+/* RTL base adjustments */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+/* ─── Animation keyframes ─────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
+  50%      { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Utility animation classes ────────────────────────────────────────── */
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-in-start {
+  animation: slide-in-left 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+html[dir="rtl"] .animate-slide-in-start {
+  animation-name: slide-in-right;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(0,0,0,0.08) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.08) 50%, transparent 75%);
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-count-up {
+  animation: count-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Stagger delay utilities ──────────────────────────────────────────── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* ─── Glass morphism panels ─────────────────────────────────────────────── */
+.glass {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.glass-strong {
+  background: var(--color-bg-glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--color-border-default);
+}
+
+/* ─── Hover lift ───────────────────────────────────────────────────────── */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1),
+              0 4px 10px -6px rgba(0, 0, 0, 0.05);
+}
+.dark .hover-lift:hover {
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3),
+              0 4px 10px -6px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Status dot pulse ─────────────────────────────────────────────────── */
+.status-online {
+  position: relative;
+}
+.status-online::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-brand-500);
+  transform: translateY(-50%);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─── Scrollbar styling ────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* ─── Ambient background glow (applied via inline divs in AdminLayout) ─── */
+
+/* ─── Reduced motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Focus visible ────────────────────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--color-brand-500);
+  ring-offset: 2px;
+  ring-offset-color: var(--color-bg-primary);
+}
+.dark .focus-ring:focus-visible {
+  ring-offset-color: var(--color-bg-primary-dark);
+}
+
+/* ─── RTL icon flipping ─────────────────────────────────────────────────── */
+/* Icons that imply direction (arrows, chevrons) should flip in RTL */
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Numbers and codes should remain LTR in RTL contexts */
+.ltr-text {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ─── RTL sidebar mirroring ─────────────────────────────────────────────── */
+/* Sidebar should be on the right in RTL */
+html[dir="rtl"] .sidebar-mirror {
+  border-right: none;
+  border-left: 1px solid var(--color-border-subtle);
+}
