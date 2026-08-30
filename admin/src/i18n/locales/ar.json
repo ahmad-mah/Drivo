@@ -1,0 +1,344 @@
+{
+  "app": {
+    "name": "درايفو",
+    "adminPanel": "لوحة التحكم",
+    "version": "الإصدار"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "search": "بحث",
+    "filter": "تصفية",
+    "prev": "السابق",
+    "next": "التالي",
+    "page": "صفحة",
+    "of": "من",
+    "view": "عرض",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "all": "الكل",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "noData": "لا توجد بيانات",
+    "total": "الإجمالي",
+    "online": "متصل",
+    "available": "متاح",
+    "offline": "غير متصل"
+  },
+  "navigation": {
+    "overview": "نظرة عامة",
+    "trips": "الرحلات",
+    "drivers": "السائقون",
+    "users": "المستخدمون",
+    "statistics": "الإحصائيات",
+    "payments": "المدفوعات",
+    "support": "الدعم",
+    "promos": "الرموز الترويجية",
+    "auditLogs": "سجلات التدقيق",
+    "settings": "الإعدادات"
+  },
+  "header": {
+    "systemOnline": "النظام متصل",
+    "admin": "مشرف",
+    "signOut": "تسجيل الخروج",
+    "theme": {
+      "light": "الوضع الفاتح",
+      "dark": "الوضع الداكن"
+    },
+    "language": {
+      "english": "الإنجليزية",
+      "arabic": "العربية"
+    }
+  },
+  "overview": {
+    "title": "نظرة عامة",
+    "subtitle": "لوحة تحكم العمليات في الوقت الفعلي",
+    "onlineDrivers": "السائقون المتصلون",
+    "available": "متاحون",
+    "searching": "جاري البحث",
+    "assigned": "مُعين",
+    "inProgress": "قيد التنفيذ",
+    "pendingApprovals": "موافقات معلقة",
+    "todayCompleted": "مكتملة اليوم",
+    "todayCancelled": "ملغية اليوم",
+    "todayRevenue": "إيرادات اليوم",
+    "completionRate": "معدل الإكمال",
+    "alerts": "التنبيهات",
+    "rideQueue": "طابور الرحلات",
+    "allClear": "الكل واضح — لا توجد تنبيهات",
+    "longWait": "انتظار طويل",
+    "stuckTrip": "رحلة معلقة",
+    "pendingApproval": "موافقة معلقة",
+    "driverOffline": "سائق غير متصل",
+    "readyForRides": "جاهز للرحلات"
+  },
+  "trips": {
+    "title": "الرحلات",
+    "totalTrips": "إجمالي الرحلات",
+    "filters": "المرشحات",
+    "allStatus": "كل الحالات",
+    "pending": "معلق",
+    "accepted": "مقبول",
+    "arrived": "وصل",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغي",
+    "expired": "منتهي",
+    "dateFrom": "من تاريخ",
+    "dateTo": "إلى تاريخ",
+    "searchPlaceholder": "بحث بالراكب، السائق، المعرف...",
+    "table": {
+      "id": "المعرف",
+      "status": "الحالة",
+      "rider": "الراكب",
+      "route": "المسار",
+      "driver": "السائق",
+      "fare": "الأجرة",
+      "created": "تاريخ الإنشاء",
+      "action": "إجراء"
+    },
+    "detail": {
+      "title": "تفاصيل الرحلة",
+      "pickup": "الاستلام",
+      "dropoff": "التوصيل",
+      "rider": "الراكب",
+      "driver": "السائق",
+      "fare": "الأجرة",
+      "created": "تاريخ الإنشاء",
+      "cancelReason": "سبب الإلغاء"
+    },
+    "empty": "لا توجد رحلات",
+    "notFound": "الرحلة غير موجودة"
+  },
+  "drivers": {
+    "title": "السائقون",
+    "totalDrivers": "إجمالي السائقين",
+    "filters": "المرشحات",
+    "allApprovals": "كل الموافقات",
+    "pending": "معلق",
+    "approved": "مقبول",
+    "rejected": "مرفوض",
+    "suspended": "معلق مؤقتاً",
+    "table": {
+      "driver": "السائق",
+      "phone": "الهاتف",
+      "vehicle": "المركبة",
+      "approval": "الموافقة",
+      "actions": "الإجراءات"
+    },
+    "detail": {
+      "title": "تفاصيل السائق",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "vehicle": "المركبة",
+      "color": "اللون",
+      "plate": "اللوحة",
+      "license": "الرخصة",
+      "memberSince": "عضو منذ",
+      "rejectionReason": "سبب الرفض"
+    },
+    "actions": {
+      "approve": "موافقة",
+      "reject": "رفض",
+      "view": "عرض"
+    },
+    "empty": "لا يوجد سائقون",
+    "notFound": "السائق غير موجود",
+    "rejectionViaPanel": "تم الرفض عبر لوحة المشرف"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "totalUsers": "إجمالي المستخدمين",
+    "filters": "المرشحات",
+    "allRoles": "كل الأدوار",
+    "roleUser": "مستخدم",
+    "roleAdmin": "مشرف",
+    "searchPlaceholder": "بحث بالاسم، البريد، الهاتف...",
+    "table": {
+      "user": "المستخدم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "role": "الدور",
+      "trips": "الرحلات",
+      "tickets": "التذاكر",
+      "joined": "تاريخ الانضمام",
+      "action": "إجراء"
+    },
+    "detail": {
+      "title": "تفاصيل المستخدم",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "trips": "الرحلات",
+      "tickets": "التذاكر",
+      "totalSpent": "إجمالي الإنفاق",
+      "joined": "تاريخ الانضمام"
+    },
+    "empty": "لا يوجد مستخدمون",
+    "notFound": "المستخدم غير موجود"
+  },
+  "payments": {
+    "title": "مدفوعات السائقين",
+    "totalPayouts": "إجمالي المدفوعات",
+    "filters": "المرشحات",
+    "allStatus": "كل الحالات",
+    "pending": "معلق",
+    "processing": "قيد المعالجة",
+    "paid": "مدفوع",
+    "failed": "فشل",
+    "held": "محتجز",
+    "table": {
+      "driver": "السائق",
+      "period": "الفترة",
+      "gross": "الإجمالي",
+      "commission": "العمولة",
+      "net": "الصافي",
+      "status": "الحالة",
+      "paidAt": "تاريخ الدفع"
+    },
+    "empty": "لا توجد مدفوعات"
+  },
+  "support": {
+    "title": "تذاكر الدعم",
+    "totalTickets": "إجمالي التذاكر",
+    "filters": "المرشحات",
+    "allStatus": "كل الحالات",
+    "open": "مفتوح",
+    "inProgress": "قيد التنفيذ",
+    "resolved": "تم الحل",
+    "closed": "مغلق",
+    "table": {
+      "subject": "الموضوع",
+      "user": "المستخدم",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "assigned": "المُعين",
+      "created": "تاريخ الإنشاء"
+    },
+    "detail": {
+      "title": "تفاصيل التذكرة",
+      "priority": "الأولوية",
+      "user": "المستخدم",
+      "ride": "الرحلة",
+      "description": "الوصف",
+      "actions": "الإجراءات"
+    },
+    "priorities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    },
+    "empty": "لا توجد تذاكر"
+  },
+  "promos": {
+    "title": "الرموز الترويجية",
+    "totalPromos": "إجمالي الرموز",
+    "table": {
+      "code": "الرمز",
+      "discount": "الخصم",
+      "used": "المستخدم",
+      "expires": "ينتهي",
+      "createdBy": "تم الإنشاء بواسطة",
+      "active": "نشط",
+      "action": "إجراء"
+    },
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "never": "أبداً",
+    "empty": "لا توجد رموز ترويجية"
+  },
+  "audit": {
+    "title": "سجلات التدقيق",
+    "totalEntries": "إجمالي السجلات",
+    "filters": "المرشحات",
+    "allActions": "كل الإجراءات",
+    "table": {
+      "timestamp": "الطابع الزمني",
+      "admin": "المشرف",
+      "action": "الإجراء",
+      "target": "الهدف",
+      "changes": "التغييرات"
+    },
+    "empty": "لا توجد سجلات تدقيق",
+    "system": "النظام"
+  },
+  "settings": {
+    "title": "ملف المشرف",
+    "subtitle": "تفاصيل حسابك",
+    "account": "الحساب",
+    "system": "النظام",
+    "userId": "معرف المستخدم",
+    "role": "الدور",
+    "created": "تاريخ الإنشاء",
+    "lastSignIn": "آخر تسجيل دخول",
+    "version": "لوحة المشرف",
+    "environment": "البيئة"
+  },
+  "signedOut": {
+    "title": "لوحة مشرف درايفو",
+    "subtitle": "سجل الدخول للوصول إلى لوحة المشرف",
+    "signIn": "تسجيل الدخول"
+  },
+  "tripStatus": {
+    "PENDING": "معلق",
+    "ACCEPTED": "مقبول",
+    "ARRIVED": "وصل",
+    "IN_PROGRESS": "قيد التنفيذ",
+    "COMPLETED": "مكتمل",
+    "CANCELLED": "ملغي",
+    "EXPIRED": "منتهي"
+  },
+  "driverStatus": {
+    "PENDING": "معلق",
+    "APPROVED": "مقبول",
+    "REJECTED": "مرفوض",
+    "SUSPENDED": "معلق مؤقتاً"
+  },
+  "ticketStatus": {
+    "OPEN": "مفتوح",
+    "IN_PROGRESS": "قيد التنفيذ",
+    "RESOLVED": "تم الحل",
+    "CLOSED": "مغلق"
+  },
+  "payoutStatus": {
+    "PENDING": "معلق",
+    "PROCESSING": "قيد المعالجة",
+    "PAID": "مدفوع",
+    "FAILED": "فشل",
+    "HELD": "محتجز"
+  },
+  "auditActions": {
+    "TRIP_CANCEL": "إلغاء رحلة",
+    "RIDE_CREATE": "إنشاء رحلة",
+    "RIDE_UPDATE_STATUS": "تحديث حالة الرحلة",
+    "RIDE_ASSIGN_DRIVER": "تعيين سائق للرحلة",
+    "SUPPORT_TICKET_UPDATE_STATUS": "تحديث حالة تذكرة الدعم",
+    "PROMO_TOGGLE_ACTIVE": "تبديل حالة الرمز الترويجي",
+    "PAYMENT_METHOD_CREATE": "إنشاء طريقة دفع"
+  },
+  "stats": {
+    "title": "الإحصائيات",
+    "loading": "جاري تحميل الإحصائيات...",
+    "to": "إلى",
+    "totalUsers": "إجمالي المستخدمين",
+    "totalDrivers": "إجمالي السائقين",
+    "totalRides": "إجمالي الرحلات",
+    "revenue": "الإيرادات",
+    "completed": "مكتمل",
+    "cancelled": "ملغي",
+    "completionRate": "معدل الإكمال",
+    "onlineDrivers": "السائقون المتصلون",
+    "dailyRides": "الرحلات اليومية",
+    "dailyRevenue": "الإيرادات اليومية",
+    "rideStatusDistribution": "توزيع حالات الرحلات",
+    "topDriversByTrips": "أفضل السائقين بالرحلات",
+    "revenueTooltip": "الإيرادات",
+    "tripsTooltip": "الرحلات",
+    "noDriverData": "لا توجد بيانات سائقين لهذه الفترة"
+  },
+  "environments": {
+    "production": "إنتاج",
+    "development": "تطوير"
+  }
+}

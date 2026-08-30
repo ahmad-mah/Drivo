@@ -1,0 +1,344 @@
+{
+  "app": {
+    "name": "Drivo",
+    "adminPanel": "Admin Panel",
+    "version": "Version"
+  },
+  "common": {
+    "loading": "Loading...",
+    "search": "Search",
+    "filter": "Filter",
+    "prev": "Prev",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "view": "View",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "all": "All",
+    "status": "Status",
+    "actions": "Actions",
+    "noData": "No data found",
+    "total": "Total",
+    "online": "Online",
+    "available": "Available",
+    "offline": "Offline"
+  },
+  "navigation": {
+    "overview": "Overview",
+    "trips": "Trips",
+    "drivers": "Drivers",
+    "users": "Users",
+    "statistics": "Statistics",
+    "payments": "Payments",
+    "support": "Support",
+    "promos": "Promos",
+    "auditLogs": "Audit Logs",
+    "settings": "Settings"
+  },
+  "header": {
+    "systemOnline": "System Online",
+    "admin": "Admin",
+    "signOut": "Sign Out",
+    "theme": {
+      "light": "Light mode",
+      "dark": "Dark mode"
+    },
+    "language": {
+      "english": "English",
+      "arabic": "Arabic"
+    }
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Real-time operations dashboard",
+    "onlineDrivers": "Online Drivers",
+    "available": "Available",
+    "searching": "Searching",
+    "assigned": "Assigned",
+    "inProgress": "In Progress",
+    "pendingApprovals": "Pending Approvals",
+    "todayCompleted": "Today Completed",
+    "todayCancelled": "Today Cancelled",
+    "todayRevenue": "Today Revenue",
+    "completionRate": "Completion Rate",
+    "alerts": "Alerts",
+    "rideQueue": "Ride Queue",
+    "allClear": "All clear — no alerts",
+    "longWait": "Long Wait",
+    "stuckTrip": "Stuck Trip",
+    "pendingApproval": "Pending Approval",
+    "driverOffline": "Driver Offline",
+    "readyForRides": "ready for rides"
+  },
+  "trips": {
+    "title": "Trips",
+    "totalTrips": "total trips",
+    "filters": "Filters",
+    "allStatus": "All Status",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "arrived": "Arrived",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "dateFrom": "Date From",
+    "dateTo": "Date To",
+    "searchPlaceholder": "Search rider, driver, ID...",
+    "table": {
+      "id": "ID",
+      "status": "Status",
+      "rider": "Rider",
+      "route": "Route",
+      "driver": "Driver",
+      "fare": "Fare",
+      "created": "Created",
+      "action": "Action"
+    },
+    "detail": {
+      "title": "Trip Details",
+      "pickup": "Pickup",
+      "dropoff": "Dropoff",
+      "rider": "Rider",
+      "driver": "Driver",
+      "fare": "Fare",
+      "created": "Created",
+      "cancelReason": "Cancel Reason"
+    },
+    "empty": "No trips found",
+    "notFound": "Trip not found"
+  },
+  "drivers": {
+    "title": "Drivers",
+    "totalDrivers": "total drivers",
+    "filters": "Filters",
+    "allApprovals": "All Approvals",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "suspended": "Suspended",
+    "table": {
+      "driver": "Driver",
+      "phone": "Phone",
+      "vehicle": "Vehicle",
+      "approval": "Approval",
+      "actions": "Actions"
+    },
+    "detail": {
+      "title": "Driver Details",
+      "phone": "Phone",
+      "email": "Email",
+      "vehicle": "Vehicle",
+      "color": "Color",
+      "plate": "Plate",
+      "license": "License",
+      "memberSince": "Member Since",
+      "rejectionReason": "Rejection Reason"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "view": "View"
+    },
+    "empty": "No drivers found",
+    "notFound": "Driver not found",
+    "rejectionViaPanel": "Rejected via admin panel"
+  },
+  "users": {
+    "title": "Users",
+    "totalUsers": "total users",
+    "filters": "Filters",
+    "allRoles": "All Roles",
+    "roleUser": "User",
+    "roleAdmin": "Admin",
+    "searchPlaceholder": "Search name, email, phone...",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "trips": "Trips",
+      "tickets": "Tickets",
+      "joined": "Joined",
+      "action": "Action"
+    },
+    "detail": {
+      "title": "User Details",
+      "phone": "Phone",
+      "email": "Email",
+      "trips": "Trips",
+      "tickets": "Tickets",
+      "totalSpent": "Total Spent",
+      "joined": "Joined"
+    },
+    "empty": "No users found",
+    "notFound": "User not found"
+  },
+  "payments": {
+    "title": "Driver Payouts",
+    "totalPayouts": "total payouts",
+    "filters": "Filters",
+    "allStatus": "All Status",
+    "pending": "Pending",
+    "processing": "Processing",
+    "paid": "Paid",
+    "failed": "Failed",
+    "held": "Held",
+    "table": {
+      "driver": "Driver",
+      "period": "Period",
+      "gross": "Gross",
+      "commission": "Commission",
+      "net": "Net",
+      "status": "Status",
+      "paidAt": "Paid At"
+    },
+    "empty": "No payouts found"
+  },
+  "support": {
+    "title": "Support Tickets",
+    "totalTickets": "total tickets",
+    "filters": "Filters",
+    "allStatus": "All Status",
+    "open": "Open",
+    "inProgress": "In Progress",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "table": {
+      "subject": "Subject",
+      "user": "User",
+      "priority": "Priority",
+      "status": "Status",
+      "assigned": "Assigned",
+      "created": "Created"
+    },
+    "detail": {
+      "title": "Ticket Details",
+      "priority": "Priority",
+      "user": "User",
+      "ride": "Ride",
+      "description": "Description",
+      "actions": "Actions"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "empty": "No tickets found"
+  },
+  "promos": {
+    "title": "Promo Codes",
+    "totalPromos": "total promos",
+    "table": {
+      "code": "Code",
+      "discount": "Discount",
+      "used": "Used",
+      "expires": "Expires",
+      "createdBy": "Created By",
+      "active": "Active",
+      "action": "Action"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "never": "Never",
+    "empty": "No promo codes found"
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "totalEntries": "total entries",
+    "filters": "Filters",
+    "allActions": "All Actions",
+    "table": {
+      "timestamp": "Timestamp",
+      "admin": "Admin",
+      "action": "Action",
+      "target": "Target",
+      "changes": "Changes"
+    },
+    "empty": "No audit logs found",
+    "system": "System"
+  },
+  "settings": {
+    "title": "Admin Profile",
+    "subtitle": "Your account details",
+    "account": "Account",
+    "system": "System",
+    "userId": "User ID",
+    "role": "Role",
+    "created": "Created",
+    "lastSignIn": "Last Sign In",
+    "version": "Admin Panel",
+    "environment": "Environment"
+  },
+  "signedOut": {
+    "title": "Drivo Admin Panel",
+    "subtitle": "Sign in to access the admin dashboard",
+    "signIn": "Sign In"
+  },
+  "tripStatus": {
+    "PENDING": "Pending",
+    "ACCEPTED": "Accepted",
+    "ARRIVED": "Arrived",
+    "IN_PROGRESS": "In Progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "EXPIRED": "Expired"
+  },
+  "driverStatus": {
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected",
+    "SUSPENDED": "Suspended"
+  },
+  "ticketStatus": {
+    "OPEN": "Open",
+    "IN_PROGRESS": "In Progress",
+    "RESOLVED": "Resolved",
+    "CLOSED": "Closed"
+  },
+  "payoutStatus": {
+    "PENDING": "Pending",
+    "PROCESSING": "Processing",
+    "PAID": "Paid",
+    "FAILED": "Failed",
+    "HELD": "Held"
+  },
+  "auditActions": {
+    "TRIP_CANCEL": "Trip Cancel",
+    "RIDE_CREATE": "Ride Create",
+    "RIDE_UPDATE_STATUS": "Ride Update Status",
+    "RIDE_ASSIGN_DRIVER": "Ride Assign Driver",
+    "SUPPORT_TICKET_UPDATE_STATUS": "Support Ticket Update Status",
+    "PROMO_TOGGLE_ACTIVE": "Promo Toggle Active",
+    "PAYMENT_METHOD_CREATE": "Payment Method Create"
+  },
+  "stats": {
+    "title": "Statistics",
+    "loading": "Loading statistics...",
+    "to": "to",
+    "totalUsers": "Total Users",
+    "totalDrivers": "Total Drivers",
+    "totalRides": "Total Rides",
+    "revenue": "Revenue",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "completionRate": "Completion Rate",
+    "onlineDrivers": "Online Drivers",
+    "dailyRides": "Daily Rides",
+    "dailyRevenue": "Daily Revenue",
+    "rideStatusDistribution": "Ride Status Distribution",
+    "topDriversByTrips": "Top Drivers by Trips",
+    "revenueTooltip": "Revenue",
+    "tripsTooltip": "Trips",
+    "noDriverData": "No driver data for this period"
+  },
+  "environments": {
+    "production": "Production",
+    "development": "Development"
+  }
+}
