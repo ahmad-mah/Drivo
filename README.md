@@ -6,11 +6,7 @@
 
 <p align="center">
 
-![Expo](https://img.shields.io/badge/Expo-SDK_56-000020?style=for-the-badge&logo=expo) ![React_Native](https://img.shields.io/badge/React_Native-0.85-61DAFB?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript) ![Tailwind_CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss)
-
-![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express) ![Node.js](https://img.shields.io/badge/Node.js-18-339933?style=for-the-badge&logo=node.js) ![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-316192?style=for-the-badge&logo=postgresql)
-
-![Socket.io](https://img.shields.io/badge/Socket.io-4-010101?style=for-the-badge&logo=socket.io) ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react) ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite) ![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo) ![React_Native](https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react) ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript) ![Tailwind_CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite) ![Clerk](https://img.shields.io/badge/Clerk-000000?style=for-the-badge&logo=clerk) ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express) ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js) ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql) ![Neon](https://img.shields.io/badge/Neon-000000?style=for-the-badge&logo=neon) ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io)
 
 </p>
 
@@ -24,17 +20,19 @@ Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/ti
 
 ## Overview
 
-Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved → go online → stream location) with a rider flow (pick destination → see nearby cars → request ride → get matched). An admin dashboard shows every online driver in real time.
+Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved → go online → stream location) with a rider flow (pick destination → see nearby cars → request ride → get matched). An admin dashboard provides a real-time overview — KPIs, alerts, and a ride queue — plus full CRUD for trips, drivers, users, payments, promos, support tickets, and audit logs. Supports English and Arabic (RTL).
 
 ```
-┌─────────────┐   HTTP + JWT   ┌──────────────┐   Prisma   ┌────────────┐
-│  Mobile App  │ ────────────→  │  Express API  │ ─────────→ │ PostgreSQL │
-│  (Expo RN)   │ ←──────────── │  (Backend)    │ ←───────── │  (Neon)    │
-└──────┬───────┘               └──────┬───────┘            └────────────┘
-       │ socket.io                     │ socket.io
-       ▼                               ▼
-  Driver location              Admin live map
-  streaming                    (throttled broadcast)
+┌──────────────┐   HTTP + JWT   ┌──────────────┐   Prisma   ┌────────────┐
+│  Mobile App  │ ────────────→  │              │ ─────────→ │ PostgreSQL │
+│  (Expo RN)   │ ←────────────  │  Express API │ ←───────── │  (Neon)    │
+│  Admin Panel │ ────────────→  │  (Backend)   │            └────────────┘
+│  (React 19)  │ ←────────────  │              │
+└──────────────┘               └──────────────┘
+        │ socket.io
+        ▼
+   Driver location streaming + admin live map, KPIs, alerts
+   (throttled broadcast)
 ```
 
 ## Features
@@ -44,6 +42,7 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 | **Auth & Onboarding** | Clerk authentication, 3-slide onboarding, profile management |
 | **Driver Mode** | Go online, background GPS streaming, 10s heartbeat, 15s stale sweep, connectivity-aware fallback |
 | **Live Driver Map** | Admin sees every online driver in real time via throttled socket broadcasts |
+| **Admin Dashboard** | Overview KPIs, live alerts (long wait, stuck trip, pending approval), ride queue |
 | **Ride Requests** | Pick destination (Google Places autocomplete), fare estimate (Google Routes API), haversine fallback |
 | **Real-Time Matching** | Nearest-driver dispatch, 20s offer timeout, accept/reject, automatic escalation to next candidate |
 | **Driver Trip Panel** | Incoming ride card with pickup/dropoff/fare/ETA, accept/reject with countdown |
@@ -55,6 +54,15 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 | **Rating System** | 5-star rating with optional feedback — available on trip card and inline in history |
 | **Real-Time ETA** | Live ETA updates during trip via Google Routes API polling (20s interval) |
 | **Nearby Drivers** | Rider sees nearby online cars as map markers in real time |
+| **Admin Trips** | List, filter, search, detail, and cancel trips from admin dashboard |
+| **Admin Drivers** | Approve, reject, suspend, reinstate drivers; view details and live locations |
+| **Admin Users** | List users by role, search, view details and trip/ticket history |
+| **Admin Statistics** | Revenue, completion rate, daily stats, top drivers via charts |
+| **Admin Payments** | Payout list with status filter and update-to-paid |
+| **Admin Promos** | Toggle promo codes on/off, list with usage stats |
+| **Admin Support** | Ticket list with status/priority filters, detail, status updates |
+| **Admin Audit** | Full audit log of admin actions |
+| **i18n** | English and Arabic (RTL) support across all three projects |
 
 ## Getting Started
 
@@ -105,9 +113,18 @@ src/
 │   ├── directions/              # Google Routes distance/duration proxy
 │   ├── users/                   # User CRUD
 │   ├── places/                  # Google Places autocomplete proxy
-│   └── admin/drivers/           # Admin driver management
-├── sockets/                     # Socket.io setup, auth, stale detection
-└── shared/                      # Errors, middleware, helpers
+│   └── admin/                   # Admin dashboard API
+│       ├── drivers/             # Approve/reject/suspend/reinstate + live map
+│       ├── trips/               # List, detail, cancel
+│       ├── users/               # List, detail, roles
+│       ├── overview/            # KPIs, alerts, ride queue
+│       ├── stats/               # Charts, revenue, top drivers
+│       ├── payments/            # Payout list, status updates
+│       ├── promos/              # Toggle, list
+│       ├── support/             # Ticket list, detail, status
+│       └── audit/               # Audit log
+├── sockets/                     # Socket.io setup, auth, stale detection, admin emit
+└── shared/                      # RBAC, errors, middleware, helpers
 ```
 
 ### Mobile
@@ -125,6 +142,32 @@ src/
 ├── api/                         # Axios client + interceptors
 ├── shared/                      # Reusable components, navigation, utils
 └── lib/                         # Context providers
+```
+
+### Admin
+
+```
+src/
+├── components/
+│   ├── Layout/                  # AdminLayout, AdminHeader, AdminSidebar
+│   ├── LanguageSwitcher.tsx     # English/Arabic toggle via React Portal
+│   ├── ThemeToggle.tsx          # Light/dark mode toggle
+│   └── SignedOutScreen.tsx
+├── contexts/                    # LocaleContext, ThemeContext, useLocale, useTheme
+├── features/
+│   ├── overview/                # KPIs, alerts, ride queue
+│   ├── trips/                   # List, filter, search, detail, cancel
+│   ├── drivers/                 # Dashboard, approve/reject/suspend, detail
+│   ├── users/                   # List, search, detail, roles
+│   ├── statistics/              # Charts, revenue, top drivers
+│   ├── payments/                # Payout list, status updates
+│   ├── promos/                  # Toggle, list with usage stats
+│   ├── support/                 # Ticket list, detail, status updates
+│   ├── settings/                # Settings screen
+│   └── audit/                   # Audit log
+├── i18n/                        # i18next, English/Arabic locales, direction utils
+├── lib/                         # Socket client, queryClient
+└── types/admin.ts               # Shared TypeScript types
 ```
 
 ## API Reference
@@ -168,12 +211,29 @@ Base URL: `http://localhost:3000/api`
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/admin/drivers` | Admin | All driver applications |
-| GET | `/admin/drivers/live` | Admin | Online drivers with live coords |
+| GET | `/admin/overview` | Admin | KPIs, counts, alerts, ride queue |
+| GET | `/admin/trips` | Admin | List trips with filters, search, pagination |
+| GET | `/admin/trips/:id` | Admin | Trip detail with rider/driver/offers |
+| PUT | `/admin/trips/:id/cancel` | Admin | Cancel a trip with reason |
+| GET | `/admin/drivers` | Admin | All driver applications with filtering |
+| GET | `/admin/drivers/live` | Admin | Online drivers with live coordinates |
+| GET | `/admin/drivers/:id` | Admin | Driver detail |
+| GET | `/admin/drivers/:id/detail` | Admin | Full driver detail with stats and trips |
 | PUT | `/admin/drivers/:id/approve` | Admin | Approve application |
 | PUT | `/admin/drivers/:id/reject` | Admin | Reject application |
 | PUT | `/admin/drivers/:id/suspend` | Admin | Suspend driver |
 | PUT | `/admin/drivers/:id/reinstate` | Admin | Reinstate driver |
+| GET | `/admin/users` | Admin | List users by role with search and pagination |
+| GET | `/admin/users/:id` | Admin | User detail with trips and tickets |
+| GET | `/admin/stats` | Admin | Revenue, completion rate, daily stats, top drivers |
+| GET | `/admin/payments` | Admin | Payout list with status filter and pagination |
+| PUT | `/admin/payments/:id/status` | Admin | Update payout status |
+| GET | `/admin/promos` | Admin | Promo codes with pagination |
+| PUT | `/admin/promos/:id/toggle` | Admin | Toggle promo active state |
+| GET | `/admin/support` | Admin | Ticket list with status/priority filter |
+| GET | `/admin/support/:id` | Admin | Ticket detail |
+| PUT | `/admin/support/:id/status` | Admin | Update ticket status |
+| GET | `/admin/audit` | Admin | Audit log with filters and pagination |
 
 ## WebSocket Events
 
@@ -191,6 +251,10 @@ Base URL: `http://localhost:3000/api`
 | `ride:assigned` | server → rider | Driver info payload |
 | `ride:updated` | bidirectional | Status changes (arrived, started, completed) |
 | `ride:expired` | server → rider | TTL expiry signal |
+| `admin:ride:updated` | server → admin | Ride state change notification |
+| `admin:driver:status` | server → admin | Driver online/offline/approval status |
+| `admin:overview:update` | server → admin | Overview data refresh push |
+| `admin:alert` | server → admin | Alert notification (long wait, stuck trip, pending approval) |
 
 ## Development Workflow
 
