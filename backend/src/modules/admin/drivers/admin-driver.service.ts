@@ -1,6 +1,7 @@
 import { BadRequestError } from "../../../errors/BadRequestError";
 import { NotFoundError } from "../../../errors/NotFoundError";
-import { ApprovalStatus, type Prisma } from "@prisma/client";
+import { ApprovalStatus, RideStatus, type Prisma } from "@prisma/client";
+import { prisma } from "../../../config/database";
 import * as driverRepository from "../../drivers/driver.repository";
 
 /**
@@ -97,4 +98,136 @@ export async function getById(id: string) {
   const profile = await driverRepository.findById(id);
   if (!profile) throw new NotFoundError("Driver profile not found");
   return profile;
+}
+
+/**
+ * Returns full driver detail for admin panel: profile + stats + recent trips.
+ */
+export async function getDetail(id: string) {
+  const profile = await prisma.driverProfile.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          imageUrl: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  if (!profile) throw new NotFoundError("Driver profile not found");
+
+  const driverId = profile.id;
+
+  const [
+    totalTrips,
+    completedTrips,
+    cancelledByDriverTrips,
+    aggregatedEarnings,
+    recentTrips,
+    onlineTimeMinutes,
+  ] = await Promise.all([
+    prisma.ride.count({ where: { driverId } }),
+    prisma.ride.count({ where: { driverId, status: RideStatus.COMPLETED } }),
+    prisma.ride.count({
+      where: { driverId, status: RideStatus.CANCELLED },
+    }),
+    prisma.ride.aggregate({
+      where: { driverId, status: RideStatus.COMPLETED },
+      _sum: { fare: true },
+    }),
+    prisma.ride.findMany({
+      where: { driverId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        status: true,
+        originAddress: true,
+        destinationAddress: true,
+        fare: true,
+        currency: true,
+        distanceKm: true,
+        createdAt: true,
+        completedAt: true,
+        cancelledAt: true,
+        user: { select: { firstName: true, lastName: true } },
+      },
+    }),
+    prisma.$queryRaw<[{ total: number }]>`
+      SELECT COALESCE(
+        SUM(EXTRACT(EPOCH FROM ("updatedAt" - "createdAt")) / 60), 0
+      )::int AS total
+      FROM "DriverProfile"
+      WHERE id = ${driverId} AND "is_online" = true
+    `,
+  ]);
+
+  const rating =
+    profile.ratingCount > 0
+      ? Math.round((profile.ratingSum / profile.ratingCount) * 10) / 10
+      : null;
+
+  const totalEarnings = Number(aggregatedEarnings._sum.fare ?? 0);
+  const avgEarningsPerTrip =
+    completedTrips > 0 ? Math.round((totalEarnings / completedTrips) * 100) / 100 : 0;
+
+  return {
+    id: profile.id,
+    approvalStatus: profile.approvalStatus,
+    isOnline: profile.isOnline,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    phone: profile.phone,
+    vehicleType: profile.vehicleType,
+    vehicleModel: profile.vehicleModel,
+    vehicleColor: profile.vehicleColor,
+    vehiclePlate: profile.vehiclePlate,
+    rating,
+    ratingCount: profile.ratingCount,
+    createdAt: profile.createdAt.toISOString(),
+    user: profile.user
+      ? {
+          id: profile.user.id,
+          firstName: profile.user.firstName,
+          lastName: profile.user.lastName,
+          email: profile.user.email,
+          phone: profile.user.phone,
+          imageUrl: profile.user.imageUrl,
+          createdAt: profile.user.createdAt.toISOString(),
+        }
+      : null,
+    stats: {
+      totalTrips,
+      completedTrips,
+      cancelledTrips: cancelledByDriverTrips,
+      completionRate:
+        totalTrips > 0
+          ? Math.round((completedTrips / totalTrips) * 1000) / 10
+          : 0,
+      totalEarnings,
+      avgEarningsPerTrip,
+      onlineMinutes: onlineTimeMinutes[0]?.total ?? 0,
+    },
+    recentTrips: recentTrips.map((t) => ({
+      id: t.id,
+      status: t.status,
+      originAddress: t.originAddress,
+      destinationAddress: t.destinationAddress,
+      fare: Number(t.fare),
+      currency: t.currency,
+      distanceKm: t.distanceKm,
+      createdAt: t.createdAt.toISOString(),
+      completedAt: t.completedAt?.toISOString() ?? null,
+      cancelledAt: t.cancelledAt?.toISOString() ?? null,
+      riderName:
+        `${t.user.firstName ?? ""} ${t.user.lastName ?? ""}`.trim() || "Unknown",
+    })),
+  };
 }

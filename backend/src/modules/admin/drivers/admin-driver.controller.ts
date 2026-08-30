@@ -33,6 +33,15 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/admin/drivers/:id/detail
+ * Returns full driver detail: profile, stats, documents, recent trips.
+ */
+export const getDetail = asyncHandler(async (req: Request, res: Response) => {
+  const detail = await adminDriverService.getDetail(req.params.id as string);
+  res.json({ success: true, data: detail });
+});
+
+/**
  * PUT /api/admin/drivers/:id/approve
  * Approves a PENDING driver application. Admin only.
  */
