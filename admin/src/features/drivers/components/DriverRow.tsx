@@ -28,7 +28,7 @@ export function DriverRow({
   return (
     <tr
       onClick={() => onView(driver)}
-      className="group border-b border-gray-100 last:border-0 cursor-pointer"
+      className="group border-b border-border-subtle last:border-0 cursor-pointer"
     >
       <td className="py-4 ps-6 pe-4">
         <div className="font-medium text-gray-900 group-hover:text-blue-600">
@@ -36,23 +36,23 @@ export function DriverRow({
         </div>
         <div className="text-sm text-gray-500">{driver.user.email}</div>
       </td>
-      <td className="py-4 pe-4 text-sm text-gray-600">{driver.phone}</td>
+      <td className="py-4 pe-4 text-sm text-text-secondary">{driver.phone}</td>
       <td className="py-4 pe-4">
-        <div className="text-sm text-gray-800">
+        <div className="text-sm text-text-primary">
           {driver.vehicleType} · {driver.vehicleModel}
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-text-secondary">
           {driver.vehicleColor} · {driver.vehiclePlate}
         </div>
       </td>
-      <td className="py-4 pe-4 text-sm text-gray-600">{driver.licenseNumber}</td>
-      <td className="py-4 pe-4 text-sm text-gray-500">
+      <td className="py-4 pe-4 text-sm text-text-secondary">{driver.licenseNumber}</td>
+      <td className="py-4 pe-4 text-sm text-text-muted">
         {formatDate(driver.createdAt)}
       </td>
       <td className="py-4 pe-4">
         <StatusBadge status={status} />
       </td>
-      <td className="py-4 pe-6 text-right">
+      <td className="py-4 pe-6 text-end">
         <div
           className="flex justify-end gap-2"
           onClick={(e) => e.stopPropagation()}
@@ -91,7 +91,7 @@ export function DriverRow({
           )}
         </div>
         {driver.rejectionReason && status === DriverApprovalStatus.REJECTED && (
-          <div className="mt-1 text-xs text-red-600">
+          <div className="mt-1 text-xs text-status-danger">
             Reason: {driver.rejectionReason}
           </div>
         )}

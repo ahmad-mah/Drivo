@@ -1,8 +1,8 @@
 const variants = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
-  danger: "bg-red-600 text-white hover:bg-red-700",
-  outline: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
-  warning: "bg-orange-500 text-white hover:bg-orange-600",
+  primary: "bg-status-info text-white hover:bg-status-info/90",
+  danger: "bg-status-danger text-white hover:bg-status-danger/90",
+  outline: "bg-bg-glass text-text-primary border border-border-default hover:bg-bg-tertiary",
+  warning: "bg-status-warning text-white hover:bg-status-warning/90",
 } as const;
 
 export type ActionButtonVariant = keyof typeof variants;

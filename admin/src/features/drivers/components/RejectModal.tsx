@@ -28,29 +28,29 @@ export function RejectModal({
       aria-modal="true"
       aria-label={`Reject ${driverName}'s application`}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-bold text-gray-900">Reject application</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Rejecting <span className="font-medium text-gray-700">{driverName}</span>'s
+      <div className="w-full max-w-md rounded-2xl bg-bg-primary p-6 shadow-xl">
+        <h2 className="text-lg font-bold text-text-primary">Reject application</h2>
+        <p className="mt-1 text-sm text-text-secondary">
+          Rejecting <span className="font-medium text-text-primary">{driverName}</span>'s
           application. The driver will be able to re-apply with corrections.
         </p>
         <label className="mt-4 block">
-          <span className="text-sm font-medium text-gray-700">Reason</span>
+          <span className="text-sm font-medium text-text-secondary">Reason</span>
           <textarea
             value={reason}
             onChange={(e) => onReasonChange(e.target.value)}
             rows={3}
             placeholder="e.g. License number could not be verified"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 w-full rounded-lg border border-border-default bg-bg-glass px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </label>
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-sm text-status-danger">{error}</p>}
         <div className="mt-5 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-text-secondary hover:bg-bg-tertiary"
           >
             Cancel
           </button>
@@ -58,7 +58,7 @@ export function RejectModal({
             type="button"
             onClick={onConfirm}
             disabled={submitting}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className="rounded-lg bg-status-danger px-4 py-2 text-sm font-medium text-white hover:bg-status-danger/90 disabled:opacity-50"
           >
             {submitting ? "Rejecting…" : "Reject"}
           </button>

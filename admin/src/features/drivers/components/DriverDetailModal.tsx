@@ -28,8 +28,8 @@ interface StatusAction {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 py-1.5">
-      <dt className="text-sm text-gray-500">{label}</dt>
-      <dd className="text-sm font-medium text-gray-900 text-end">{value}</dd>
+      <dt className="text-sm text-text-muted">{label}</dt>
+      <dd className="text-sm font-medium text-text-primary text-end">{value}</dd>
     </div>
   );
 }
@@ -93,11 +93,11 @@ export function DriverDetailModal({
       aria-modal="true"
       aria-label={`${name}'s driver profile`}
     >
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-start justify-between border-b border-gray-100 p-6 pb-4">
+      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-primary shadow-xl">
+        <div className="flex items-start justify-between border-b border-border-subtle p-6 pb-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{name}</h2>
-            <p className="mt-0.5 text-sm text-gray-500">{driver.user.email}</p>
+            <h2 className="text-lg font-bold text-text-primary">{name}</h2>
+            <p className="mt-0.5 text-sm text-text-secondary">{driver.user.email}</p>
           </div>
           <div className="flex items-center gap-3">
             <StatusBadge status={status} />
@@ -105,7 +105,7 @@ export function DriverDetailModal({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-lg px-2 py-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-lg px-2 py-1 text-text-muted hover:bg-bg-tertiary hover:text-text-primary"
             >
               ✕
             </button>
@@ -114,7 +114,7 @@ export function DriverDetailModal({
 
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
-            <p className="py-8 text-center text-sm text-gray-500">
+            <p className="py-8 text-center text-sm text-text-muted">
               Loading driver details…
             </p>
           ) : (
@@ -140,7 +140,7 @@ export function DriverDetailModal({
 
               {driver.rejectionReason && (
                 <DetailSection title="Rejection">
-                  <p className="mt-1 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <p className="mt-1 rounded-lg bg-status-danger/5 px-3 py-2 text-sm text-status-danger">
                     {driver.rejectionReason}
                   </p>
                 </DetailSection>
@@ -149,7 +149,7 @@ export function DriverDetailModal({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-gray-100 p-6 pt-4">
+        <div className="flex justify-end gap-2 border-t border-border-subtle p-6 pt-4">
           {statusActions[status].map(({ label, variant, onClick }) => (
             <ActionButton
               key={label}

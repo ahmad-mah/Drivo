@@ -2,10 +2,10 @@ import type { DriverApprovalStatus as Status } from "../types/driver";
 import { DriverApprovalStatus } from "../types/driver";
 
 const statusStyles: Record<Status, string> = {
-  [DriverApprovalStatus.PENDING]: "bg-yellow-100 text-yellow-800",
-  [DriverApprovalStatus.APPROVED]: "bg-green-100 text-green-800",
-  [DriverApprovalStatus.REJECTED]: "bg-red-100 text-red-800",
-  [DriverApprovalStatus.SUSPENDED]: "bg-orange-100 text-orange-800",
+  [DriverApprovalStatus.PENDING]: "bg-status-warning/10 text-status-warning",
+  [DriverApprovalStatus.APPROVED]: "bg-status-success/10 text-status-success",
+  [DriverApprovalStatus.REJECTED]: "bg-status-danger/10 text-status-danger",
+  [DriverApprovalStatus.SUSPENDED]: "bg-orange-500/10 text-orange-400",
 };
 
 export function StatusBadge({ status }: { status: Status }) {
