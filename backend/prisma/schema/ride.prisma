@@ -49,6 +49,7 @@ model Ride {
   expiresAt            DateTime      @map("expires_at")
   cancelledAt          DateTime?     @map("cancelled_at")
   completedAt          DateTime?     @map("completed_at")
+  supportTickets       SupportTicket[]
   createdAt            DateTime      @default(now()) @map("created_at")
   updatedAt            DateTime      @updatedAt @map("updated_at")
 

@@ -1,0 +1,130 @@
+model AdminAuditLog {
+  id            String   @id @default(cuid())
+  adminId       String   @map("admin_id")
+  admin         User     @relation(fields: [adminId], references: [id])
+  action        String
+  targetType    String   @map("target_type")
+  targetId      String   @map("target_id")
+  previousState Json?    @map("previous_state")
+  newState      Json?    @map("new_state")
+  reason        String?
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+  @@index([action, createdAt])
+  @@map("admin_audit_logs")
+}
+
+model PromoCode {
+  id              String      @id @default(cuid())
+  code            String      @unique
+  description     String?
+  discountType    DiscountType @map("discount_type")
+  discountValue   Decimal     @map("discount_value")
+  maxDiscount     Decimal?    @map("max_discount")
+  minFare         Decimal?    @map("min_fare")
+  usageLimit      Int?        @map("usage_limit")
+  usageCount      Int         @default(0) @map("usage_count")
+  userLimit       Int?        @map("user_limit")
+  validFrom       DateTime    @map("valid_from")
+  validUntil      DateTime    @map("valid_until")
+  isActive        Boolean     @default(true) @map("is_active")
+  createdById     String      @map("created_by_id")
+  createdBy       User        @relation(fields: [createdById], references: [id])
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  @@map("promo_codes")
+}
+
+model SupportTicket {
+  id           String         @id @default(cuid())
+  userId       String         @map("user_id")
+  user         User           @relation("UserTickets", fields: [userId], references: [id])
+  rideId       String?        @map("ride_id")
+  ride         Ride?          @relation(fields: [rideId], references: [id])
+  category     TicketCategory
+  subject      String
+  description  String
+  status       TicketStatus   @default(OPEN)
+  priority     TicketPriority @default(MEDIUM)
+  assignedToId String?        @map("assigned_to_id")
+  assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  resolvedAt   DateTime?      @map("resolved_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([assignedToId, status])
+  @@index([rideId])
+  @@map("support_tickets")
+}
+
+model DriverPayout {
+  id            String        @id @default(cuid())
+  driverId      String        @map("driver_id")
+  driver        DriverProfile @relation(fields: [driverId], references: [id])
+  periodStart   DateTime      @map("period_start")
+  periodEnd     DateTime      @map("period_end")
+  grossEarnings Decimal       @map("gross_earnings")
+  commission    Decimal
+  netAmount     Decimal       @map("net_amount")
+  status        PayoutStatus  @default(PENDING)
+  paidAt        DateTime?     @map("paid_at")
+  paymentRef    String?       @map("payment_ref")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@unique([driverId, periodStart, periodEnd])
+  @@index([status, periodEnd])
+  @@map("driver_payouts")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+
+  @@map("discount_type")
+}
+
+enum TicketCategory {
+  PAYMENT
+  SAFETY
+  ROUTE
+  BEHAVIOR
+  TECHNICAL
+  REFUND
+  OTHER
+
+  @@map("ticket_category")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+
+  @@map("ticket_status")
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("ticket_priority")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  HELD
+
+  @@map("payout_status")
+}

@@ -14,10 +14,14 @@ model User {
   imageUrl       String?         @map("image_url")
   clerkId        String          @unique @map("clerk_id")
   role           Role            @default(USER) @map("role")
-  driverProfile  DriverProfile?
-  rides          Ride[]
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
+  driverProfile   DriverProfile?
+  rides           Ride[]
+  adminAuditLogs  AdminAuditLog[]
+  createdPromos   PromoCode[]
+  supportTickets  SupportTicket[]       @relation("UserTickets")
+  assignedTickets SupportTicket[]       @relation("AssignedTickets")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   @@map("users")
 }

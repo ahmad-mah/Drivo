@@ -9,6 +9,7 @@ import {
   STUCK_TRIP_LOG_MS,
 } from "../../config";
 import { prisma } from "../../config/database";
+import { emitRideUpdated } from "../../sockets/admin-emit";
 import { DRIVER_DECLINED_REASON } from "./cancellation-reasons";
 import { ConflictError } from "../../errors/ConflictError";
 import { ForbiddenError } from "../../errors/ForbiddenError";
@@ -159,6 +160,13 @@ export async function requestRide(
     expiresAt: new Date(Date.now() + RIDE_TTL_MS),
   });
 
+  // Notify admin dashboard of new ride
+  emitRideUpdated({
+    rideId: ride.id,
+    newStatus: RideStatus.PENDING,
+    timestamp: new Date().toISOString(),
+  });
+
   return toResponse(ride);
 }
 
@@ -286,6 +294,13 @@ export async function cancelRide(
     await notifyRideUpdated(rooms, rideId);
   }
 
+  // Notify admin dashboard
+  emitRideUpdated({
+    rideId,
+    newStatus: RideStatus.CANCELLED,
+    timestamp: new Date().toISOString(),
+  });
+
   // The ride was just cancelled above; the re-read builds the response. A
   // null here means it was deleted between the two queries.
   const ride = await rideRepository.findOwnedById(rideId, user.id);
@@ -318,7 +333,14 @@ export async function getRideHistory(clerkId: string, limit: number, offset: num
 export async function expireOverdueRides() {
   const expired = await rideRepository.expireOverdue(new Date());
   await Promise.all(
-    expired.map((ride) => notifyRideExpired(ride.user.clerkId, ride.id)),
+    expired.map((ride) => {
+      notifyRideExpired(ride.user.clerkId, ride.id);
+      emitRideUpdated({
+        rideId: ride.id,
+        newStatus: RideStatus.EXPIRED,
+        timestamp: new Date().toISOString(),
+      });
+    }),
   );
 }
 
@@ -491,6 +513,14 @@ async function finishTransition(
   );
   await notifyRideUpdated(rooms, updated.id);
 
+  // Notify admin dashboard of ride state change
+  emitRideUpdated({
+    rideId: updated.id,
+    newStatus: updated.status,
+    driverId: updated.driverId ?? undefined,
+    timestamp: new Date().toISOString(),
+  });
+
   return toResponse(
     withRider ?? updated,
     withRider?.driver
@@ -579,6 +609,13 @@ export async function cancelTripAsDriver(clerkId: string, rideId: string) {
     (id): id is string => Boolean(id),
   );
   await notifyRideUpdated(rooms, updated.id);
+
+  // Notify admin dashboard
+  emitRideUpdated({
+    rideId: updated.id,
+    newStatus: updated.status,
+    timestamp: new Date().toISOString(),
+  });
 
   return toResponse(updated);
 }
