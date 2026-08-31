@@ -41,6 +41,8 @@ export async function findByClerkId(clerkId: string) {
       lastName: true,
       phone: true,
       imageUrl: true,
+      stripeCustomerId: true,
+      savedPaymentMethodId: true,
       createdAt: true,
       updatedAt: true,
     },

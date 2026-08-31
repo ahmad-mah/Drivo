@@ -1,4 +1,4 @@
-import type { RideStatus } from "@prisma/client";
+import type { RideStatus, RidePaymentStatus } from "@prisma/client";
 
 export interface RidePoint {
   address: string;
@@ -70,5 +70,7 @@ export interface RideResponse {
   noShowInSeconds: number | null;
   /** Only while IN_PROGRESS: seconds since the trip started (relative). */
   tripElapsedSeconds: number | null;
+  /** Payment status for the ride — PENDING, PAID, or FAILED. */
+  paymentStatus: RidePaymentStatus | null;
   createdAt: string;
 }

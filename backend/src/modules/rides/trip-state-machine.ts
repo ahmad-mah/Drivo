@@ -32,10 +32,13 @@ export const TRIP_TRANSITIONS: Record<RideStatus, RideStatus[]> = {
     RideStatus.CANCELLED,
   ],
   [RideStatus.IN_PROGRESS]: [
-    RideStatus.COMPLETED,
+    RideStatus.TRIP_ENDED,
     // Driver abort mid-trip: the ride terminates (no re-dispatch with the
     // rider in the car). Rider cancellation stays blocked at the service layer.
     RideStatus.CANCELLED,
+  ],
+  [RideStatus.TRIP_ENDED]: [
+    RideStatus.COMPLETED,
   ],
   [RideStatus.COMPLETED]: [],
   [RideStatus.CANCELLED]: [],
@@ -48,6 +51,7 @@ export const ACTIVE_RIDE_STATUSES: RideStatus[] = [
   RideStatus.ACCEPTED,
   RideStatus.ARRIVED,
   RideStatus.IN_PROGRESS,
+  RideStatus.TRIP_ENDED,
 ];
 
 /** Statuses that end the ride — polling/UI stops here. */

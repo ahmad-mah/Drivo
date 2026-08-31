@@ -95,7 +95,14 @@ export const start = asyncHandler(async (req, res) => {
   res.json({ success: true, data: ride });
 });
 
-/** POST /api/rides/:id/complete — IN_PROGRESS → COMPLETED. */
+/** POST /api/rides/:id/arrived-at-destination — IN_PROGRESS → TRIP_ENDED. */
+export const arrivedAtDestination = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+  const ride = await rideService.arrivedAtDestination(userId!, req.params.id as string);
+  res.json({ success: true, data: ride });
+});
+
+/** POST /api/rides/:id/complete — TRIP_ENDED → COMPLETED (requires PAID). */
 export const complete = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const ride = await rideService.completeTrip(userId!, req.params.id as string);

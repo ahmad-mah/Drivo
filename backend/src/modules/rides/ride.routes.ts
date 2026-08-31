@@ -32,6 +32,7 @@ router.post("/:id/reject", requireAuth, rideController.reject);
 // Driver trip lifecycle
 router.post("/:id/arrive", requireAuth, rideController.arrive);
 router.post("/:id/start", requireAuth, rideController.start);
+router.post("/:id/arrived-at-destination", requireAuth, rideController.arrivedAtDestination);
 router.post("/:id/complete", requireAuth, rideController.complete);
 router.post(
   "/:id/no-show",

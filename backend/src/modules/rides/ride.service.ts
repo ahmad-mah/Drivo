@@ -98,6 +98,7 @@ function toResponse(
       ride.status === RideStatus.IN_PROGRESS && ride.startedAt
         ? Math.max(0, Math.round((Date.now() - ride.startedAt.getTime()) / 1000))
         : null,
+    paymentStatus: ride.paymentStatus ?? null,
     createdAt: ride.createdAt.toISOString(),
   };
 }
@@ -268,7 +269,7 @@ export async function cancelRide(
   if (!existing) throw new NotFoundError("Ride not found");
   // Mid-trip cancellation is blocked — the trip is underway. Pre-trip states
   // (including a driver already en route) may still be cancelled.
-  if (existing.status === RideStatus.IN_PROGRESS) {
+  if (existing.status === RideStatus.IN_PROGRESS || existing.status === RideStatus.TRIP_ENDED) {
     throw new ConflictError("Cannot cancel while on the trip");
   }
 
@@ -560,15 +561,44 @@ export async function startTrip(clerkId: string, rideId: string) {
   return finishTransition(clerkId, RideStatus.ARRIVED, RideStatus.IN_PROGRESS, updated);
 }
 
+/**
+ * IN_PROGRESS → TRIP_ENDED: driver signals arrival at destination.
+ * The rider receives a payment-required event and the payment sheet appears.
+ */
+export async function arrivedAtDestination(clerkId: string, rideId: string) {
+  const profile = await requireDriverForTrip(clerkId);
+  const updated = await rideRepository.transitionForDriver(
+    rideId,
+    profile.id,
+    transitionSources(RideStatus.TRIP_ENDED),
+    RideStatus.TRIP_ENDED,
+  );
+  return finishTransition(clerkId, RideStatus.IN_PROGRESS, RideStatus.TRIP_ENDED, updated);
+}
+
+/**
+ * TRIP_ENDED → COMPLETED: only allowed if paymentStatus is PAID.
+ * The payment must have been confirmed before the driver can end the trip.
+ */
 export async function completeTrip(clerkId: string, rideId: string) {
   const profile = await requireDriverForTrip(clerkId);
+
+  // Verify payment is confirmed before allowing completion
+  const ride = await rideRepository.findActiveByDriver(profile.id);
+  if (!ride || ride.id !== rideId) {
+    throw new ConflictError("Trip is not in a state for this action");
+  }
+  if (ride.paymentStatus !== "PAID") {
+    throw new ConflictError("Payment must be confirmed before completing the trip");
+  }
+
   const updated = await rideRepository.transitionForDriver(
     rideId,
     profile.id,
     transitionSources(RideStatus.COMPLETED),
     RideStatus.COMPLETED,
   );
-  return finishTransition(clerkId, RideStatus.IN_PROGRESS, RideStatus.COMPLETED, updated);
+  return finishTransition(clerkId, RideStatus.TRIP_ENDED, RideStatus.COMPLETED, updated);
 }
 
 /**

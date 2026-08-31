@@ -16,7 +16,7 @@ export async function findActiveByUser(userId: string) {
     where: {
       userId,
       status: {
-        in: [RideStatus.PENDING, RideStatus.ACCEPTED, RideStatus.ARRIVED, RideStatus.IN_PROGRESS],
+        in: [RideStatus.PENDING, RideStatus.ACCEPTED, RideStatus.ARRIVED, RideStatus.IN_PROGRESS, RideStatus.TRIP_ENDED],
       },
     },
     orderBy: { createdAt: "desc" },
@@ -102,7 +102,7 @@ export async function findActiveByDriver(driverId: string) {
   return prisma.ride.findFirst({
     where: {
       driverId,
-      status: { in: [RideStatus.ACCEPTED, RideStatus.ARRIVED, RideStatus.IN_PROGRESS] },
+      status: { in: [RideStatus.ACCEPTED, RideStatus.ARRIVED, RideStatus.IN_PROGRESS, RideStatus.TRIP_ENDED] },
     },
     orderBy: { createdAt: "desc" },
   });

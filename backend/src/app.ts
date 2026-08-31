@@ -7,6 +7,8 @@ import { errorHandler } from './middleware/error.middleware';
 import { notFoundHandler } from './middleware/notFound';
 import userRouter from './modules/users/user.routes';
 import webhookRouter from './modules/webhook/webhook.routes';
+import stripeWebhookRouter from './modules/payments/webhooks/stripe-webhook.routes';
+import paymentsRouter from './modules/payments/payments.routes';
 import driverRouter from './modules/drivers/driver.routes';
 import adminRouter from './modules/admin/admin.routes';
 import rideRouter from './modules/rides/ride.routes';
@@ -19,6 +21,7 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use('/api/webhook', webhookRouter);
+app.use('/api/webhook', stripeWebhookRouter);
 app.use(express.json());
 app.use(clerkMiddleware());
 
@@ -28,6 +31,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/rides', rideRouter);
 app.use('/api/places', placeRouter);
 app.use('/api/directions', directionsRouter);
+app.use('/api/payments', paymentsRouter);
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
