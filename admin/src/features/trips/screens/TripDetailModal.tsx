@@ -78,14 +78,14 @@ export function TripDetailModal({ rideId, onClose }: Props) {
                 <User className="h-4 w-4 text-text-muted" />
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">{t("trips.detail.rider", "Rider")}</p>
-                  <p className="text-sm text-text-primary">{ride.riderName}</p>
+                  <p className="text-sm text-text-primary">{ride.rider?.name ?? t("common.noData", "Unknown")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-bg-tertiary px-4 py-3">
                 <Car className="h-4 w-4 text-text-muted" />
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">{t("trips.detail.driver", "Driver")}</p>
-                  <p className="text-sm text-text-primary">{ride.driverName ?? t("common.noData", "Unassigned")}</p>
+                  <p className="text-sm text-text-primary">{ride.driver?.name ?? t("common.noData", "Unassigned")}</p>
                 </div>
               </div>
             </div>

@@ -8,7 +8,6 @@ import {
   BarChart3,
   CreditCard,
   Headphones,
-  Tag,
   Settings,
   ShieldCheck,
   UserCheck,
@@ -29,7 +28,6 @@ const navItems: NavItem[] = [
   { to: "/admin/statistics", labelKey: "navigation.statistics", icon: BarChart3 },
   { to: "/admin/payments", labelKey: "navigation.payments", icon: CreditCard },
   { to: "/admin/support", labelKey: "navigation.support", icon: Headphones },
-  { to: "/admin/promos", labelKey: "navigation.promos", icon: Tag },
   { to: "/admin/audit", labelKey: "navigation.auditLogs", icon: ShieldCheck },
   { to: "/admin/settings", labelKey: "navigation.settings", icon: Settings },
 ];

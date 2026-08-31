@@ -38,6 +38,13 @@ module.exports = () => ({
       "@clerk/expo",
       "expo-secure-store",
       [
+        "@stripe/stripe-react-native",
+        {
+          merchantIdentifier: "merchant.com.drivo.app",
+          enableGooglePay: true,
+        },
+      ],
+      [
         "expo-location",
         {
           locationAlwaysAndWhenInUsePermission:

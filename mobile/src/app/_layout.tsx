@@ -1,8 +1,9 @@
+import { StripeProvider } from "@stripe/stripe-react-native";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import "../../global.css";
 import { Stack, usePathname, type ErrorBoundaryProps } from "expo-router";
-import { useRef } from "react";
+import { useState } from "react";
 import { useAppInit } from "@/hooks/useAppInit";
 import { AppReadyProvider } from "@/lib/app-ready-context";
 import { SnackbarProvider } from "@/shared/contexts/SnackbarContext";
@@ -17,6 +18,8 @@ import "@/api/interceptors";
 import "@/features/drivers/services/driver-location-task";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const stripePublishableKey =
+  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
 if (!publishableKey) {
   throw new Error("Add your Clerk Publishable Key to the .env file");
@@ -51,10 +54,7 @@ function AppContent() {
   // auth tree is never unmounted again on transient drops — remounting
   // Clerk + expo-router mid-hydration on flaky mobile networks churns
   // synchronous re-renders fast enough to trip React's update-depth limit.
-  const everOnlineRef = useRef(false);
-  if (status === "online") {
-    everOnlineRef.current = true;
-  }
+  const [everOnline] = useState(status === "online");
   const offline = status === "no-internet" || status === "server-down";
 
   // Startup-only gate: the authenticated tree (Clerk + auth + router) mounts
@@ -62,23 +62,25 @@ function AppContent() {
   // never hydrates against a dead network. Before that first success, a drop
   // still shows the global offline screen.
   if (status === "checking") return null;
-  if (offline && !everOnlineRef.current && pathname !== "/driver-mode") {
+  if (offline && !everOnline && pathname !== "/driver-mode") {
     return <OfflineScreen />;
   }
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <AuthProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            statusBarStyle: "dark",
-            contentStyle: { backgroundColor: "white" },
-          }}
-        >
-          <Stack.Screen name="(app)" />
-        </Stack>
-      </AuthProvider>
+      <StripeProvider publishableKey={stripePublishableKey} merchantIdentifier="merchant.com.drivo.app">
+        <AuthProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              statusBarStyle: "dark",
+              contentStyle: { backgroundColor: "white" },
+            }}
+          >
+            <Stack.Screen name="(app)" />
+          </Stack>
+        </AuthProvider>
+      </StripeProvider>
     </ClerkProvider>
   );
 }

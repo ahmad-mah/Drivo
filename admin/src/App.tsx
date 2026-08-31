@@ -10,7 +10,6 @@ import { UsersPlaceholder } from "./features/users/screens/UsersPlaceholder";
 import { StatisticsPlaceholder } from "./features/stats/screens/StatisticsPlaceholder";
 import { PaymentsPlaceholder } from "./features/payments/screens/PaymentsPlaceholder";
 import { SupportPlaceholder } from "./features/support/screens/SupportPlaceholder";
-import { PromosPlaceholder } from "./features/promos/screens/PromosPlaceholder";
 import { SettingsPlaceholder } from "./features/settings/screens/SettingsPlaceholder";
 import { AuditPlaceholder } from "./features/audit/screens/AuditPlaceholder";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "./i18n/utils/direction";
@@ -33,7 +32,6 @@ export default function App() {
                     <Route path="statistics" element={<StatisticsPlaceholder />} />
                     <Route path="payments" element={<PaymentsPlaceholder />} />
                     <Route path="support" element={<SupportPlaceholder />} />
-                    <Route path="promos" element={<PromosPlaceholder />} />
                     <Route path="settings" element={<SettingsPlaceholder />} />
                     <Route path="audit" element={<AuditPlaceholder />} />
                   </Route>

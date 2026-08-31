@@ -45,7 +45,7 @@ export function StatisticsScreen() {
   if (isLoading || !stats) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-gray-400">{t("stats.loading", "Loading statistics...")}</p>
+        <p className="text-sm text-text-muted">{t("stats.loading", "Loading statistics...")}</p>
       </div>
     );
   }
@@ -55,22 +55,22 @@ export function StatisticsScreen() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-900">{t("stats.title", "Statistics")}</h2>
+        <h2 className="text-lg font-bold text-text-primary">{t("stats.title", "Statistics")}</h2>
         <div className="flex items-center gap-2">
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
             aria-label={t("trips.dateFrom", "Date From")}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border-default bg-bg-secondary px-3 py-1.5 text-sm text-text-primary"
           />
-          <span className="text-gray-400">{t("stats.to", "to")}</span>
+          <span className="text-text-muted">{t("stats.to", "to")}</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
             aria-label={t("trips.dateTo", "Date To")}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border-default bg-bg-secondary px-3 py-1.5 text-sm text-text-primary"
           />
         </div>
       </div>
@@ -83,14 +83,14 @@ export function StatisticsScreen() {
         <Card
           label={t("stats.revenue", "Revenue")}
           value={`$${summary.totalRevenue.toFixed(0)}`}
-          color="text-green-600"
+          color="text-status-success"
         />
-        <Card label={t("stats.completed", "Completed")} value={summary.completedRides} color="text-green-600" />
-        <Card label={t("stats.cancelled", "Cancelled")} value={summary.cancelledRides} color="text-red-600" />
+        <Card label={t("stats.completed", "Completed")} value={summary.completedRides} color="text-status-success" />
+        <Card label={t("stats.cancelled", "Cancelled")} value={summary.cancelledRides} color="text-status-danger" />
         <Card
           label={t("stats.completionRate", "Completion Rate")}
           value={`${summary.completionRate}%`}
-          color="text-blue-600"
+          color="text-status-info"
         />
         <Card label={t("stats.onlineDrivers", "Online Drivers")} value={summary.onlineDrivers} />
       </div>
@@ -98,20 +98,27 @@ export function StatisticsScreen() {
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Daily Rides Chart */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-secondary">
             {t("stats.dailyRides", "Daily Rides")}
           </h3>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart data={daily}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                 tickFormatter={(v: string) => v.slice(5)}
               />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
+              <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-bg-secondary)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "8px",
+                  color: "var(--color-text-primary)",
+                }}
+              />
               <Area
                 type="monotone"
                 dataKey="rides"
@@ -131,21 +138,27 @@ export function StatisticsScreen() {
         </div>
 
         {/* Daily Revenue Chart */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-secondary">
             {t("stats.dailyRevenue", "Daily Revenue")}
           </h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={daily}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                 tickFormatter={(v: string) => v.slice(5)}
               />
-              <YAxis tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
               <Tooltip
                 formatter={(value: any) => [`$${Number(value).toFixed(2)}`, t("stats.revenueTooltip", "Revenue")]}
+                contentStyle={{
+                  backgroundColor: "var(--color-bg-secondary)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "8px",
+                  color: "var(--color-text-primary)",
+                }}
               />
               <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -153,8 +166,8 @@ export function StatisticsScreen() {
         </div>
 
         {/* Status Distribution */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-secondary">
             {t("stats.rideStatusDistribution", "Ride Status Distribution")}
           </h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -177,33 +190,46 @@ export function StatisticsScreen() {
                     />
                   ))}
               </Pie>
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-bg-secondary)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "8px",
+                  color: "var(--color-text-primary)",
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         {/* Top Drivers */}
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
+          <h3 className="mb-3 text-sm font-semibold text-text-secondary">
             {t("stats.topDriversByTrips", "Top Drivers by Trips")}
           </h3>
           {topDrivers.length === 0 ? (
-            <p className="py-8 text-center text-sm text-gray-400">
+            <p className="py-8 text-center text-sm text-text-muted">
               {t("stats.noDriverData", "No driver data for this period")}
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={topDrivers} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                 <YAxis
                   dataKey="name"
                   type="category"
                   width={100}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                 />
                 <Tooltip
                   formatter={(value: any) => [`${value} ${t("stats.tripsTooltip", "trips")}`, t("stats.tripsTooltip", "Trips")]}
+                  contentStyle={{
+                    backgroundColor: "var(--color-bg-secondary)",
+                    border: "1px solid var(--color-border-subtle)",
+                    borderRadius: "8px",
+                    color: "var(--color-text-primary)",
+                  }}
                 />
                 <Bar dataKey="trips" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -225,9 +251,9 @@ function Card({
   color?: string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${color ?? "text-gray-900"}`}>
+    <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
+      <p className="text-xs font-medium text-text-muted">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${color ?? "text-text-primary"}`}>
         {value}
       </p>
     </div>

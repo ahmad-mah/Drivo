@@ -46,7 +46,8 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 | **Ride Requests** | Pick destination (Google Places autocomplete), fare estimate (Google Routes API), haversine fallback |
 | **Real-Time Matching** | Nearest-driver dispatch, 20s offer timeout, accept/reject, automatic escalation to next candidate |
 | **Driver Trip Panel** | Incoming ride card with pickup/dropoff/fare/ETA, accept/reject with countdown |
-| **Ride Lifecycle** | Full state machine: PENDING → ACCEPTED → ARRIVED → IN_PROGRESS → COMPLETED, with arrive/start/complete transitions |
+| **Ride Lifecycle** | Full state machine: PENDING → ACCEPTED → ARRIVED → IN_PROGRESS → TRIP_ENDED → COMPLETED, with arrive/start/complete transitions |
+| **Post-Trip Payment** | Driver taps "Arrived at Destination" → rider receives Stripe PaymentSheet → payment captured → driver can complete trip |
 | **Cancellation** | Rider can cancel pending rides, driver can cancel mid-trip with reason selection (late, no show, vehicle issue, etc.) |
 | **Trip Summary** | Post-trip summary dialog with fare, distance, duration, rating |
 | **Ride History** | Paginated history with date grouping, filter tabs, pull-to-refresh |
@@ -59,7 +60,6 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 | **Admin Users** | List users by role, search, view details and trip/ticket history |
 | **Admin Statistics** | Revenue, completion rate, daily stats, top drivers via charts |
 | **Admin Payments** | Payout list with status filter and update-to-paid |
-| **Admin Promos** | Toggle promo codes on/off, list with usage stats |
 | **Admin Support** | Ticket list with status/priority filters, detail, status updates |
 | **Admin Audit** | Full audit log of admin actions |
 | **i18n** | English and Arabic (RTL) support across all three projects |
@@ -71,7 +71,7 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 ```bash
 cd backend
 npm install
-cp .env.example .env       # fill DATABASE_URL + Clerk keys
+cp .env.example .env       # fill DATABASE_URL, Clerk keys, Stripe keys
 npx prisma migrate dev
 npm run dev                # → http://localhost:3000
 ```
@@ -81,7 +81,7 @@ npm run dev                # → http://localhost:3000
 ```bash
 cd mobile
 npm install
-cp .env.example .env
+cp .env.example .env       # fill EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
 npx expo run:android       # dev build — required for background location
 ```
 
@@ -109,8 +109,9 @@ src/
 │   │   ├── trip-state-machine.ts
 │   │   ├── ride-dispatcher.ts
 │   │   └── ride.service.ts
-│   ├── drivers/                 # Applications, availability, location
+│   ├── drivers/                 # Applications, availability, location, Connect onboarding
 │   ├── directions/              # Google Routes distance/duration proxy
+│   ├── payments/                # Stripe payments, Connect transfers, webhooks
 │   ├── users/                   # User CRUD
 │   ├── places/                  # Google Places autocomplete proxy
 │   └── admin/                   # Admin dashboard API
@@ -120,7 +121,6 @@ src/
 │       ├── overview/            # KPIs, alerts, ride queue
 │       ├── stats/               # Charts, revenue, top drivers
 │       ├── payments/            # Payout list, status updates
-│       ├── promos/              # Toggle, list
 │       ├── support/             # Ticket list, detail, status
 │       └── audit/               # Audit log
 ├── sockets/                     # Socket.io setup, auth, stale detection, admin emit
@@ -135,7 +135,7 @@ src/
 ├── features/
 │   ├── auth/                    # Sign in, sign up, onboarding
 │   ├── home/                    # Map, nearby cars, recent rides
-│   ├── rides/                   # Ride request, trip, bottom sheet, markers
+│   ├── rides/                   # Ride request, trip, bottom sheet, markers, Stripe payments
 │   ├── drivers/                 # Driver mode, trip panel, incoming rides
 │   ├── history/                 # Ride history with filters
 │   └── profile/                 # Profile + driver section
@@ -161,7 +161,6 @@ src/
 │   ├── users/                   # List, search, detail, roles
 │   ├── statistics/              # Charts, revenue, top drivers
 │   ├── payments/                # Payout list, status updates
-│   ├── promos/                  # Toggle, list with usage stats
 │   ├── support/                 # Ticket list, detail, status updates
 │   ├── settings/                # Settings screen
 │   └── audit/                   # Audit log
@@ -183,7 +182,8 @@ Base URL: `http://localhost:3000/api`
 | DELETE | `/rides/:id/cancel` | Either | Cancel a ride |
 | POST | `/rides/:id/arrive` | Driver | Mark arrived at pickup |
 | POST | `/rides/:id/start` | Driver | Start the trip |
-| POST | `/rides/:id/complete` | Driver | Complete the trip |
+| POST | `/rides/:id/arrived-at-destination` | Driver | Signal arrival at destination (triggers payment) |
+| POST | `/rides/:id/complete` | Driver | Complete the trip (requires payment) |
 | POST | `/rides/:id/no-show` | Driver | Report rider no-show |
 | POST | `/rides/:id/accept` | Driver | Accept dispatched offer |
 | POST | `/rides/:id/reject` | Driver | Decline offer |
@@ -228,8 +228,9 @@ Base URL: `http://localhost:3000/api`
 | GET | `/admin/stats` | Admin | Revenue, completion rate, daily stats, top drivers |
 | GET | `/admin/payments` | Admin | Payout list with status filter and pagination |
 | PUT | `/admin/payments/:id/status` | Admin | Update payout status |
-| GET | `/admin/promos` | Admin | Promo codes with pagination |
-| PUT | `/admin/promos/:id/toggle` | Admin | Toggle promo active state |
+| POST | `/payments/pay-for-ride` | Rider | Create PaymentIntent and confirm via PaymentSheet |
+| GET | `/payments/payment-status/:rideId` | Rider | Get payment status for a ride |
+| POST | `/webhooks/stripe` | Stripe | Stripe webhook handler (payment_intent.succeeded, payment_intent.payment_failed, account.updated) |
 | GET | `/admin/support` | Admin | Ticket list with status/priority filter |
 | GET | `/admin/support/:id` | Admin | Ticket detail |
 | PUT | `/admin/support/:id/status` | Admin | Update ticket status |
@@ -249,7 +250,7 @@ Base URL: `http://localhost:3000/api`
 | `ride:new-request` | server → driver | Dispatched ride offer (20s window) |
 | `ride:accepted` | server → rider | Driver accepted the ride |
 | `ride:assigned` | server → rider | Driver info payload |
-| `ride:updated` | bidirectional | Status changes (arrived, started, completed) |
+| `ride:updated` | bidirectional | Status changes (arrived, started, completed, payment confirmed) |
 | `ride:expired` | server → rider | TTL expiry signal |
 | `admin:ride:updated` | server → admin | Ride state change notification |
 | `admin:driver:status` | server → admin | Driver online/offline/approval status |
