@@ -21,6 +21,7 @@ import {
   HistoryFilterTabs,
   type RideFilter,
 } from "../components/HistoryFilterTabs";
+import { useTabBarBottomInset } from "@/shared/hooks/useTabBarBottomInset";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -39,6 +40,7 @@ export function HistoryScreen() {
   const [filter, setFilter] = useState<RideFilter>("all");
   const [ratingTarget, setRatingTarget] = useState<null | Ride>(null);
   const [submitting, setSubmitting] = useState(false);
+  const tabBarInset = useTabBarBottomInset();
 
   const handleFilterChange = (next: RideFilter) => {
     if (next === filter) return;
@@ -116,7 +118,7 @@ export function HistoryScreen() {
           keyExtractor={(item) => item.id}
           onEndReached={() => void loadMore()}
           onEndReachedThreshold={0.4}
-          contentContainerClassName="pb-36"
+          contentContainerStyle={{ paddingBottom: tabBarInset }}
           stickySectionHeadersEnabled={false}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item }) => (

@@ -11,12 +11,14 @@ import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplicat
 import { DriverApprovalStatus } from "@/features/drivers/enums/DriverApprovalStatus";
 import { goToDriverProfile } from "@/shared/services/navigation";
 import { AppSafeArea, AppGap } from "@/shared/components";
+import { useTabBarBottomInset } from "@/shared/hooks/useTabBarBottomInset";
 import { HomeScreenSkeleton } from "../skeletons/HomeScreenSkeleton";
 
 export default function HomeScreen() {
   const { user, loading: userLoading } = useCurrentUser();
   const { handleSignOut } = useSignOut();
   const { application, loading: applicationLoading } = useDriverApplication();
+  const tabBarInset = useTabBarBottomInset();
 
   if (userLoading || applicationLoading) return <HomeScreenSkeleton />;
 
@@ -24,7 +26,7 @@ export default function HomeScreen() {
     <AppSafeArea>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-8"
+        contentContainerStyle={{ paddingBottom: tabBarInset }}
         showsVerticalScrollIndicator={false}
       >
         <AppGap height={20} />

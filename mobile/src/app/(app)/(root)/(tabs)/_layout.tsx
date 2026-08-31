@@ -1,4 +1,5 @@
 import { AppImage } from "@/shared/components";
+import { TAB_BAR_HEIGHT } from "@/shared/constants/tabBar";
 import { Tabs } from "expo-router";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,7 +25,7 @@ export default function TabsLayout() {
         tabBarShowLabel: false,
         animation: "shift",
         tabBarStyle: {
-          height: 80,
+          height: TAB_BAR_HEIGHT,
           backgroundColor: "#333333",
           borderRadius: 50,
           marginHorizontal: 16,

@@ -1,5 +1,4 @@
 import { ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { ProfileInfoForm } from "@/features/profile/components/ProfileInfoForm";
 import { ProfileDriverSection } from "@/features/profile/components/ProfileDriverSection";
@@ -8,12 +7,13 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSignOut } from "@/hooks/useSignOut";
 import { useDriverApplication } from "@/features/drivers/hooks/useDriverApplication";
 import { AppButton, AppGap, AppSafeArea } from "@/shared/components";
+import { useTabBarBottomInset } from "@/shared/hooks/useTabBarBottomInset";
 
 export default function ProfileScreen() {
   const { user } = useCurrentUser();
   const { handleSignOut, loading: signOutLoading } = useSignOut();
   const { application } = useDriverApplication();
-  const { bottom } = useSafeAreaInsets();
+  const tabBarInset = useTabBarBottomInset();
 
   if (!user) return <ProfileSkeleton />;
 
@@ -21,8 +21,7 @@ export default function ProfileScreen() {
     <AppSafeArea>
       <ScrollView
         className="flex-1 pb-0"
-        // keep bottom content clear of the floating tab bar (height 50 + inset)
-        contentContainerStyle={{ paddingBottom: 50 + bottom}}
+        contentContainerStyle={{ paddingBottom: tabBarInset }}
         showsVerticalScrollIndicator={false}
       >
         <AppGap height={20} />
