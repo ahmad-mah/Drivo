@@ -46,7 +46,7 @@ export async function getStats(params: StatsParams) {
         COUNT(*)::int AS rides,
         COALESCE(SUM(CASE WHEN "status" = 'COMPLETED' THEN "fare" ELSE 0 END), 0)::numeric AS revenue,
         COUNT(CASE WHEN "status" = 'COMPLETED' THEN 1 END)::int AS completed
-      FROM "Ride"
+      FROM "rides"
       WHERE "created_at" >= ${dateFrom} AND "created_at" <= ${dateTo}
       GROUP BY TO_CHAR("created_at", 'YYYY-MM-DD')
       ORDER BY date
@@ -67,8 +67,8 @@ export async function getStats(params: StatsParams) {
         dp."last_name" AS "lastName",
         COUNT(r."id")::int AS trips,
         COALESCE(SUM(r."fare"), 0)::numeric AS earnings
-      FROM "DriverProfile" dp
-      JOIN "Ride" r ON r."driver_id" = dp."id"
+      FROM "driver_profiles" dp
+      JOIN "rides" r ON r."driver_id" = dp."id"
       WHERE r."status" = 'COMPLETED'
         AND r."created_at" >= ${dateFrom} AND r."created_at" <= ${dateTo}
       GROUP BY dp."id", dp."first_name", dp."last_name"

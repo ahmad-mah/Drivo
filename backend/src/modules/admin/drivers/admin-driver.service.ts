@@ -164,7 +164,7 @@ export async function getDetail(id: string) {
       SELECT COALESCE(
         SUM(EXTRACT(EPOCH FROM ("updatedAt" - "createdAt")) / 60), 0
       )::int AS total
-      FROM "DriverProfile"
+      FROM "driver_profiles"
       WHERE id = ${driverId} AND "is_online" = true
     `,
   ]);

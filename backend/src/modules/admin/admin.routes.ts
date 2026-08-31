@@ -6,7 +6,6 @@ import adminUserRoutes from "./users/admin-user.routes";
 import adminStatsRoutes from "./stats/admin-stats.routes";
 import adminPaymentRoutes from "./payments/admin-payment.routes";
 import adminSupportRoutes from "./support/admin-support.routes";
-import adminPromoRoutes from "./promos/admin-promo.routes";
 import adminAuditRoutes from "./audit/admin-audit.routes";
 
 const router = Router();
@@ -18,7 +17,6 @@ router.use("/users", adminUserRoutes);
 router.use("/stats", adminStatsRoutes);
 router.use("/payments", adminPaymentRoutes);
 router.use("/support", adminSupportRoutes);
-router.use("/promos", adminPromoRoutes);
 router.use("/audit", adminAuditRoutes);
 
 export default router;
