@@ -30,10 +30,11 @@ model DriverProfile {
   longitude       Float?         @map("longitude")
   heading         Float?         @map("heading")
   lastSeenAt      DateTime?      @map("last_seen_at")
-  rides           Ride[]
-  offers          RideOffer[]
-  payouts         DriverPayout[]
-  createdAt       DateTime       @default(now()) @map("created_at")
+  rides                Ride[]
+  offers               RideOffer[]
+  payouts              DriverPayout[]
+  stripeConnectAccount StripeConnectAccount[]
+  createdAt            DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
   @@index([isOnline, approvalStatus])

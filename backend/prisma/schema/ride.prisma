@@ -3,11 +3,20 @@ enum RideStatus {
   ACCEPTED
   ARRIVED
   IN_PROGRESS
+  TRIP_ENDED
   CANCELLED
   EXPIRED
   COMPLETED
 
   @@map("ride_status")
+}
+
+enum RidePaymentStatus {
+  PENDING
+  PAID
+  FAILED
+
+  @@map("ride_payment_status")
 }
 
 enum RideOfferStatus {
@@ -49,7 +58,9 @@ model Ride {
   expiresAt            DateTime      @map("expires_at")
   cancelledAt          DateTime?     @map("cancelled_at")
   completedAt          DateTime?     @map("completed_at")
+  paymentStatus        RidePaymentStatus? @default(PENDING) @map("payment_status")
   supportTickets       SupportTicket[]
+  paymentIntentRecord  PaymentIntentRecord[]
   createdAt            DateTime      @default(now()) @map("created_at")
   updatedAt            DateTime      @updatedAt @map("updated_at")
 

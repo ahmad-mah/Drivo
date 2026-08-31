@@ -1,0 +1,74 @@
+enum PaymentStatus {
+  REQUIRES_PAYMENT
+  REQUIRES_CAPTURE
+  CAPTURED
+  TRANSFERRED
+  CANCELED
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum TransferStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("transfer_status")
+}
+
+model PaymentIntentRecord {
+  id                String        @id @default(cuid())
+  rideId            String        @unique @map("ride_id")
+  userId            String        @map("user_id")
+  stripePiId        String        @unique @map("stripe_pi_id")
+  stripeChargeId    String?       @map("stripe_charge_id")
+  stripeTransferId  String?       @map("stripe_transfer_id")
+  grossAmount       Int           // total fare in cents
+  platformFee       Int           // platform cut in cents
+  driverShare       Int           // driver payout in cents
+  currency          String        @default("USD")
+  status            PaymentStatus @default(REQUIRES_PAYMENT) @map("status")
+  driverId          String?       @map("driver_id")
+  paymentMethodId   String?       @map("payment_method_id")
+  transferStatus    TransferStatus? @default(PENDING) @map("transfer_status")
+  transferAttempts  Int           @default(0) @map("transfer_attempts")
+  transferLastError String?       @map("transfer_last_error")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  ride              Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([driverId])
+  @@index([status, transferStatus])
+  @@map("payment_intent_records")
+}
+
+model StripeConnectAccount {
+  id             String   @id @default(cuid())
+  driverId       String   @unique @map("driver_id")
+  accountId      String   @unique @map("account_id")
+  chargesEnabled Boolean  @default(false) @map("charges_enabled")
+  payoutsEnabled Boolean  @default(false) @map("payouts_enabled")
+  requirements   Json?    @map("requirements")
+  onboardingUrl  String?  @map("onboarding_url")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  driver         DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@map("stripe_connect_accounts")
+}
+
+model StripeWebhookEvent {
+  id          String   @id   // Stripe event ID (evt_...)
+  type        String
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([type])
+  @@map("stripe_webhook_events")
+}
