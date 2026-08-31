@@ -41,7 +41,7 @@ export function deriveRidePhase(
     return RidePhase.ENDED;
   }
 
-  // ACCEPTED / ARRIVED / IN_PROGRESS / COMPLETED
+  // ACCEPTED / ARRIVED / IN_PROGRESS / TRIP_ENDED / COMPLETED
   return RidePhase.TRIP;
 }
 

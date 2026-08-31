@@ -13,6 +13,7 @@ import type { RidePoint } from "../types/ride.types";
 export function useRideRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ride, setRide] = useState<import("../types/ride.types").Ride | null>(null);
 
   useErrorSnackbar(error);
 
@@ -24,17 +25,19 @@ export function useRideRequest() {
     ) => {
       setSubmitting(true);
       setError(null);
+      setRide(null);
       try {
-        await ridesApi.requestRide({ origin, destination });
+        const result = await ridesApi.requestRide({ origin, destination });
+        setRide(result);
         onSuccess?.();
-        return true;
+        return result;
       } catch (err) {
         if (err instanceof ApiError && err.statusCode === 409) {
           onSuccess?.();
-          return true;
+          return null;
         }
         setError(getErrorMessage(err, "Could not request a ride. Try again."));
-        return false;
+        return null;
       } finally {
         setSubmitting(false);
       }
@@ -42,5 +45,5 @@ export function useRideRequest() {
     [],
   );
 
-  return { submitting, error, submit };
+  return { submitting, error, ride, submit };
 }

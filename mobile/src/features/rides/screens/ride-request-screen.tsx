@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, DeviceEventEmitter, View } from "react-native";
 import { RIDE_COMPLETED_EVENT } from "@/features/home/hooks/useRides";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { useSnackbar } from "@/shared/contexts/SnackbarContext";
 import { RideBottomSheet } from "../components/RideBottomSheet";
 import { RideConnectivityBanner } from "../components/RideConnectivityBanner";
@@ -23,6 +24,7 @@ import { useRideLifecycle } from "../hooks/useRideLifecycle";
 import { useRideRequest } from "../hooks/useRideRequest";
 import { useRideRoute } from "../hooks/useRideRoute";
 import { useRideSteps } from "../hooks/useRideRequestSteps";
+import { usePostTripPayment } from "../hooks/usePostTripPayment";
 import { goBack } from "@/shared/services/navigation";
 import type { NearbyDriver } from "../types/ride.types";
 
@@ -48,7 +50,9 @@ export function RideRequestScreen() {
     resetForNewRide,
   } = useRideLifecycle();
 
-  const isMidTrip = displayRide?.status === RideStatus.IN_PROGRESS;
+  const isMidTrip =
+    displayRide?.status === RideStatus.IN_PROGRESS ||
+    displayRide?.status === RideStatus.TRIP_ENDED;
 
   const {
     activeSheet,
@@ -103,7 +107,14 @@ export function RideRequestScreen() {
     startFindNowRef,
   } = useRideFormState();
 
-  const { submitting: confirmLoading, submit } = useRideRequest();
+  const { submitting: confirmLoading, submit, ride } = useRideRequest();
+  const {
+    startPostTripPayment,
+    submitting: paymentSubmitting,
+    paymentError,
+    result: paymentResult,
+  } = usePostTripPayment(displayRide?.status === RideStatus.TRIP_ENDED ? displayRide.id : null);
+  useErrorSnackbar(paymentError);
   const { route } = useDirections(effectiveOrigin, effectiveDestination);
   const { drivers, loading: driversLoading } = useNearbyDrivers(location);
   const { findNowLoading, startFindNow } = useFindNowFeedback(
@@ -135,9 +146,12 @@ export function RideRequestScreen() {
   const handleConfirmRide = useCallback(async () => {
     if (!effectiveOrigin || !effectiveDestination) return;
     resetForNewRide();
-    await submit(effectiveOrigin, effectiveDestination, () =>
-      setActiveSheet(SheetStep.SEARCHING),
-    );
+    try {
+      await submit(effectiveOrigin, effectiveDestination);
+      setActiveSheet(SheetStep.SEARCHING);
+    } catch (err) {
+      showSnackbar((err as Error).message || "Something went wrong");
+    }
   }, [effectiveOrigin, effectiveDestination, submit, setActiveSheet, resetForNewRide]);
 
   const rateAndGoHome = useCallback(
@@ -207,7 +221,7 @@ export function RideRequestScreen() {
 
       <RideBottomSheet
         activeSheet={activeSheet}
-        busy={cancelling || ratingSubmitting}
+        busy={cancelling || ratingSubmitting || paymentSubmitting}
         formProps={formProps}
         findNowLoading={findNowLoading || formFindNowLoading}
         pickingField={pickingField}
@@ -230,6 +244,8 @@ export function RideRequestScreen() {
         ratingSubmitting={ratingSubmitting}
         alreadyRated={ratedLocally}
         onDone={goBack}
+        onPay={startPostTripPayment}
+        paying={paymentSubmitting}
       />
 
       <CancelRideConfirmDialog

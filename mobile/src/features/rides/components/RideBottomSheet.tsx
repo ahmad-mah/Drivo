@@ -40,6 +40,9 @@ interface RideBottomSheetProps {
   ratingSubmitting: boolean;
   alreadyRated: boolean;
   onDone: () => void;
+  // ── Payment ──────────────────────────────────
+  onPay?: () => void;
+  paying?: boolean;
 }
 
 export function RideBottomSheet({
@@ -67,6 +70,8 @@ export function RideBottomSheet({
   ratingSubmitting,
   alreadyRated,
   onDone,
+  onPay,
+  paying,
 }: RideBottomSheetProps) {
   const keyboardHeight = useKeyboardHeight();
   const isFormStep = activeSheet === SheetStep.FORM;
@@ -128,6 +133,8 @@ export function RideBottomSheet({
           ratingSubmitting={ratingSubmitting}
           alreadyRated={alreadyRated}
           onDone={onDone}
+          onPay={onPay}
+          paying={paying}
         />
       )}
     </View>

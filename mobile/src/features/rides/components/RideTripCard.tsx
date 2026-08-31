@@ -21,12 +21,15 @@ interface RideTripCardProps {
   ratingSubmitting?: boolean;
   alreadyRated?: boolean;
   onDone: () => void;
+  onPay?: () => void;
+  paying?: boolean;
 }
 
 const STATUS_ICONS: Record<string, number> = {
   [RideStatus.ACCEPTED]: require("@/assets/icons/point.png"),
   [RideStatus.ARRIVED]: require("@/assets/icons/check.png"),
   [RideStatus.IN_PROGRESS]: require("@/assets/icons/marker.png"),
+  [RideStatus.TRIP_ENDED]: require("@/assets/icons/dollar.png"),
   [RideStatus.COMPLETED]: require("@/assets/icons/check.png"),
 };
 
@@ -34,6 +37,7 @@ const STATUS_BG: Record<string, string> = {
   [RideStatus.ACCEPTED]: "bg-primary-500",
   [RideStatus.ARRIVED]: "bg-green-500",
   [RideStatus.IN_PROGRESS]: "bg-primary-500",
+  [RideStatus.TRIP_ENDED]: "bg-amber-500",
   [RideStatus.COMPLETED]: "bg-primary-500",
 };
 
@@ -46,11 +50,15 @@ export function RideTripCard({
   ratingSubmitting = false,
   alreadyRated = false,
   onDone,
+  onPay,
+  paying = false,
 }: RideTripCardProps) {
   const insets = useSafeAreaInsets();
   const { user } = useUserContext();
   const inProgress = ride.status === RideStatus.IN_PROGRESS;
+  const tripEnded = ride.status === RideStatus.TRIP_ENDED;
   const completed = ride.status === RideStatus.COMPLETED;
+  const paymentPaid = ride.paymentStatus === "PAID";
   const needsRating = completed && ride.riderRating == null && !alreadyRated;
   const [stars, setStars] = useState<number | null>(null);
   const [comment, setComment] = useState("");
@@ -84,7 +92,11 @@ export function RideTripCard({
 
   const accentBg = STATUS_BG[ride.status] ?? "bg-primary-500";
   const accentIcon = STATUS_ICONS[ride.status] ?? STATUS_ICONS[RideStatus.ACCEPTED];
-  const title = completed ? "Trip completed" : TRIP_TITLES[ride.status];
+  const title = completed
+    ? "Trip completed"
+    : tripEnded
+      ? "Trip ended"
+      : TRIP_TITLES[ride.status];
 
   const driverName =
     [ride.driverFirstName, ride.driverLastName].filter(Boolean).join(" ") ||
@@ -110,15 +122,19 @@ export function RideTripCard({
 
   const statusLine = completed
     ? "Thanks for riding with Drivo"
-    : inProgress
-      ? liveEta != null
-        ? `Arriving in ${liveEta} min`
-        : etaLoading
-          ? "Calculating ETA..."
-          : "Heading to your destination"
-      : ride.driverEtaMinutes != null
-        ? `${ride.driverEtaMinutes} min away`
-        : "Arriving soon";
+    : tripEnded
+      ? paymentPaid
+        ? "Payment confirmed"
+        : "Your driver is waiting for payment"
+      : inProgress
+        ? liveEta != null
+          ? `Arriving in ${liveEta} min`
+          : etaLoading
+            ? "Calculating ETA..."
+            : "Heading to your destination"
+        : ride.driverEtaMinutes != null
+          ? `${ride.driverEtaMinutes} min away`
+          : "Arriving soon";
 
   return (
     <View
@@ -173,6 +189,31 @@ export function RideTripCard({
               secondsLeft={noShowLeft ?? 0}
               totalSeconds={ride.noShowInSeconds ?? 0}
             />
+          </View>
+        ) : tripEnded ? (
+          <View className="gap-2.5">
+            <View className="flex-row items-center justify-between rounded-xl border border-general-300 bg-white px-4 py-3">
+              <Text className="font-Jakarta text-base text-secondary-700">
+                Trip fare
+              </Text>
+              <Text className="font-Jakarta-Bold text-lg text-secondary-900">
+                {fare}
+              </Text>
+            </View>
+            {paymentPaid ? (
+              <View className="items-center gap-1 rounded-2xl border border-green-200 bg-green-50 px-4 py-4">
+                <Text className="font-Jakarta-SemiBold text-base text-green-700">
+                  Payment confirmed
+                </Text>
+              </View>
+            ) : (
+              <AppButton
+                title="Pay now"
+                onPress={() => onPay?.()}
+                loading={paying}
+                disabled={paying}
+              />
+            )}
           </View>
         ) : completed ? (
           <View className="gap-2.5">
@@ -234,6 +275,8 @@ export function RideTripCard({
       <View className="mt-4">
         {completed ? (
           !needsRating && <AppButton title="Done" onPress={onDone} />
+        ) : tripEnded ? (
+          <AppButton title="Need help?" variant="outline" onPress={onRequestHelp} />
         ) : inProgress ? (
           <AppButton title="Need help?" variant="outline" onPress={onRequestHelp} />
         ) : (
