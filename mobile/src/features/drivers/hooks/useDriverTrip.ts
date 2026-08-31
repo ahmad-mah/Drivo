@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   arriveAtPickup,
+  arrivedAtDestination,
   cancelTripAsDriver,
   completeTrip,
   fetchDriverActiveTrip,
@@ -110,6 +111,10 @@ export function useDriverTrip() {
       [act],
     ),
     start: useCallback(() => act(startTrip, "Could not start the trip"), [act]),
+    arrivedAtDestination: useCallback(
+      () => act(arrivedAtDestination, "Could not mark arrival at destination"),
+      [act],
+    ),
     complete: useCallback(
       () => act(completeTrip, "Could not complete the trip"),
       [act],

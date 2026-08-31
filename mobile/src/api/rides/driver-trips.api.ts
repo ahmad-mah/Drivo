@@ -51,7 +51,15 @@ export async function startTrip(rideId: string) {
   return data.data;
 }
 
-/** IN_PROGRESS → COMPLETED. */
+/** IN_PROGRESS → TRIP_ENDED: driver signals arrival at destination. */
+export async function arrivedAtDestination(rideId: string) {
+  const { data } = await apiClient.post<ApiResponse<Ride>>(
+    `/api/rides/${rideId}/arrived-at-destination`,
+  );
+  return data.data;
+}
+
+/** TRIP_ENDED → COMPLETED (requires paymentStatus = PAID). */
 export async function completeTrip(rideId: string) {
   const { data } = await apiClient.post<ApiResponse<Ride>>(
     `/api/rides/${rideId}/complete`,

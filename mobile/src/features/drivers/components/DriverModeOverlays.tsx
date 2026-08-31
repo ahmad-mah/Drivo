@@ -28,6 +28,7 @@ interface DriverModeOverlaysProps {
     acting: boolean;
     onArrive: () => void;
     onStart: () => void;
+    onArrivedAtDestination: () => void;
     onComplete: () => void;
     onCancel: (reason?: string) => void;
     onNoShow: () => void;
@@ -82,6 +83,7 @@ export function DriverModeOverlays({
           acting={trip.acting}
           onArrive={trip.onArrive}
           onStart={trip.onStart}
+          onArrivedAtDestination={trip.onArrivedAtDestination}
           onComplete={trip.onComplete}
           onCancel={trip.onCancel}
           onNoShow={trip.onNoShow}

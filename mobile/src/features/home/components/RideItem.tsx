@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Text, View } from "react-native";
 import { AppImage } from "@/shared/components";
-import { RideStatus } from "@/features/rides/enums/RideStatus";
+import { RideStatus, RidePaymentStatus } from "@/features/rides/enums/RideStatus";
 import { CANCEL_REASON_LABELS } from "@/features/rides/enums/CancellationReason";
 import { RideMapThumbnail } from "@/features/rides/components/RideMapThumbnail";
 import type { Ride } from "@/features/rides/types/ride.types";
@@ -23,6 +23,18 @@ function paymentLabel(status: RideStatus): string {
   if (status === RideStatus.CANCELLED) return "Cancelled";
   if (status === RideStatus.EXPIRED) return "Expired";
   return status;
+}
+
+function paymentStatusColor(
+  rideStatus: RideStatus,
+  paymentStatus: RidePaymentStatus | null,
+): string | undefined {
+  if (rideStatus === RideStatus.CANCELLED || rideStatus === RideStatus.EXPIRED)
+    return "text-red-500";
+  if (rideStatus === RideStatus.COMPLETED || paymentStatus === RidePaymentStatus.PAID)
+    return "text-green-600";
+  if (paymentStatus === RidePaymentStatus.PENDING) return "text-yellow-500";
+  return undefined;
 }
 
 export const RideItem = memo(function RideItem({
@@ -96,9 +108,7 @@ export const RideItem = memo(function RideItem({
         <InfoRow
           label="Payment Status"
           value={paymentLabel(item.status)}
-          valueClassName={
-            completed ? "text-green-600" : cancelled ? "text-red-500" : undefined
-          }
+          valueClassName={paymentStatusColor(item.status, item.paymentStatus)}
           isLast
         />
       </View>
@@ -153,8 +163,8 @@ function InfoRow({
         {label}
       </Text>
       <Text
-        className={`font-Jakarta-SemiBold text-[14px] text-secondary-800 ${
-          valueClassName ?? ""
+        className={`font-Jakarta-SemiBold text-[14px] ${
+          valueClassName ?? "text-secondary-800"
         }`}
       >
         {value}

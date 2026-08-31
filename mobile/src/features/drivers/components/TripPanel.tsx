@@ -15,6 +15,7 @@ interface TripPanelProps {
   acting: boolean;
   onArrive: () => void;
   onStart: () => void;
+  onArrivedAtDestination: () => void;
   onComplete: () => void;
   /** Pre-trip: re-dispatches to the next driver. Mid-trip: aborts. */
   onCancel: () => void;
@@ -43,6 +44,7 @@ export function TripPanel({
   acting,
   onArrive,
   onStart,
+  onArrivedAtDestination,
   onComplete,
   onCancel,
   onNoShow,
@@ -50,7 +52,9 @@ export function TripPanel({
 }: TripPanelProps) {
   const insets = useSafeAreaInsets();
   const inProgress = trip.status === RideStatus.IN_PROGRESS;
+  const tripEnded = trip.status === RideStatus.TRIP_ENDED;
   const arrived = trip.status === RideStatus.ARRIVED;
+  const paymentPaid = (trip as any).paymentStatus === "PAID";
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   // Wait countdown: deadline syncs when the status flips to ARRIVED —
   // capturing it at mount would freeze it to null (ACCEPTED sends no window).
@@ -98,7 +102,9 @@ export function TripPanel({
       ? onArrive
       : trip.status === RideStatus.ARRIVED
         ? onStart
-        : onComplete;
+        : trip.status === RideStatus.IN_PROGRESS
+          ? onArrivedAtDestination
+          : onComplete;
 
   return (
     <>
@@ -165,6 +171,10 @@ export function TripPanel({
             <Text className="font-Jakarta-Bold text-base text-secondary-900">
               On trip · {formatCountdown(elapsedSeconds)}
             </Text>
+          ) : tripEnded ? (
+            <Text className="font-Jakarta-Bold text-base text-secondary-900">
+              {paymentPaid ? "Payment confirmed — tap to complete" : "Waiting for rider to pay..."}
+            </Text>
           ) : (
             <Text className="font-Jakarta text-xs text-secondary-400">
               {TRIP_STATUS_HINTS[trip.status] ?? ""}
@@ -175,7 +185,7 @@ export function TripPanel({
             title={TRIP_PRIMARY_LABELS[trip.status] ?? "Continue"}
             onPress={onPrimary}
             loading={acting}
-            disabled={acting}
+            disabled={acting || (tripEnded && !paymentPaid)}
           />
 
           {noShowReady && (
