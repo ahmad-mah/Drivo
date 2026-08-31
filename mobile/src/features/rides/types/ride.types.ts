@@ -1,5 +1,5 @@
 import type { CancellationReason } from "../enums/CancellationReason";
-import type { RideStatus } from "../enums/RideStatus";
+import type { RidePaymentStatus, RideStatus } from "../enums/RideStatus";
 
 export interface RidePoint {
   address: string;
@@ -91,5 +91,6 @@ export interface Ride {
   noShowInSeconds: number | null;
   /** Only while IN_PROGRESS: seconds since the trip started (relative). */
   tripElapsedSeconds: number | null;
+  paymentStatus: RidePaymentStatus | null;
   createdAt: string;
 }
