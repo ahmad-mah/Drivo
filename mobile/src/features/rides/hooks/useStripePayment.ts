@@ -10,9 +10,16 @@ export function useStripePayment() {
    * Initializes and presents the Stripe PaymentSheet.
    * @param clientSecret - The PI or SI client secret
    * @param cvvRecollection - When true, indicates returning rider with saved card (PaymentSheet handles CVC natively)
+   * @param customerId - Stripe Customer ID (required for saving payment method)
+   * @param ephemeralKeySecret - Ephemeral key secret for the customer (required for saving payment method)
    */
   const initAndPresentPayment = useCallback(
-    async (clientSecret: string, cvvRecollection = false): Promise<any> => {
+    async (
+      clientSecret: string,
+      cvvRecollection = false,
+      customerId?: string,
+      ephemeralKeySecret?: string,
+    ): Promise<any> => {
       setError(null);
       const publishableKey =
         process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
@@ -29,6 +36,8 @@ export function useStripePayment() {
         const { error: initError } = await initPaymentSheet({
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: "Drivo",
+          customerId,
+          customerEphemeralKeySecret: ephemeralKeySecret,
         });
 
         if (initError) {

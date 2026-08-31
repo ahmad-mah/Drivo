@@ -55,9 +55,9 @@ export async function createPaymentForRide(
     // Already has a PI — retrieve its client secret
     const pi = await stripe.paymentIntents.retrieve(existing.stripePiId);
     if (pi.status === "succeeded") {
-      return { alreadyPaid: true, clientSecret: null };
+      return { alreadyPaid: true, clientSecret: null, stripeCustomerId };
     }
-    return { clientSecret: pi.client_secret, alreadyPaid: false };
+    return { clientSecret: pi.client_secret, alreadyPaid: false, stripeCustomerId };
   }
 
   // Check if rider has a saved payment method
@@ -67,25 +67,56 @@ export async function createPaymentForRide(
 
   if (savedPmId) {
     // Returning rider — use saved card with cvvRecollection
-    pi = await stripe.paymentIntents.create({
-      amount: grossAmount,
-      currency: ride.currency.toLowerCase(),
-      customer: stripeCustomerId,
-      payment_method: savedPmId,
-      metadata: { rideId, userId },
-      ...(driverAccountId
-        ? {
-            application_fee_amount: platformFee,
-            transfer_data: { destination: driverAccountId },
-          }
-        : {}),
-    });
+    try {
+      pi = await stripe.paymentIntents.create({
+        amount: grossAmount,
+        currency: ride.currency.toLowerCase(),
+        customer: stripeCustomerId,
+        payment_method: savedPmId,
+        metadata: { rideId, userId },
+        ...(driverAccountId
+          ? {
+              application_fee_amount: platformFee,
+              transfer_data: { destination: driverAccountId },
+            }
+          : {}),
+      });
+    } catch (err) {
+      // PaymentMethod was previously used without Customer attachment
+      // Clear the invalid saved payment method and retry as first ride
+      if (
+        err instanceof Stripe.errors.StripeInvalidRequestError &&
+        err.message.includes("previously used with a PaymentIntent without Customer attachment")
+      ) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { savedPaymentMethodId: null },
+        });
+        // Retry without saved payment method (will have setup_future_usage)
+        pi = await stripe.paymentIntents.create({
+          amount: grossAmount,
+          currency: ride.currency.toLowerCase(),
+          customer: stripeCustomerId,
+          setup_future_usage: "off_session",
+          metadata: { rideId, userId },
+          ...(driverAccountId
+            ? {
+                application_fee_amount: platformFee,
+                transfer_data: { destination: driverAccountId },
+              }
+            : {}),
+        });
+      } else {
+        throw err;
+      }
+    }
   } else {
     // First ride — save card for future use
     pi = await stripe.paymentIntents.create({
       amount: grossAmount,
       currency: ride.currency.toLowerCase(),
       customer: stripeCustomerId,
+      setup_future_usage: "off_session",
       metadata: { rideId, userId },
       ...(driverAccountId
         ? {
@@ -111,7 +142,7 @@ export async function createPaymentForRide(
     },
   });
 
-  return { clientSecret: pi.client_secret, alreadyPaid: false };
+  return { clientSecret: pi.client_secret, alreadyPaid: false, stripeCustomerId };
 }
 
 /**

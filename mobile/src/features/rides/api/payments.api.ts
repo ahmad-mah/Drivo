@@ -4,6 +4,8 @@ import type { ApiResponse } from "@/api/types";
 export interface PayForRideResult {
   alreadyPaid: boolean;
   clientSecret: string | null;
+  stripeCustomerId: string | null;
+  ephemeralKeySecret: string | null;
 }
 
 /** Called when the driver taps "Arrived at Destination". Returns a clientSecret for the payment sheet. */

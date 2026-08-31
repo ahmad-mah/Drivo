@@ -49,9 +49,13 @@ export function usePostTripPayment(rideId: string | null) {
         return;
       }
 
+      const isFirstRide = !data.stripeCustomerId || !data.ephemeralKeySecret;
+
       const paymentResult = await initAndPresentPayment(
         data.clientSecret,
-        true, // cvvRecollection — returning rider, card pre-filled
+        !isFirstRide, // cvvRecollection — returning rider, card pre-filled
+        data.stripeCustomerId ?? undefined,
+        data.ephemeralKeySecret ?? undefined,
       );
 
       if (paymentResult?.success) {

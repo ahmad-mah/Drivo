@@ -22,18 +22,38 @@ Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/ti
 
 Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved → go online → stream location) with a rider flow (pick destination → see nearby cars → request ride → get matched). An admin dashboard provides a real-time overview — KPIs, alerts, and a ride queue — plus full CRUD for trips, drivers, users, payments, promos, support tickets, and audit logs. Supports English and Arabic (RTL).
 
+**Mobile App (Expo React Native) — riders + drivers**
+
 ```
 ┌──────────────┐   HTTP + JWT   ┌──────────────┐   Prisma   ┌────────────┐
 │  Mobile App  │ ────────────→  │              │ ─────────→ │ PostgreSQL │
 │  (Expo RN)   │ ←────────────  │  Express API │ ←───────── │  (Neon)    │
-│  Admin Panel │ ────────────→  │  (Backend)   │            └────────────┘
-│  (React 19)  │ ←────────────  │              │
-└──────────────┘               └──────────────┘
-        │ socket.io
-        ▼
-   Driver location streaming + admin live map, KPIs, alerts
-   (throttled broadcast)
+│  rider +     │                │  (Backend)   │            └────────────┘
+│  driver mode │                │              │
+└──────┬───────┘                └──────┬───────┘
+       │ socket.io                     │
+       │ (ride offers, status,        │
+       │  nearby drivers, ETA)         │
+       └──────────────────────────────┘
 ```
+
+**Admin Panel (React 19) — separate client, same backend**
+
+```
+┌──────────────┐   HTTP + JWT   ┌──────────────┐   Prisma   ┌────────────┐
+│  Admin Panel │ ────────────→  │  Express API │ ─────────→ │ PostgreSQL │
+│  (React 19)  │ ←────────────  │  (Backend)   │ ←───────── │  (Neon)    │
+│  Vite SPA    │                │              │            └────────────┘
+└──────┬───────┘                └──────┬───────┘
+       │ socket.io                     │
+       │ (drivers:locations snapshot,  │
+       │  admin:overview:update,       │
+       │  admin:ride:updated,          │
+       │  admin:alert)                 │
+       └──────────────────────────────┘
+```
+
+Both clients talk to the same Express API. Drivers stream location via socket.io → server throttles broadcasts → admin receives the 1s snapshot for the live map, KPIs, and alerts.
 
 ## Features
 

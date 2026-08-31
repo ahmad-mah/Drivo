@@ -4,6 +4,12 @@ import { asyncHandler } from "../../middleware/async-handler";
 import * as paymentsService from "./payments.service";
 import { requireUserByClerkId } from "../../shared/require-user";
 import { payForRideSchema } from "./payments.validation";
+import { env } from "../../config/env";
+import Stripe from "stripe";
+
+const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "", {
+  apiVersion: "2026-08-26.dahlia",
+});
 
 export const payForRide = asyncHandler(
   async (req: Request, res: Response) => {
@@ -22,7 +28,23 @@ export const payForRide = asyncHandler(
       user.email,
     );
 
-    res.json({ success: true, data: result });
+    // Create ephemeral key for PaymentSheet to save payment method to customer
+    let ephemeralKeySecret: string | null = null;
+    if (result.stripeCustomerId) {
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: result.stripeCustomerId },
+        { apiVersion: "2026-08-26.dahlia" },
+      );
+      ephemeralKeySecret = ephemeralKey.secret ?? null;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        ephemeralKeySecret,
+      },
+    });
   },
 );
 
