@@ -11,6 +11,7 @@ import {
 import type { Ride } from "@/features/rides/types/ride.types";
 import { RideStatus } from "@/features/rides/enums/RideStatus";
 import { getErrorMessage } from "@/errors";
+import { playNotification } from "@/shared/utils/sounds";
 import { setRideUpdateListener } from "../services/driver-socket";
 
 /**
@@ -35,6 +36,11 @@ export function useDriverTrip() {
   // listener re-subscribes with the new refresh).
   const tripRef = useRef<Ride | null>(null);
   tripRef.current = trip;
+
+  // Play a notification when the trip reaches TRIP_ENDED (payment ready).
+  useEffect(() => {
+    if (trip?.status === RideStatus.TRIP_ENDED) playNotification();
+  }, [trip?.status]);
 
   const refresh = useCallback(async () => {
     if (refreshingRef.current) return;

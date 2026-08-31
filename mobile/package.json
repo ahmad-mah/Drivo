@@ -11,6 +11,7 @@
     "@stripe/stripe-react-native": "0.64.0",
     "axios": "^1.18.1",
     "expo": "~56.0.16",
+    "expo-audio": "~56.0.13",
     "expo-background-fetch": "~56.0.25",
     "expo-constants": "~56.0.18",
     "expo-crypto": "~56.0.4",

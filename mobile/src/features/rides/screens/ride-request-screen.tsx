@@ -4,6 +4,7 @@ import { RIDE_COMPLETED_EVENT } from "@/features/home/hooks/useRides";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { useSnackbar } from "@/shared/contexts/SnackbarContext";
+import { playMatch, playSoftAlert, playSuccess } from "@/shared/utils/sounds";
 import { RideBottomSheet } from "../components/RideBottomSheet";
 import { RideConnectivityBanner } from "../components/RideConnectivityBanner";
 import { RideRequestHeader } from "../components/RideRequestHeader";
@@ -67,9 +68,13 @@ export function RideRequestScreen() {
   const [helpVisible, setHelpVisible] = useState(false);
 
   const endedSnackbarShownRef = useRef(false);
+  const prevPhaseRef = useRef<RidePhase>(RidePhase.IDLE);
 
-  // Single effect: ridePhase → activeSheet + snackbar
+  // Single effect: ridePhase → activeSheet + snackbar + sounds
   useEffect(() => {
+    const prevPhase = prevPhaseRef.current;
+    prevPhaseRef.current = ridePhase;
+
     if (ridePhase === RidePhase.IDLE) {
       endedSnackbarShownRef.current = false;
       return;
@@ -80,8 +85,12 @@ export function RideRequestScreen() {
       setActiveSheet(SheetStep.SEARCHING);
     } else if (ridePhase === RidePhase.TRIP) {
       setActiveSheet(SheetStep.TRIP);
+      // Driver matched → bright ascending chime
+      if (prevPhase === RidePhase.SEARCHING) playMatch();
     } else if (ridePhase === RidePhase.ENDED) {
       setActiveSheet(SheetStep.DRIVERS);
+      // Ride cancelled/expired → quiet alert (only if was in trip, not idle→ended)
+      if (prevPhase === RidePhase.TRIP) playSoftAlert();
       if (endedMessage && !endedSnackbarShownRef.current) {
         endedSnackbarShownRef.current = true;
         showSnackbar(endedMessage);

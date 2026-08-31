@@ -72,17 +72,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              focused={focused}
-              icon={require("@/assets/icons/chat.png")}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (

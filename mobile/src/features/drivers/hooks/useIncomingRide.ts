@@ -5,6 +5,7 @@ import {
 } from "@/api/rides/driver-trips.api";
 import type { IncomingRideRequest } from "@/api/drivers/drivers.api";
 import { getErrorMessage } from "@/errors";
+import { playNotification } from "@/shared/utils/sounds";
 import {
   setIncomingRideListener,
   setRideUpdateListener,
@@ -37,6 +38,7 @@ export function useIncomingRide(isOnline: boolean) {
       setError(null);
       setRequest(incoming);
       setDeadline(Date.now() + incoming.respondWithinSeconds * 1000);
+      playNotification();
     });
     return () => setIncomingRideListener(null);
   }, []);

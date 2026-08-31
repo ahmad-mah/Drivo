@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { hasSeenOnboarding } from "@/features/onboarding/constants/onboarding.storage";
+import { preloadSounds } from "@/shared/utils/sounds";
 
 SplashScreen.setOptions({ duration: 600, fade: true });
 SplashScreen.preventAutoHideAsync();
@@ -39,7 +40,6 @@ export function useAppInit() {
             require("@/assets/icons/home.png"),
             require("@/assets/icons/profile.png"),
             require("@/assets/icons/list.png"),
-            require("@/assets/icons/chat.png"),
             require("@/assets/icons/back-arrow.png"),
             require("@/assets/icons/out.png"),
             require("@/assets/icons/arrow-down.png"),
@@ -49,6 +49,7 @@ export function useAppInit() {
           // not-yet-decoded icon (expo-asset preload above does not cover it).
           Image.loadAsync(require("@/assets/icons/marker.png")),
           Image.loadAsync(require("@/assets/icons/selected-marker.png")),
+          preloadSounds(),
         ]);
       } catch (error) {
         console.log("App asset/font preloading failed:", error);

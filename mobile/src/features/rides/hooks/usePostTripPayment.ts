@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { payForRide, getRidePaymentStatus } from "../api/payments.api";
 import { useStripePayment } from "./useStripePayment";
 import { RidePaymentStatus } from "../enums/RideStatus";
+import { playSuccess } from "@/shared/utils/sounds";
 
 /**
  * Post-trip payment hook. Triggered when the rider sees the payment sheet
@@ -37,6 +38,7 @@ export function usePostTripPayment(rideId: string | null) {
       const data = await payForRide(rideId);
 
       if (data.alreadyPaid) {
+        playSuccess();
         setResult("paid");
         return;
       }
@@ -53,6 +55,7 @@ export function usePostTripPayment(rideId: string | null) {
       );
 
       if (paymentResult?.success) {
+        playSuccess();
         setResult("paid");
       } else {
         setResult("canceled");
