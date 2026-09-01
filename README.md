@@ -12,7 +12,7 @@
 
 Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/timeout — a complete Uber-like system in a single repository.
 
-[Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [WebSocket Events](#websocket-events)
+[Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [WebSocket Events](#websocket-events) · [Screenshots](#screenshots)
 
 </div>
 
@@ -54,6 +54,67 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 ```
 
 Both clients talk to the same Express API. Drivers stream location via socket.io → server throttles broadcasts → admin receives the 1s snapshot for the live map, KPIs, and alerts.
+
+## Screenshots
+
+### Mobile App — Rider & Driver Flow
+
+| Step | Screen | Description |
+|------|--------|-------------|
+| **1** | ![Splash](demo/mobile/1-splash.png) | App entry point with brand logo |
+| **2** | ![Onboarding 1](demo/mobile/2-onboarding.png) | 3-slide onboarding carousel |
+|  | ![Onboarding 2](demo/mobile/2-onboarding2.png) | Feature highlights & permissions |
+|  | ![Onboarding 3](demo/mobile/2-onboarding3.png) | Final slide → Welcome |
+| **3** | ![Welcome](demo/mobile/3-welcome.png) | Role selection: Rider / Driver |
+| **4** | ![Sign In](demo/mobile/4-auth_signin.png) | Clerk-powered email/password sign in |
+|  | ![Google Sign In](demo/mobile/4-sign_in_with_google.png) | OAuth via Google |
+|  | ![Sign Up](demo/mobile/4-auth_signup.png) | New account creation |
+| **5** | ![Home](demo/mobile/6-home.jpg) | Map with nearby drivers, destination input, recent rides |
+| **6** | ![Ride Request](demo/mobile/rider_request_driver.jpg) | Pick destination, fare estimate, confirm ride |
+| **7** | ![Waiting](demo/mobile/rider_driver_waiting.jpg) | Real-time "finding driver" with nearby cars |
+| **8** | ![Driver Accepts](demo/mobile/rider_driver_accepts.jpg) | Driver matched — shows driver info, ETA |
+| **9** | ![Trip Starts](demo/mobile/rider_driver_starts_Trip.jpg) | Live tracking, ETA updates, ride controls |
+| **10** | ![Payment](demo/mobile/rider_paying.jpg) | Stripe PaymentSheet after "Arrived at Destination" |
+| **11** | ![Trip End](demo/mobile/rider_trip_end_and_payment.jpg) | Fare breakdown, rating, completion |
+
+#### Driver Mode
+
+| Step | Screen | Description |
+|------|--------|-------------|
+| **1** | ![Apply](demo/mobile/application_form_to_become_driver.png) | Driver application form (vehicle, license, docs) |
+| **2** | ![Application Sent](demo/mobile/application_to_driver_sent.jpg) | Submitted — pending admin review |
+| **3** | ![Driver Mode](demo/mobile/driver_mode.jpg) | Go online/offline, live location streaming |
+| **4** | ![Incoming Ride](demo/mobile/driver_request_sent.jpg) | Ride offer with 20s countdown, pickup/dropoff, fare |
+| **5** | ![Waiting Rider](demo/mobile/driver_waiting_rider.jpg) | Navigating to pickup, rider contact |
+| **6** | ![Trip In Progress](demo/mobile/driver_inprogress.jpg) | Active trip with live map, arrive/start/complete |
+| **7** | ![Trip End](demo/mobile/driver_trip_end.jpg) | Summary with earnings, distance, duration |
+| **8** | ![Cancel](demo/mobile/driver_cancel_ride.jpg) | Cancel with reason (late, no show, vehicle issue) |
+
+#### History & Profile
+
+| Screen | Description |
+|--------|-------------|
+| ![History](demo/mobile/history_rides.jpg) | Paginated ride history with date grouping, filters |
+| ![Profile](demo/mobile/5-profile.jpg) | User profile, settings, language toggle |
+| ![Profile Update](demo/mobile/5-profile_update.jpg) | Edit profile, avatar, preferences |
+| ![Error State](demo/mobile/error_state_when_server_is_down.jpg) | Offline/error handling with retry |
+
+---
+
+### Admin Dashboard (React 19 + Vite)
+
+| Screen | Description |
+|--------|-------------|
+| ![Dashboard Dark](demo/Dashboard/1-home.png) | Overview KPIs, live alerts, ride queue, quick actions |
+| ![Dashboard Light](demo/Dashboard/home-light-theme.png) | Same dashboard in light theme |
+| ![Trips List](demo/Dashboard/2-trips.png) | Searchable, filterable, paginated trip table |
+| ![Users List](demo/Dashboard/3-users.png) | All users by role (rider/driver/admin), search |
+| ![User Detail](demo/Dashboard/3-user_details.png) | User profile, trip history, support tickets |
+| ![Drivers List](demo/Dashboard/4-drivers.png) | Applications + live status, approve/reject/suspend |
+| ![Driver Detail](demo/Dashboard/4-driver_details.png) | Full driver stats, documents, trip history |
+| ![Statistics](demo/Dashboard/5-statistics.png) | Revenue charts, completion rate, daily stats, top drivers |
+
+---
 
 ## Features
 
@@ -284,6 +345,68 @@ Base URL: `http://localhost:3000/api`
 | Backend | `cd backend && npm run dev` | `3000` |
 | Mobile | `cd mobile && npx expo run:android` | `8081` |
 | Admin | `cd admin && npm run dev` | `5173` |
+
+## Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Mobile App (Expo RN)"
+        M1[Splash/Onboarding]
+        M2[Auth - Clerk]
+        M3[Home - Map + Nearby]
+        M4[Ride Request Flow]
+        M5[Live Trip Tracking]
+        M6[Stripe Payment]
+        M7[Driver Mode]
+        M8[History & Profile]
+    end
+
+    subgraph "Admin Panel (React 19)"
+        A1[Overview KPIs]
+        A2[Live Driver Map]
+        A3[Ride Queue]
+        A4[Trips/Drivers/Users CRUD]
+        A5[Statistics & Charts]
+    end
+
+    subgraph "Backend (Express + Socket.io)"
+        B1[REST API]
+        B2[WebSocket Server]
+        B3[Ride Dispatcher]
+        B4[Driver Location Throttle]
+        B5[Stripe Webhooks]
+        B6[Prisma ORM]
+    end
+
+    subgraph "Database"
+        D1[(PostgreSQL - Neon)]
+    end
+
+    M1 --> M2 --> M3
+    M3 --> M4 --> M5 --> M6
+    M3 --> M7
+    M5 --> M8
+
+    M3 -.->|HTTP + JWT| B1
+    M4 -.->|HTTP + JWT| B1
+    M5 -.->|HTTP + JWT| B1
+    M7 -.->|Socket.io| B2
+    M7 -.->|HTTP| B1
+
+    A1 -.->|HTTP + JWT| B1
+    A2 -.->|Socket.io| B2
+    A3 -.->|Socket.io| B2
+    A4 -.->|HTTP + JWT| B1
+    A5 -.->|HTTP + JWT| B1
+
+    B2 --> B4 --> B2
+    B1 --> B3
+    B1 --> B5
+    B1 --> B6 --> D1
+    B2 --> B6 --> D1
+```
+
+---
 
 ## License
 
