@@ -57,91 +57,50 @@ Both clients talk to the same Express API. Drivers stream location via socket.io
 
 ## Screenshots
 
-### Mobile App
+### Mobile App — All Screens
 
 <p align="center">
-  <img src="demo/mobile/6-home.jpg" width="180" alt="Rider Home">
-  <img src="demo/mobile/rider_request_driver.jpg" width="180" alt="Ride Request">
-  <img src="demo/mobile/rider_driver_waiting.jpg" width="180" alt="Finding Driver">
-  <img src="demo/mobile/rider_driver_accepts.jpg" width="180" alt="Driver Matched">
-  <img src="demo/mobile/rider_driver_starts_Trip.jpg" width="180" alt="Live Trip">
-  <img src="demo/mobile/rider_paying.jpg" width="180" alt="Payment">
+  <img src="demo/mobile/1-splash.png" width="160" alt="Splash">
+  <img src="demo/mobile/2-onboarding.png" width="160" alt="Onboarding 1">
+  <img src="demo/mobile/2-onboarding2.png" width="160" alt="Onboarding 2">
+  <img src="demo/mobile/2-onboarding3.png" width="160" alt="Onboarding 3">
+  <img src="demo/mobile/3-welcome.png" width="160" alt="Welcome">
+  <img src="demo/mobile/4-auth-signin.png" width="160" alt="Sign In">
+  <img src="demo/mobile/4-google-signin.png" width="160" alt="Google Sign In">
+  <img src="demo/mobile/4-auth-signup.png" width="160" alt="Sign Up">
+  <img src="demo/mobile/6-home.jpg" width="160" alt="Home">
+  <img src="demo/mobile/rider-request-driver.jpg" width="160" alt="Ride Request">
+  <img src="demo/mobile/rider-driver-waiting.jpg" width="160" alt="Finding Driver">
+  <img src="demo/mobile/rider-driver-accepts.jpg" width="160" alt="Driver Matched">
+  <img src="demo/mobile/rider-driver-starts-trip.jpg" width="160" alt="Live Trip">
+  <img src="demo/mobile/rider-paying.jpg" width="160" alt="Payment">
+  <img src="demo/mobile/rider-trip-end-payment.jpg" width="160" alt="Trip End">
+  <img src="demo/mobile/apply-driver-form.png" width="160" alt="Apply Driver">
+  <img src="demo/mobile/apply-driver-sent.jpg" width="160" alt="Application Sent">
+  <img src="demo/mobile/driver-mode.jpg" width="160" alt="Driver Mode">
+  <img src="demo/mobile/driver-request-sent.jpg" width="160" alt="Incoming Ride">
+  <img src="demo/mobile/driver-waiting-rider.jpg" width="160" alt="Waiting Rider">
+  <img src="demo/mobile/driver-inprogress.jpg" width="160" alt="Trip Progress">
+  <img src="demo/mobile/driver-trip-end.jpg" width="160" alt="Driver Trip End">
+  <img src="demo/mobile/driver-cancel-ride.jpg" width="160" alt="Cancel Ride">
+  <img src="demo/mobile/history-rides.jpg" width="160" alt="History">
+  <img src="demo/mobile/5-profile.jpg" width="160" alt="Profile">
+  <img src="demo/mobile/5-profile-update.jpg" width="160" alt="Profile Update">
+  <img src="demo/mobile/error-state.jpg" width="160" alt="Error State">
 </p>
 
-### Admin Dashboard
+### Admin Dashboard — All Screens
 
 <p align="center">
-  <img src="demo/Dashboard/1-home.png" width="420" alt="Admin Dashboard">
-  <img src="demo/Dashboard/4-drivers.png" width="420" alt="Driver Management">
+  <img src="demo/Dashboard/1-home.png" width="300" alt="Dashboard Dark">
+  <img src="demo/Dashboard/home-light-theme.png" width="300" alt="Dashboard Light">
+  <img src="demo/Dashboard/2-trips.png" width="300" alt="Trips List">
+  <img src="demo/Dashboard/3-users.png" width="300" alt="Users List">
+  <img src="demo/Dashboard/3-user-details.png" width="300" alt="User Detail">
+  <img src="demo/Dashboard/4-drivers.png" width="300" alt="Drivers List">
+  <img src="demo/Dashboard/4-driver-details.png" width="300" alt="Driver Detail">
+  <img src="demo/Dashboard/5-statistics.png" width="300" alt="Statistics">
 </p>
-
-<details>
-<summary><strong>📱 View all mobile screenshots</strong></summary>
-
-### Authentication & Onboarding
-
-| Screen | Preview |
-|---|---|
-| Splash | <img src="demo/mobile/1-splash.png" width="200"> |
-| Onboarding 1 | <img src="demo/mobile/2-onboarding.png" width="200"> |
-| Onboarding 2 | <img src="demo/mobile/2-onboarding2.png" width="200"> |
-| Onboarding 3 | <img src="demo/mobile/2-onboarding3.png" width="200"> |
-| Welcome | <img src="demo/mobile/3-welcome.png" width="200"> |
-| Sign In | <img src="demo/mobile/4-auth_signin.png" width="200"> |
-| Google Sign In | <img src="demo/mobile/4-sign_in_with_google.png" width="200"> |
-| Sign Up | <img src="demo/mobile/4-auth_signup.png" width="200"> |
-
-### Rider Flow
-
-| Screen | Preview |
-|---|---|
-| Home | <img src="demo/mobile/6-home.jpg" width="200"> |
-| Ride Request | <img src="demo/mobile/rider_request_driver.jpg" width="200"> |
-| Finding Driver | <img src="demo/mobile/rider_driver_waiting.jpg" width="200"> |
-| Driver Matched | <img src="demo/mobile/rider_driver_accepts.jpg" width="200"> |
-| Live Trip | <img src="demo/mobile/rider_driver_starts_Trip.jpg" width="200"> |
-| Payment | <img src="demo/mobile/rider_paying.jpg" width="200"> |
-| Trip Completed | <img src="demo/mobile/rider_trip_end_and_payment.jpg" width="200"> |
-
-### Driver Mode
-
-| Screen | Preview |
-|---|---|
-| Apply | <img src="demo/mobile/application_form_to_become_driver.png" width="200"> |
-| Application Sent | <img src="demo/mobile/application_to_driver_sent.jpg" width="200"> |
-| Driver Mode | <img src="demo/mobile/driver_mode.jpg" width="200"> |
-| Incoming Ride | <img src="demo/mobile/driver_request_sent.jpg" width="200"> |
-| Waiting Rider | <img src="demo/mobile/driver_waiting_rider.jpg" width="200"> |
-| Trip In Progress | <img src="demo/mobile/driver_inprogress.jpg" width="200"> |
-| Trip End | <img src="demo/mobile/driver_trip_end.jpg" width="200"> |
-| Cancel Ride | <img src="demo/mobile/driver_cancel_ride.jpg" width="200"> |
-
-### History & Profile
-
-| Screen | Preview |
-|---|---|
-| History | <img src="demo/mobile/history_rides.jpg" width="200"> |
-| Profile | <img src="demo/mobile/5-profile.jpg" width="200"> |
-| Profile Update | <img src="demo/mobile/5-profile_update.jpg" width="200"> |
-| Error State | <img src="demo/mobile/error_state_when_server_is_down.jpg" width="200"> |
-
-</details>
-
-<details>
-<summary><strong>🖥️ View all admin dashboard screenshots</strong></summary>
-
-| Screen | Preview |
-|---|---|
-| Dashboard (Dark) | <img src="demo/Dashboard/1-home.png" width="300"> |
-| Dashboard (Light) | <img src="demo/Dashboard/home-light-theme.png" width="300"> |
-| Trips List | <img src="demo/Dashboard/2-trips.png" width="300"> |
-| Users List | <img src="demo/Dashboard/3-users.png" width="300"> |
-| User Detail | <img src="demo/Dashboard/3-user_details.png" width="300"> |
-| Drivers List | <img src="demo/Dashboard/4-drivers.png" width="300"> |
-| Driver Detail | <img src="demo/Dashboard/4-driver_details.png" width="300"> |
-| Statistics | <img src="demo/Dashboard/5-statistics.png" width="300"> |
-
-</details>
 
 ---
 
