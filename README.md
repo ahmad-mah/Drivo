@@ -10,7 +10,7 @@
 
 </p>
 
-Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/timeout — a complete Uber-like system in a single repository.
+Real-time ride matching, live GPS tracking, driver dispatch with offer/accept/timeout — an Uber-inspired ride-hailing MVP in a single repository.
 
 [Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [WebSocket Events](#websocket-events) · [Screenshots](#screenshots)
 
@@ -57,62 +57,91 @@ Both clients talk to the same Express API. Drivers stream location via socket.io
 
 ## Screenshots
 
-### Mobile App — Rider & Driver Flow
+### Mobile App
 
-| Step | Screen | Description |
-|------|--------|-------------|
-| **1** | ![Splash](demo/mobile/1-splash.png) | App entry point with brand logo |
-| **2** | ![Onboarding 1](demo/mobile/2-onboarding.png) | 3-slide onboarding carousel |
-|  | ![Onboarding 2](demo/mobile/2-onboarding2.png) | Feature highlights & permissions |
-|  | ![Onboarding 3](demo/mobile/2-onboarding3.png) | Final slide → Welcome |
-| **3** | ![Welcome](demo/mobile/3-welcome.png) | Role selection: Rider / Driver |
-| **4** | ![Sign In](demo/mobile/4-auth_signin.png) | Clerk-powered email/password sign in |
-|  | ![Google Sign In](demo/mobile/4-sign_in_with_google.png) | OAuth via Google |
-|  | ![Sign Up](demo/mobile/4-auth_signup.png) | New account creation |
-| **5** | ![Home](demo/mobile/6-home.jpg) | Map with nearby drivers, destination input, recent rides |
-| **6** | ![Ride Request](demo/mobile/rider_request_driver.jpg) | Pick destination, fare estimate, confirm ride |
-| **7** | ![Waiting](demo/mobile/rider_driver_waiting.jpg) | Real-time "finding driver" with nearby cars |
-| **8** | ![Driver Accepts](demo/mobile/rider_driver_accepts.jpg) | Driver matched — shows driver info, ETA |
-| **9** | ![Trip Starts](demo/mobile/rider_driver_starts_Trip.jpg) | Live tracking, ETA updates, ride controls |
-| **10** | ![Payment](demo/mobile/rider_paying.jpg) | Stripe PaymentSheet after "Arrived at Destination" |
-| **11** | ![Trip End](demo/mobile/rider_trip_end_and_payment.jpg) | Fare breakdown, rating, completion |
+<p align="center">
+  <img src="demo/mobile/6-home.jpg" width="180" alt="Rider Home">
+  <img src="demo/mobile/rider_request_driver.jpg" width="180" alt="Ride Request">
+  <img src="demo/mobile/rider_driver_waiting.jpg" width="180" alt="Finding Driver">
+  <img src="demo/mobile/rider_driver_accepts.jpg" width="180" alt="Driver Matched">
+  <img src="demo/mobile/rider_driver_starts_Trip.jpg" width="180" alt="Live Trip">
+  <img src="demo/mobile/rider_paying.jpg" width="180" alt="Payment">
+</p>
 
-#### Driver Mode
+### Admin Dashboard
 
-| Step | Screen | Description |
-|------|--------|-------------|
-| **1** | ![Apply](demo/mobile/application_form_to_become_driver.png) | Driver application form (vehicle, license, docs) |
-| **2** | ![Application Sent](demo/mobile/application_to_driver_sent.jpg) | Submitted — pending admin review |
-| **3** | ![Driver Mode](demo/mobile/driver_mode.jpg) | Go online/offline, live location streaming |
-| **4** | ![Incoming Ride](demo/mobile/driver_request_sent.jpg) | Ride offer with 20s countdown, pickup/dropoff, fare |
-| **5** | ![Waiting Rider](demo/mobile/driver_waiting_rider.jpg) | Navigating to pickup, rider contact |
-| **6** | ![Trip In Progress](demo/mobile/driver_inprogress.jpg) | Active trip with live map, arrive/start/complete |
-| **7** | ![Trip End](demo/mobile/driver_trip_end.jpg) | Summary with earnings, distance, duration |
-| **8** | ![Cancel](demo/mobile/driver_cancel_ride.jpg) | Cancel with reason (late, no show, vehicle issue) |
+<p align="center">
+  <img src="demo/Dashboard/1-home.png" width="420" alt="Admin Dashboard">
+  <img src="demo/Dashboard/4-drivers.png" width="420" alt="Driver Management">
+</p>
 
-#### History & Profile
+<details>
+<summary><strong>📱 View all mobile screenshots</strong></summary>
 
-| Screen | Description |
-|--------|-------------|
-| ![History](demo/mobile/history_rides.jpg) | Paginated ride history with date grouping, filters |
-| ![Profile](demo/mobile/5-profile.jpg) | User profile, settings, language toggle |
-| ![Profile Update](demo/mobile/5-profile_update.jpg) | Edit profile, avatar, preferences |
-| ![Error State](demo/mobile/error_state_when_server_is_down.jpg) | Offline/error handling with retry |
+### Authentication & Onboarding
 
----
+| Screen | Preview |
+|---|---|
+| Splash | <img src="demo/mobile/1-splash.png" width="200"> |
+| Onboarding 1 | <img src="demo/mobile/2-onboarding.png" width="200"> |
+| Onboarding 2 | <img src="demo/mobile/2-onboarding2.png" width="200"> |
+| Onboarding 3 | <img src="demo/mobile/2-onboarding3.png" width="200"> |
+| Welcome | <img src="demo/mobile/3-welcome.png" width="200"> |
+| Sign In | <img src="demo/mobile/4-auth_signin.png" width="200"> |
+| Google Sign In | <img src="demo/mobile/4-sign_in_with_google.png" width="200"> |
+| Sign Up | <img src="demo/mobile/4-auth_signup.png" width="200"> |
 
-### Admin Dashboard (React 19 + Vite)
+### Rider Flow
 
-| Screen | Description |
-|--------|-------------|
-| ![Dashboard Dark](demo/Dashboard/1-home.png) | Overview KPIs, live alerts, ride queue, quick actions |
-| ![Dashboard Light](demo/Dashboard/home-light-theme.png) | Same dashboard in light theme |
-| ![Trips List](demo/Dashboard/2-trips.png) | Searchable, filterable, paginated trip table |
-| ![Users List](demo/Dashboard/3-users.png) | All users by role (rider/driver/admin), search |
-| ![User Detail](demo/Dashboard/3-user_details.png) | User profile, trip history, support tickets |
-| ![Drivers List](demo/Dashboard/4-drivers.png) | Applications + live status, approve/reject/suspend |
-| ![Driver Detail](demo/Dashboard/4-driver_details.png) | Full driver stats, documents, trip history |
-| ![Statistics](demo/Dashboard/5-statistics.png) | Revenue charts, completion rate, daily stats, top drivers |
+| Screen | Preview |
+|---|---|
+| Home | <img src="demo/mobile/6-home.jpg" width="200"> |
+| Ride Request | <img src="demo/mobile/rider_request_driver.jpg" width="200"> |
+| Finding Driver | <img src="demo/mobile/rider_driver_waiting.jpg" width="200"> |
+| Driver Matched | <img src="demo/mobile/rider_driver_accepts.jpg" width="200"> |
+| Live Trip | <img src="demo/mobile/rider_driver_starts_Trip.jpg" width="200"> |
+| Payment | <img src="demo/mobile/rider_paying.jpg" width="200"> |
+| Trip Completed | <img src="demo/mobile/rider_trip_end_and_payment.jpg" width="200"> |
+
+### Driver Mode
+
+| Screen | Preview |
+|---|---|
+| Apply | <img src="demo/mobile/application_form_to_become_driver.png" width="200"> |
+| Application Sent | <img src="demo/mobile/application_to_driver_sent.jpg" width="200"> |
+| Driver Mode | <img src="demo/mobile/driver_mode.jpg" width="200"> |
+| Incoming Ride | <img src="demo/mobile/driver_request_sent.jpg" width="200"> |
+| Waiting Rider | <img src="demo/mobile/driver_waiting_rider.jpg" width="200"> |
+| Trip In Progress | <img src="demo/mobile/driver_inprogress.jpg" width="200"> |
+| Trip End | <img src="demo/mobile/driver_trip_end.jpg" width="200"> |
+| Cancel Ride | <img src="demo/mobile/driver_cancel_ride.jpg" width="200"> |
+
+### History & Profile
+
+| Screen | Preview |
+|---|---|
+| History | <img src="demo/mobile/history_rides.jpg" width="200"> |
+| Profile | <img src="demo/mobile/5-profile.jpg" width="200"> |
+| Profile Update | <img src="demo/mobile/5-profile_update.jpg" width="200"> |
+| Error State | <img src="demo/mobile/error_state_when_server_is_down.jpg" width="200"> |
+
+</details>
+
+<details>
+<summary><strong>🖥️ View all admin dashboard screenshots</strong></summary>
+
+| Screen | Preview |
+|---|---|
+| Dashboard (Dark) | <img src="demo/Dashboard/1-home.png" width="300"> |
+| Dashboard (Light) | <img src="demo/Dashboard/home-light-theme.png" width="300"> |
+| Trips List | <img src="demo/Dashboard/2-trips.png" width="300"> |
+| Users List | <img src="demo/Dashboard/3-users.png" width="300"> |
+| User Detail | <img src="demo/Dashboard/3-user_details.png" width="300"> |
+| Drivers List | <img src="demo/Dashboard/4-drivers.png" width="300"> |
+| Driver Detail | <img src="demo/Dashboard/4-driver_details.png" width="300"> |
+| Statistics | <img src="demo/Dashboard/5-statistics.png" width="300"> |
+
+</details>
 
 ---
 
