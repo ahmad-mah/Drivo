@@ -12,37 +12,42 @@ import { PaymentsPlaceholder } from "./features/payments/screens/PaymentsPlaceho
 import { SupportPlaceholder } from "./features/support/screens/SupportPlaceholder";
 import { SettingsPlaceholder } from "./features/settings/screens/SettingsPlaceholder";
 import { AuditPlaceholder } from "./features/audit/screens/AuditPlaceholder";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "./i18n/utils/direction";
 import { LocaleProvider } from "./contexts/LocaleContext.tsx";
 
 export default function App() {
   return (
     <AuthBridge>
-      <Show when="signed-in" fallback={<SignedOutScreen />}>
-        <BrowserRouter>
-          <LocaleProvider>
-            <Routes>
-              {SUPPORTED_LOCALES.map((locale) => (
-                <Route key={locale} path={`/${locale}`}>
-                  <Route path="admin" element={<AdminLayout />}>
-                    <Route index element={<OverviewPlaceholder />} />
-                    <Route path="trips" element={<TripsPlaceholder />} />
-                    <Route path="drivers" element={<DriversDashboardScreen />} />
-                    <Route path="users" element={<UsersPlaceholder />} />
-                    <Route path="statistics" element={<StatisticsPlaceholder />} />
-                    <Route path="payments" element={<PaymentsPlaceholder />} />
-                    <Route path="support" element={<SupportPlaceholder />} />
-                    <Route path="settings" element={<SettingsPlaceholder />} />
-                    <Route path="audit" element={<AuditPlaceholder />} />
-                  </Route>
-                  <Route index element={<Navigate to={`/${locale}/admin`} replace />} />
-                </Route>
-              ))}
-              <Route path="*" element={<Navigate to={`/${DEFAULT_LOCALE}/admin`} replace />} />
-            </Routes>
-          </LocaleProvider>
-        </BrowserRouter>
-      </Show>
+      <BrowserRouter>
+        <Routes>
+          {/* Public landing + sign-in page — no auth required */}
+          <Route path="/" element={<SignedOutScreen />} />
+
+          {/* Admin panel — auth required */}
+          <Route
+            path="/:locale/admin"
+            element={
+              <Show when="signed-in" fallback={<SignedOutScreen />}>
+                <LocaleProvider>
+                  <AdminLayout />
+                </LocaleProvider>
+              </Show>
+            }
+          >
+            <Route index element={<OverviewPlaceholder />} />
+            <Route path="trips" element={<TripsPlaceholder />} />
+            <Route path="drivers" element={<DriversDashboardScreen />} />
+            <Route path="users" element={<UsersPlaceholder />} />
+            <Route path="statistics" element={<StatisticsPlaceholder />} />
+            <Route path="payments" element={<PaymentsPlaceholder />} />
+            <Route path="support" element={<SupportPlaceholder />} />
+            <Route path="settings" element={<SettingsPlaceholder />} />
+            <Route path="audit" element={<AuditPlaceholder />} />
+          </Route>
+
+          {/* Redirect unknown routes to landing page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </AuthBridge>
   );
 }
