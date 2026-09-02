@@ -40,4 +40,9 @@ yarn-error.*
 example
 
 # generated native folders
+/android
 /ios
+
+
+# EAS build inspection output
+/build-inspect

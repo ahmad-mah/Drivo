@@ -36,7 +36,27 @@ module.exports = () => ({
           imageWidth: 300,
         },
       ],
-      "@clerk/expo",
+      // Updated Clerk plugin with Google OAuth config
+      [
+        "@clerk/expo",
+        {
+          android: {
+            oauth: {
+              google: {
+                clientId:
+                  process.env.EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID,
+              },
+            },
+          },
+          // ios: {
+          //   oauth: {
+          //     google: {
+          //       clientId: process.env.EXPO_PUBLIC_CLERK_GOOGLE_IOS_CLIENT_ID,
+          //     },
+          //   },
+          // },
+        },
+      ],
       "expo-secure-store",
       [
         "@stripe/stripe-react-native",
@@ -57,8 +77,7 @@ module.exports = () => ({
       [
         "react-native-maps",
         {
-          androidGoogleMapsApiKey:
-            process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
+          androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         },
       ],
     ],
@@ -77,4 +96,4 @@ module.exports = () => ({
       reactCompiler: true,
     },
   },
-})
+});
