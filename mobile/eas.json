@@ -2,7 +2,10 @@
   "build": {
     "preview": {
       "distribution": "internal",
-      "environment": "production"
+      "environment": "production",
+      "android": {
+        "buildType": "apk"
+      }
     }
   }
 }
