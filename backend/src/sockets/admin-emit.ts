@@ -1,11 +1,11 @@
-import { getSocketServer } from "./ride";
+import { getSocketServer } from "./ride.js";
 import {
   ADMINS_ROOM,
   EVENTS,
   type AdminRideUpdatedPayload,
   type AdminDriverStatusPayload,
   type AdminAlertPayload,
-} from "./types";
+} from "./types.js";
 
 export function emitRideUpdated(payload: AdminRideUpdatedPayload) {
   const io = getSocketServer();

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth.middleware";
-import * as placeController from "./place.controller";
+import { requireAuth } from "../../middleware/auth.middleware.js";
+import * as placeController from "./place.controller.js";
 
 const router = Router();
 

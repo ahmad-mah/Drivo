@@ -7,31 +7,31 @@ import {
   RIDE_ENDED_GRACE_MS,
   RIDE_TTL_MS,
   STUCK_TRIP_LOG_MS,
-} from "../../config";
-import { prisma } from "../../config/database";
-import { emitRideUpdated } from "../../sockets/admin-emit";
-import { DRIVER_DECLINED_REASON } from "./cancellation-reasons";
-import { ConflictError } from "../../errors/ConflictError";
-import { ForbiddenError } from "../../errors/ForbiddenError";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { requireUserByClerkId } from "../../shared/require-user";
+} from "../../config/index.js";
+import { prisma } from "../../config/database.js";
+import { emitRideUpdated } from "../../sockets/admin-emit.js";
+import { DRIVER_DECLINED_REASON } from "./cancellation-reasons.js";
+import { ConflictError } from "../../errors/ConflictError.js";
+import { ForbiddenError } from "../../errors/ForbiddenError.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { requireUserByClerkId } from "../../shared/require-user.js";
 import { ApprovalStatus } from "@prisma/client";
-import * as directionsService from "../directions/directions.service";
-import * as driverRepository from "../drivers/driver.repository";
-import * as rideRepository from "./ride.repository";
-import * as rideOfferRepository from "./ride-offer.repository";
+import * as directionsService from "../directions/directions.service.js";
+import * as driverRepository from "../drivers/driver.repository.js";
+import * as rideRepository from "./ride.repository.js";
+import * as rideOfferRepository from "./ride-offer.repository.js";
 import {
   canTransition,
   transitionSources,
-} from "./trip-state-machine";
-import { etaMinutesForDistanceKm } from "./dispatch.utils";
+} from "./trip-state-machine.js";
+import { etaMinutesForDistanceKm } from "./dispatch.utils.js";
 import {
   notifyDriverAssigned,
   notifyRideExpired,
   notifyRideUpdated,
-} from "./ride.notifications";
-import type { AssignedDriverDto, RequestRideDto } from "./ride.types";
-import type { RideResponse } from "./ride.types";
+} from "./ride.notifications.js";
+import type { AssignedDriverDto, RequestRideDto } from "./ride.types.js";
+import type { RideResponse } from "./ride.types.js";
 import { RideStatus, type Ride } from "@prisma/client";
 
 function haversineKm(

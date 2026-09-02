@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../../middleware/async-handler";
-import { getAuditLogs } from "../../../shared/rbac";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import { getAuditLogs } from "../../../shared/rbac.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const page = req.query.page ? Number(req.query.page) : 1;

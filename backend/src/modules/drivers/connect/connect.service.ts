@@ -1,6 +1,6 @@
-import { getStripe } from "../../payments/payments.service";
-import { prisma } from "../../../config/database";
-import { NotFoundError } from "../../../errors/NotFoundError";
+import { getStripe } from "../../payments/payments.service.js";
+import { prisma } from "../../../config/database.js";
+import { NotFoundError } from "../../../errors/NotFoundError.js";
 import type { StripeConnectAccount } from "@prisma/client";
 import Stripe from "stripe";
 

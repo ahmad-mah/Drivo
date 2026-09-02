@@ -1,5 +1,5 @@
-import { prisma } from "../../config/database";
-import { broadcastNearbyDriversToAll } from "../../sockets";
+import { prisma } from "../../config/database.js";
+import { broadcastNearbyDriversToAll } from "../../sockets/index.js";
 
 // Pool size mirrors the rider client's MAX_NEARBY_DRIVERS cap: a full fleet is
 // exactly what one map can show, never more.

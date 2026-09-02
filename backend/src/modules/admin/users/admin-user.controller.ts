@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { Role } from "@prisma/client";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as adminUserService from "./admin-user.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as adminUserService from "./admin-user.service.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const result = await adminUserService.listUsers({

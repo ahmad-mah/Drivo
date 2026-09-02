@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
-import { getStripe } from "../payments.service";
-import { env } from "../../../config/env";
-import { processStripeWebhook } from "./stripe-webhook.service";
+import { getStripe } from "../payments.service.js";
+import { env } from "../../../config/env.js";
+import { processStripeWebhook } from "./stripe-webhook.service.js";
 
 export async function handleStripeWebhook(
   req: Request,

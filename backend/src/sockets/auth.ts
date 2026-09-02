@@ -1,8 +1,8 @@
 import { verifyToken } from "@clerk/backend";
 import type { Socket } from "socket.io";
-import { env } from "../config/env";
-import * as userRepository from "../modules/users/user.repository";
-import type { SocketUser } from "./types";
+import { env } from "../config/env.js";
+import * as userRepository from "../modules/users/user.repository.js";
+import type { SocketUser } from "./types.js";
 
 /**
  * Authenticates a socket handshake using a Clerk session token supplied in

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as adminStatsService from "./admin-stats.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as adminStatsService from "./admin-stats.service.js";
 
 export const get = asyncHandler(async (req: Request, res: Response) => {
   const stats = await adminStatsService.getStats({

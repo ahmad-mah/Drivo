@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ensureAdmin } from "../admin.guard";
+import { ensureAdmin } from "../admin.guard.js";
 import {
   getById,
   getDetail,
@@ -9,7 +9,7 @@ import {
   reject,
   suspend,
   reinstate,
-} from "./admin-driver.controller";
+} from "./admin-driver.controller.js";
 
 const router = Router();
 

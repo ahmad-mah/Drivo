@@ -1,4 +1,4 @@
-import type { UserCreatedOrUpdatedEvent } from "./webhook.types";
+import type { UserCreatedOrUpdatedEvent } from "./webhook.types.js";
 
 export function mapClerkUser(event: UserCreatedOrUpdatedEvent) {
   const {

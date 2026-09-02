@@ -1,9 +1,9 @@
 import { RideStatus, type Prisma } from "@prisma/client";
-import { prisma } from "../../../config/database";
-import { NotFoundError } from "../../../errors/NotFoundError";
-import { ConflictError } from "../../../errors/ConflictError";
-import { emitRideUpdated } from "../../../sockets/admin-emit";
-import { logAdminAction } from "../../../shared/rbac";
+import { prisma } from "../../../config/database.js";
+import { NotFoundError } from "../../../errors/NotFoundError.js";
+import { ConflictError } from "../../../errors/ConflictError.js";
+import { emitRideUpdated } from "../../../sockets/admin-emit.js";
+import { logAdminAction } from "../../../shared/rbac.js";
 
 // ── List trips with filters ──────────────────────────────────────────
 export interface ListTripsParams {

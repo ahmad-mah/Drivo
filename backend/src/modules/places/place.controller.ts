@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as placeService from "./place.service";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as placeService from "./place.service.js";
 
 function optionalCoord(value: unknown): number | undefined {
   if (typeof value !== "string" || value.trim() === "") {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { coordinatesShape } from "../../shared/validation/coordinates";
+import { coordinatesShape } from "../../shared/validation/coordinates.js";
 
 export const applyDriverSchema = z.object({
   vehicleType: z.string().min(1, "Vehicle type is required"),

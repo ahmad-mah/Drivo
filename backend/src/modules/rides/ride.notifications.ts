@@ -1,4 +1,4 @@
-import { getSocketServer } from "../../sockets/ride";
+import { getSocketServer } from "../../sockets/ride.js";
 
 /** Ride summary pushed to a driver when they are dispatched a request. */
 export interface IncomingRideRequest {

@@ -1,6 +1,6 @@
-import { prisma } from "../../config/database";
-import { markProcessed } from "./webhook.repository";
-import { handlers } from "./events";
+import { prisma } from "../../config/database.js";
+import { markProcessed } from "./webhook.repository.js";
+import { handlers } from "./events/index.js";
 import type { WebhookEvent } from "@clerk/backend";
 
 export async function processWebhook(

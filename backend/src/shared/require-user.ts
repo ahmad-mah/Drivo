@@ -1,5 +1,5 @@
-import { NotFoundError } from "../errors/NotFoundError";
-import * as userRepository from "../modules/users/user.repository";
+import { NotFoundError } from "../errors/NotFoundError.js";
+import * as userRepository from "../modules/users/user.repository.js";
 import type { User } from "@prisma/client";
 
 /** Resolves the authenticated user by Clerk ID, or throws. */

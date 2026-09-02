@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as rideService from "./ride.service";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as rideService from "./ride.service.js";
 
 /**
  * POST /api/rides/request

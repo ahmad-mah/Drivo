@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { verifyWebhook } from "@clerk/express/webhooks";
 import { Prisma } from "@prisma/client";
 import type { WebhookEvent } from "@clerk/backend";
-import { processWebhook } from "./webhook.service";
+import { processWebhook } from "./webhook.service.js";
 
 export async function handleClerkWebhook(
   req: Request,

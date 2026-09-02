@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as svc from "./admin-promo.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as svc from "./admin-promo.service.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const result = await svc.listPromos({

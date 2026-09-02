@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { prisma } from "../../../../config/database";
+import { prisma } from "../../../../config/database.js";
 
 export async function handleAccountUpdated(event: any) {
   const data = event.data.object as Stripe.Account;

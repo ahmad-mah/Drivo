@@ -1,7 +1,7 @@
 import {
   DISPATCH_RADIUS_LADDER_KM,
   WIDEN_EVERY_OFFERS,
-} from "../../config";
+} from "../../config/index.js";
 
 /** Pickup ETA from the driver's distance to the origin, assuming 30 km/h. */
 export function etaMinutesForDistanceKm(distanceKm: number) {

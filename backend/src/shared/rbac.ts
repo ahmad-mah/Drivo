@@ -1,10 +1,10 @@
 import { Role, type Prisma } from "@prisma/client";
 import type { Request, Response, NextFunction } from "express";
 import { getAuth } from "@clerk/express";
-import { ForbiddenError } from "../errors/ForbiddenError";
-import { UnauthorizedError } from "../errors/UnauthorizedError";
-import { prisma } from "../config/database";
-import * as userRepository from "../modules/users/user.repository";
+import { ForbiddenError } from "../errors/ForbiddenError.js";
+import { UnauthorizedError } from "../errors/UnauthorizedError.js";
+import { prisma } from "../config/database.js";
+import * as userRepository from "../modules/users/user.repository.js";
 
 // ── Permissions ──────────────────────────────────────────────────────
 export const AdminPermission = {

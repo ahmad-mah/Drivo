@@ -1,5 +1,5 @@
-import { env } from "../../config/env";
-import type { PlaceSuggestion } from "./place.types";
+import { env } from "../../config/env.js";
+import type { PlaceSuggestion } from "./place.types.js";
 
 const PLACES_URL = "https://places.googleapis.com/v1/places:searchText";
 

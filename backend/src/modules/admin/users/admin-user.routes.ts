@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ensureAdmin } from "../admin.guard";
-import { list, getById } from "./admin-user.controller";
+import { ensureAdmin } from "../admin.guard.js";
+import { list, getById } from "./admin-user.controller.js";
 
 const router = Router();
 

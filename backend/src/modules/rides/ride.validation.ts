@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { coordinatesShape } from "../../shared/validation/coordinates";
+import { coordinatesShape } from "../../shared/validation/coordinates.js";
 
 const pointSchema = z.object({
   address: z.string().min(1, "Address is required"),

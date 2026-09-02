@@ -1,6 +1,6 @@
-import { handlePaymentIntentSucceeded } from "./payment-intent.succeeded";
-import { handlePaymentIntentPaymentFailed } from "./payment-intent.payment_failed";
-import { handleAccountUpdated } from "./account.updated";
+import { handlePaymentIntentSucceeded } from "./payment-intent.succeeded.js";
+import { handlePaymentIntentPaymentFailed } from "./payment-intent.payment_failed.js";
+import { handleAccountUpdated } from "./account.updated.js";
 
 export const handlers: Record<string, (event: any) => Promise<void>> = {
   "payment_intent.succeeded": handlePaymentIntentSucceeded,

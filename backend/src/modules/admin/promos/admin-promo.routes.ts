@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ensureAdmin } from "../admin.guard";
-import { list, toggleActive } from "./admin-promo.controller";
+import { ensureAdmin } from "../admin.guard.js";
+import { list, toggleActive } from "./admin-promo.controller.js";
 
 const router = Router();
 router.use(ensureAdmin);

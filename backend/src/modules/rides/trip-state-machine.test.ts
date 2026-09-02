@@ -6,7 +6,7 @@ import {
   TRIP_TRANSITIONS,
   canTransition,
   transitionSources,
-} from "./trip-state-machine";
+} from "./trip-state-machine.js";
 
 describe("trip state machine", () => {
   it("covers every status in the transition table", () => {

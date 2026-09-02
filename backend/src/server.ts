@@ -1,15 +1,12 @@
-import http from "node:http";
-import app from "./app";
-import { env, connectDatabase, disconnectDatabase } from "./config";
-import {
-  RIDE_EXPIRY_SWEEP_INTERVAL_MS,
-  STUCK_TRIP_LOG_INTERVAL_MS,
-} from "./config";
-import { initSocketServer } from "./sockets";
-import * as rideService from "./modules/rides/ride.service";
-import { startFakeDriversSimulator } from "./modules/drivers/fake-drivers.simulator";
-import { startFakeDriverMatchingSimulator } from "./modules/rides/fake-driver.simulator";
-import { startRideDispatcher } from "./modules/rides/ride-dispatcher";
+import http from 'node:http';
+import app from './app.js';
+import { env, connectDatabase, disconnectDatabase } from './config/index.js';
+import { RIDE_EXPIRY_SWEEP_INTERVAL_MS, STUCK_TRIP_LOG_INTERVAL_MS } from './config/index.js';
+import { initSocketServer } from './sockets/index.js';
+import * as rideService from './modules/rides/ride.service.js';
+import { startFakeDriversSimulator } from './modules/drivers/fake-drivers.simulator.js';
+import { startFakeDriverMatchingSimulator } from './modules/rides/fake-driver.simulator.js';
+import { startRideDispatcher } from './modules/rides/ride-dispatcher.js';
 
 await connectDatabase();
 
@@ -33,26 +30,26 @@ setInterval(() => {
   void rideService.logStuckTrips();
 }, STUCK_TRIP_LOG_INTERVAL_MS);
 
-server.listen(env.PORT, () => {
+server.listen(env.PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
 });
 
-process.on("unhandledRejection", (reason) => {
+process.on('unhandledRejection', (reason) => {
   console.error(reason);
   server.close(() => process.exit(1));
 });
 
-process.on("uncaughtException", (err) => {
+process.on('uncaughtException', (err) => {
   console.error(err);
   process.exit(1);
 });
 
-process.on("SIGINT", async () => {
+process.on('SIGINT', async () => {
   await disconnectDatabase();
   process.exit(0);
 });
 
-process.on("SIGTERM", async () => {
+process.on('SIGTERM', async () => {
   await disconnectDatabase();
   process.exit(0);
 });

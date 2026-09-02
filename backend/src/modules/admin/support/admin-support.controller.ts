@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { TicketStatus } from "@prisma/client";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as svc from "./admin-support.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as svc from "./admin-support.service.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const result = await svc.listTickets({

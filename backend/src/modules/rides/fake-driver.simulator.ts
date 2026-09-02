@@ -1,11 +1,11 @@
 import { RideStatus } from "@prisma/client";
-import { prisma } from "../../config/database";
-import * as driverRepository from "../drivers/driver.repository";
+import { prisma } from "../../config/database.js";
+import * as driverRepository from "../drivers/driver.repository.js";
 import {
   ensureFakeDriversAround,
   getTrackedFakes,
-} from "../drivers/fake-drivers.simulator";
-import * as rideService from "./ride.service";
+} from "../drivers/fake-drivers.simulator.js";
+import * as rideService from "./ride.service.js";
 
 const ASSIGN_DELAY_MS = 2_500;
 const CHECK_INTERVAL_MS = 1_000;

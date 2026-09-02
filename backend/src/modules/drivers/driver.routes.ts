@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth.middleware";
-import { validate } from "../../middleware/validate.middleware";
+import { requireAuth } from "../../middleware/auth.middleware.js";
+import { validate } from "../../middleware/validate.middleware.js";
 import {
   applyDriverSchema,
   updateAvailabilitySchema,
   updateLocationSchema,
-} from "./driver.validation";
+} from "./driver.validation.js";
 import {
   apply,
   getMyApplication,
@@ -13,7 +13,7 @@ import {
   updateAvailability,
   updateLocation,
   getNearbyDrivers,
-} from "./driver.controller";
+} from "./driver.controller.js";
 
 const router = Router();
 

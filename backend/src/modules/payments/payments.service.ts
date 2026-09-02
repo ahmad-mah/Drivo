@@ -1,13 +1,13 @@
 import Stripe from "stripe";
-import { prisma } from "../../config/database";
-import { env } from "../../config/env";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { BadRequestError } from "../../errors/BadRequestError";
+import { prisma } from "../../config/database.js";
+import { env } from "../../config/env.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { BadRequestError } from "../../errors/BadRequestError.js";
 import {
   getOrCreateStripeCustomer,
   savePaymentMethodId,
   getSavedPaymentMethodId,
-} from "./customer.service";
+} from "./customer.service.js";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2026-08-26.dahlia",
@@ -178,7 +178,7 @@ export async function handlePaymentSucceeded(stripePiId: string) {
     },
   });
   if (ride) {
-    const { notifyRideUpdated } = await import("../rides/ride.notifications");
+    const { notifyRideUpdated } = await import("../rides/ride.notifications.js");
     const clerkIds = [
       ride.user?.clerkId,
       ride.driver?.user?.clerkId,
@@ -205,7 +205,7 @@ export async function handlePaymentSucceeded(stripePiId: string) {
   // Create Connect transfer if applicable
   if (record.driverId && record.driverShare > 0 && record.stripeTransferId === null) {
     try {
-      const { createTransfer } = await import("./transfers/transfer.service");
+      const { createTransfer } = await import("./transfers/transfer.service.js");
       await createTransfer(
         record.rideId,
         stripePiId,

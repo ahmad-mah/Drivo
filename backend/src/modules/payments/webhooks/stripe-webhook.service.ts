@@ -1,5 +1,5 @@
-import { prisma } from "../../../config/database";
-import { handlers } from "./handlers";
+import { prisma } from "../../../config/database.js";
+import { handlers } from "./handlers/index.js";
 
 export async function processStripeWebhook(event: any) {
   const handler = handlers[event.type];

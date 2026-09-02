@@ -1,5 +1,5 @@
-import { prisma } from "../../config/database";
-import { RIDE_TTL_MS } from "../../config";
+import { prisma } from "../../config/database.js";
+import { RIDE_TTL_MS } from "../../config/index.js";
 import {
   RideStatus,
   type Prisma,

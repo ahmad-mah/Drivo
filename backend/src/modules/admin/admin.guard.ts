@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { getAuth } from "@clerk/express";
-import { ForbiddenError } from "../../errors/ForbiddenError";
-import { UnauthorizedError } from "../../errors/UnauthorizedError";
-import * as userRepository from "../users/user.repository";
+import { ForbiddenError } from "../../errors/ForbiddenError.js";
+import { UnauthorizedError } from "../../errors/UnauthorizedError.js";
+import * as userRepository from "../users/user.repository.js";
 
 /**
  * Middleware that blocks non-admin users from accessing admin-only routes.

@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { handlePaymentFailed } from "../../payments.service";
+import { handlePaymentFailed } from "../../payments.service.js";
 
 export async function handlePaymentIntentPaymentFailed(
   event: any,

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as adminTripService from "./admin-trip.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as adminTripService from "./admin-trip.service.js";
 import type { RideStatus } from "@prisma/client";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {

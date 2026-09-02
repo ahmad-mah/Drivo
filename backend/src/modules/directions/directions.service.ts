@@ -1,6 +1,6 @@
-import { env } from "../../config/env";
-import { decodePolyline } from "../../shared/polyline";
-import type { RouteCoordinate } from "./directions.types";
+import { env } from "../../config/env.js";
+import { decodePolyline } from "../../shared/polyline.js";
+import type { RouteCoordinate } from "./directions.types.js";
 
 const ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes";
 

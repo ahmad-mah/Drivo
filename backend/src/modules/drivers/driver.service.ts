@@ -1,13 +1,13 @@
-import { BadRequestError } from "../../errors/BadRequestError";
-import { ConflictError } from "../../errors/ConflictError";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { env } from "../../config";
-import { requireUserByClerkId } from "../../shared/require-user";
-import { assertValidCoordinates } from "../../shared/validation/coordinates";
-import * as driverRepository from "./driver.repository";
-import { ensureFakeDriversAround } from "./fake-drivers.simulator";
-import type { ApplyDriverDto, UpdateLocationDto } from "./driver.validation";
-import type { DriverPersonalInfo } from "./driver.types";
+import { BadRequestError } from "../../errors/BadRequestError.js";
+import { ConflictError } from "../../errors/ConflictError.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { env } from "../../config/index.js";
+import { requireUserByClerkId } from "../../shared/require-user.js";
+import { assertValidCoordinates } from "../../shared/validation/coordinates.js";
+import * as driverRepository from "./driver.repository.js";
+import { ensureFakeDriversAround } from "./fake-drivers.simulator.js";
+import type { ApplyDriverDto, UpdateLocationDto } from "./driver.validation.js";
+import type { DriverPersonalInfo } from "./driver.types.js";
 import {
   ApprovalStatus,
   Prisma,

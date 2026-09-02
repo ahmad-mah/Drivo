@@ -1,10 +1,10 @@
-export { env } from "./env";
-export { prisma, connectDatabase, disconnectDatabase } from "./database";
+export { env } from "./env.js";
+export { prisma, connectDatabase, disconnectDatabase } from "./database.js";
 export {
   DRIVER_STALE_MS,
   STALE_CHECK_INTERVAL_MS,
   NEARBY_DRIVERS_BROADCAST_MS,
-} from "./realtime";
+} from "./realtime.js";
 export {
   RIDE_TTL_MS,
   RIDE_EXPIRY_SWEEP_INTERVAL_MS,
@@ -23,4 +23,4 @@ export {
   RIDE_ENDED_GRACE_MS,
   RECENT_RIDES_LIMIT_DEFAULT,
   HISTORY_PAGE_SIZE,
-} from "./ride";
+} from "./ride.js";

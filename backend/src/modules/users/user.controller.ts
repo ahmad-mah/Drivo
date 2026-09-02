@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as userService from "./user.service";
-import { updateProfileSchema } from "./user.schema";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as userService from "./user.service.js";
+import { updateProfileSchema } from "./user.schema.js";
 
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = getAuth(req);

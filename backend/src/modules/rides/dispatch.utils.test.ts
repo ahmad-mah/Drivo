@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dispatchRadiusForAttempts, etaMinutesForDistanceKm } from "./dispatch.utils";
+import { dispatchRadiusForAttempts, etaMinutesForDistanceKm } from "./dispatch.utils.js";
 
 describe("dispatch radius ladder", () => {
   it("stays at the base rung while offers are fresh", () => {

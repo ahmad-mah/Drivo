@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BadRequestError } from "../../errors/BadRequestError";
+import { BadRequestError } from "../../errors/BadRequestError.js";
 
 export const INVALID_LOCATION_MSG = "Invalid location coordinates";
 

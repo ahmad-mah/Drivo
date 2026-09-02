@@ -1,14 +1,14 @@
-import { OFFER_TTL_MS, REOFFER_COOLDOWN_MS } from "../../config";
-import * as driverRepository from "../drivers/driver.repository";
+import { OFFER_TTL_MS, REOFFER_COOLDOWN_MS } from "../../config/index.js";
+import * as driverRepository from "../drivers/driver.repository.js";
 import {
   dispatchRadiusForAttempts,
   etaMinutesForDistanceKm,
-} from "./dispatch.utils";
+} from "./dispatch.utils.js";
 import {
   notifyNewRideRequest,
   type IncomingRideRequest,
-} from "./ride.notifications";
-import * as rideOfferRepository from "./ride-offer.repository";
+} from "./ride.notifications.js";
+import * as rideOfferRepository from "./ride-offer.repository.js";
 
 type DispatchableRide = Awaited<
   ReturnType<typeof rideOfferRepository.findUnofferedPendingRides>

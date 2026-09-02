@@ -1,6 +1,6 @@
-import { prisma } from "../../config/database";
+import { prisma } from "../../config/database.js";
 import type { Prisma } from "@prisma/client";
-import type { CreateUserFromClerkDto } from "./user.types";
+import type { CreateUserFromClerkDto } from "./user.types.js";
 
 export async function upsertFromClerk(
   data: CreateUserFromClerkDto,

@@ -1,13 +1,13 @@
-import { prisma } from "../../config/database";
-import { DRIVER_STALE_MS } from "../../config";
+import { prisma } from "../../config/database.js";
+import { DRIVER_STALE_MS } from "../../config/index.js";
 import {
   ApprovalStatus,
   RideStatus,
   type Prisma,
 } from "@prisma/client";
-import { ACTIVE_RIDE_STATUSES } from "../rides/trip-state-machine";
-import type { DriverPersonalInfo } from "./driver.types";
-import type { ApplyDriverDto } from "./driver.validation";
+import { ACTIVE_RIDE_STATUSES } from "../rides/trip-state-machine.js";
+import type { DriverPersonalInfo } from "./driver.types.js";
+import type { ApplyDriverDto } from "./driver.validation.js";
 
 export async function findByUserId(userId: string) {
   return prisma.driverProfile.findUnique({

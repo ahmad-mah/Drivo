@@ -1,7 +1,7 @@
 import type { WebhookEvent } from "@clerk/backend";
 import type { Prisma } from "@prisma/client";
-import { handleUserUpsert } from "./user-upsert";
-import { handleUserDeleted } from "./user-deleted";
+import { handleUserUpsert } from "./user-upsert.js";
+import { handleUserDeleted } from "./user-deleted.js";
 
 type Handler = (event: WebhookEvent, tx: Prisma.TransactionClient) => Promise<void>;
 

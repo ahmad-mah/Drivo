@@ -1,23 +1,23 @@
 import type { Server as HttpServer } from "node:http";
 import { Server } from "socket.io";
 import { Role } from "@prisma/client";
-import { env } from "../config";
+import { env } from "../config/index.js";
 import {
   DRIVER_STALE_MS,
   STALE_CHECK_INTERVAL_MS,
   NEARBY_DRIVERS_BROADCAST_MS,
-} from "../config";
-import * as driverRepository from "../modules/drivers/driver.repository";
-import * as driverService from "../modules/drivers/driver.service";
-import { assertValidCoordinates } from "../shared/validation/coordinates";
-import { authenticateSocket } from "./auth";
-import { broadcastDriversSnapshot, sendSnapshotTo } from "./snapshot";
-import { setSocketServer } from "./ride";
+} from "../config/index.js";
+import * as driverRepository from "../modules/drivers/driver.repository.js";
+import * as driverService from "../modules/drivers/driver.service.js";
+import { assertValidCoordinates } from "../shared/validation/coordinates.js";
+import { authenticateSocket } from "./auth.js";
+import { broadcastDriversSnapshot, sendSnapshotTo } from "./snapshot.js";
+import { setSocketServer } from "./ride.js";
 import {
   ADMINS_ROOM,
   EVENTS,
   type DriverLocationPayload,
-} from "./types";
+} from "./types.js";
 
 // Socket handlers run outside the Express error pipeline; a rejection here
 // would crash the process, so every handler routes through this catch.
@@ -198,7 +198,7 @@ export function broadcastNearbyDrivers(io: Server) {
   }, NEARBY_DRIVERS_THROTTLE_MS);
 }
 
-import { getSocketServer } from "./ride";
+import { getSocketServer } from "./ride.js";
 
 /**
  * Bypasses the throttle timer and emits the snapshot immediately — used when

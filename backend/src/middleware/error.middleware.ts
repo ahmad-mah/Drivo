@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
-import { AppError } from "../errors/AppError";
-import { ValidationError } from "../errors/ValidationError";
-import { env } from "../config/env";
+import { AppError } from "../errors/AppError.js";
+import { ValidationError } from "../errors/ValidationError.js";
+import { env } from "../config/env.js";
 
 export function errorHandler(
   err: Error,

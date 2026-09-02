@@ -1,5 +1,5 @@
 import { RideStatus, ApprovalStatus } from "@prisma/client";
-import { prisma } from "../../../config/database";
+import { prisma } from "../../../config/database.js";
 
 const CAIRO_TZ = "Africa/Cairo";
 

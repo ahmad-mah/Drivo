@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth.middleware";
-import { validate } from "../../middleware/validate.middleware";
+import { requireAuth } from "../../middleware/auth.middleware.js";
+import { validate } from "../../middleware/validate.middleware.js";
 import {
   rateRideSchema,
   requestRideSchema,
-} from "./ride.validation";
-import * as rideController from "./ride.controller";
+} from "./ride.validation.js";
+import * as rideController from "./ride.controller.js";
 
 const router = Router();
 

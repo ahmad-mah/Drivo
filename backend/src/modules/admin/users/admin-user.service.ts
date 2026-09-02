@@ -1,8 +1,8 @@
 import { Role } from "@prisma/client";
-import { prisma } from "../../../config/database";
-import { NotFoundError } from "../../../errors/NotFoundError";
-import { ConflictError } from "../../../errors/ConflictError";
-import { logAdminAction } from "../../../shared/rbac";
+import { prisma } from "../../../config/database.js";
+import { NotFoundError } from "../../../errors/NotFoundError.js";
+import { ConflictError } from "../../../errors/ConflictError.js";
+import { logAdminAction } from "../../../shared/rbac.js";
 
 export interface ListUsersParams {
   role?: Role;

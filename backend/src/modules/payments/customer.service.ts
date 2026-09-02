@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { prisma } from "../../config/database";
-import { env } from "../../config/env";
+import { prisma } from "../../config/database.js";
+import { env } from "../../config/env.js";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2026-08-26.dahlia",

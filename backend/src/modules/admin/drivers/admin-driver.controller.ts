@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { ApprovalStatus } from "@prisma/client";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as adminDriverService from "./admin-driver.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as adminDriverService from "./admin-driver.service.js";
 
 /**
  * GET /api/admin/drivers

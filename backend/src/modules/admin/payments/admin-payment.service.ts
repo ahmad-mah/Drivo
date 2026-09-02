@@ -1,7 +1,7 @@
 import { PayoutStatus } from "@prisma/client";
-import { prisma } from "../../../config/database";
-import { NotFoundError } from "../../../errors/NotFoundError";
-import { logAdminAction } from "../../../shared/rbac";
+import { prisma } from "../../../config/database.js";
+import { NotFoundError } from "../../../errors/NotFoundError.js";
+import { logAdminAction } from "../../../shared/rbac.js";
 
 export async function listPayouts(params: { status?: PayoutStatus; page?: number; limit?: number }) {
   const page = params.page ?? 1;

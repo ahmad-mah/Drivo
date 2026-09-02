@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
-import { NEARBY_RADIUS_KM } from "../../config";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as driverService from "./driver.service";
+import { NEARBY_RADIUS_KM } from "../../config/index.js";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as driverService from "./driver.service.js";
 
 /**
  * POST /api/drivers/apply

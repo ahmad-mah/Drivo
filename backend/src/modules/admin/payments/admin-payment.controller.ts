@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { PayoutStatus } from "@prisma/client";
-import { asyncHandler } from "../../../middleware/async-handler";
-import * as svc from "./admin-payment.service";
+import { asyncHandler } from "../../../middleware/async-handler.js";
+import * as svc from "./admin-payment.service.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const result = await svc.listPayouts({

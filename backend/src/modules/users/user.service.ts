@@ -1,9 +1,9 @@
 import { clerkClient } from "@clerk/express";
 import type { Prisma } from "@prisma/client";
-import type { CreateUserFromClerkDto } from "./user.types";
-import type { UpdateProfileDto } from "./user.schema";
-import { requireUserByClerkId } from "../../shared/require-user";
-import * as userRepository from "./user.repository";
+import type { CreateUserFromClerkDto } from "./user.types.js";
+import type { UpdateProfileDto } from "./user.schema.js";
+import { requireUserByClerkId } from "../../shared/require-user.js";
+import * as userRepository from "./user.repository.js";
 
 // Fields editable here that Clerk also stores. Extend when a new PATCH field is Clerk-eligible.
 // imageUrl is excluded: Clerk stores image files (uploaded client-side via setProfileImage), not URLs.

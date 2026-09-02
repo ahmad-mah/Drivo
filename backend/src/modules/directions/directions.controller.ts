@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as directionsService from "./directions.service";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as directionsService from "./directions.service.js";
 
 function coord(value: unknown): number | undefined {
   if (typeof value !== "string" || value.trim() === "") {

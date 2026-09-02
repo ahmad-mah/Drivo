@@ -1,8 +1,8 @@
-import { BadRequestError } from "../../../errors/BadRequestError";
-import { NotFoundError } from "../../../errors/NotFoundError";
+import { BadRequestError } from "../../../errors/BadRequestError.js";
+import { NotFoundError } from "../../../errors/NotFoundError.js";
 import { ApprovalStatus, RideStatus, type Prisma } from "@prisma/client";
-import { prisma } from "../../../config/database";
-import * as driverRepository from "../../drivers/driver.repository";
+import { prisma } from "../../../config/database.js";
+import * as driverRepository from "../../drivers/driver.repository.js";
 
 /**
  * Declarative admin transition map.

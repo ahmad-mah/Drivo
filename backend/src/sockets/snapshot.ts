@@ -1,6 +1,6 @@
 import type { Server } from "socket.io";
-import * as driverRepository from "../modules/drivers/driver.repository";
-import { ADMINS_ROOM, type AdminDriversSnapshotMember } from "./types";
+import * as driverRepository from "../modules/drivers/driver.repository.js";
+import { ADMINS_ROOM, type AdminDriversSnapshotMember } from "./types.js";
 
 const SNAPSHOT_THROTTLE_MS = 1000;
 

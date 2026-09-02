@@ -1,5 +1,5 @@
-import { getStripe } from "../payments.service";
-import { prisma } from "../../../config/database";
+import { getStripe } from "../payments.service.js";
+import { prisma } from "../../../config/database.js";
 
 export async function createTransfer(
   rideId: string,

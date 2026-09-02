@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth.middleware";
-import { validate } from "../../middleware/validate.middleware";
-import { payForRideSchema } from "./payments.validation";
-import * as paymentsController from "./payments.controller";
-import { getConnectAccountStatus } from "../drivers/connect/connect.service";
+import { requireAuth } from "../../middleware/auth.middleware.js";
+import { validate } from "../../middleware/validate.middleware.js";
+import { payForRideSchema } from "./payments.validation.js";
+import * as paymentsController from "./payments.controller.js";
+import { getConnectAccountStatus } from "../drivers/connect/connect.service.js";
 
 const router = Router();
 

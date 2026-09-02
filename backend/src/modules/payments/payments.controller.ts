@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
-import { asyncHandler } from "../../middleware/async-handler";
-import * as paymentsService from "./payments.service";
-import { requireUserByClerkId } from "../../shared/require-user";
-import { payForRideSchema } from "./payments.validation";
-import { env } from "../../config/env";
+import { asyncHandler } from "../../middleware/async-handler.js";
+import * as paymentsService from "./payments.service.js";
+import { requireUserByClerkId } from "../../shared/require-user.js";
+import { payForRideSchema } from "./payments.validation.js";
+import { env } from "../../config/env.js";
 import Stripe from "stripe";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "", {
