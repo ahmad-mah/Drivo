@@ -63,6 +63,10 @@ module.exports = () => ({
       ],
     ],
     extra: {
+      router: {},
+      eas: {
+        projectId: "dc4b5367-84e8-46e2-b0b9-97cb2aa1bfc6",
+      },
       EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID:
         process.env.EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID,
       EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID:
