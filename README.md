@@ -55,6 +55,66 @@ Drivo is a ride-hailing MVP combining a driver mode (sign up → get approved �
 
 Both clients talk to the same Express API. Drivers stream location via socket.io → server throttles broadcasts → admin receives the 1s snapshot for the live map, KPIs, and alerts.
 
+---
+
+## Tech Stack
+
+### Mobile App
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| Framework | React Native + Expo SDK 56 | Cross-platform mobile build |
+| Routing | Expo Router (file-based) | File-system navigation |
+| Styling | NativeWind v5 (Tailwind CSS) | Utility-first CSS |
+| State | React Hook Form + Zod v4 | Form handling + validation |
+| Auth | Clerk Expo | Social + email auth |
+| Maps | react-native-maps | Native Google Maps |
+| Payments | Stripe React Native | PaymentSheet UI |
+| Real-time | Socket.io Client | Live ride updates |
+| Location | expo-location + expo-task-manager | Background GPS streaming |
+| i18n | i18next + react-i18next | English + Arabic (RTL) |
+
+### Backend
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| Runtime | Node.js + Express 4 | HTTP API server |
+| Language | TypeScript 5.8 (ESM) | Type-safe modules |
+| ORM | Prisma 6.6 | Schema-first database access |
+| Database | PostgreSQL (Neon) | Serverless Postgres |
+| Auth | Clerk (Express + Backend SDK) | JWT verification, RBAC |
+| Payments | Stripe (Connect + Webhooks) | PaymentIntents, driver payouts |
+| Real-time | Socket.io 4.8 | Bidirectional events |
+| Validation | Zod | Request/response schemas |
+| Security | Helmet, CORS | HTTP hardening |
+
+### Admin Dashboard
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| Framework | React 19 + Vite 8 | SPA build tool |
+| Routing | React Router DOM 7 | Client-side routing |
+| Data | TanStack React Query 5 | Server state + caching |
+| Styling | Tailwind CSS 4 | Utility-first CSS |
+| Charts | Recharts 3 | Revenue, completion stats |
+| Maps | Leaflet + React Leaflet | Live driver map |
+| Real-time | Socket.io Client | Live updates |
+| Auth | Clerk React | Admin sign-in |
+| i18n | i18next + react-i18next | English + Arabic (RTL) |
+
+### Infrastructure
+
+| Service | Platform | Details |
+|---------|----------|---------|
+| Backend | Railway | Docker multi-stage build, Prisma migrations |
+| Admin | Vercel | Static SPA via Vite |
+| Mobile | EAS Build | Internal APK distribution |
+| Database | Neon | Serverless PostgreSQL with branching |
+| Auth | Clerk | Managed authentication |
+| Payments | Stripe Connect | Marketplace payments + driver payouts |
+
+---
+
 ## Screenshots
 
 ### Mobile App — All Screens
@@ -133,37 +193,327 @@ Both clients talk to the same Express API. Drivers stream location via socket.io
 | **Admin Audit** | Full audit log of admin actions |
 | **i18n** | English and Arabic (RTL) support across all three projects |
 
-## Getting Started
+---
 
-### Backend
+## Ride Lifecycle
 
-```bash
-cd backend
-npm install
-cp .env.example .env       # fill DATABASE_URL, Clerk keys, Stripe keys
-npx prisma migrate dev
-npm run dev                # → http://localhost:3000
+The ride state machine is the core business logic — a single source of truth for which status may follow which. Illegal transitions are impossible by design.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : Rider requests ride
+    PENDING --> ACCEPTED : Driver accepts offer
+    PENDING --> CANCELLED : Rider cancels
+    PENDING --> EXPIRED : 60s TTL or no drivers found
+
+    ACCEPTED --> ARRIVED : Driver arrives at pickup
+    ACCEPTED --> PENDING : Driver cancels → re-dispatch
+    ACCEPTED --> CANCELLED : Rider cancels
+
+    ARRIVED --> IN_PROGRESS : Driver starts trip
+    ARRIVED --> PENDING : Driver cancels → re-dispatch
+    ARRIVED --> CANCELLED : Rider cancels
+
+    IN_PROGRESS --> TRIP_ENDED : Driver arrives at destination
+    IN_PROGRESS --> CANCELLED : Driver cancels mid-trip
+
+    TRIP_ENDED --> COMPLETED : Rider pays + rates
+
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+    EXPIRED --> [*]
 ```
 
-### Mobile
+### State transitions
 
-```bash
-cd mobile
-npm install
-cp .env.example .env       # fill EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
-npx expo run:android       # dev build — required for background location
+| From | To | Trigger |
+|------|-----|---------|
+| PENDING | ACCEPTED | Driver accepts dispatch offer |
+| PENDING | CANCELLED | Rider cancels |
+| PENDING | EXPIRED | 60s TTL expires, no driver accepted |
+| ACCEPTED | ARRIVED | Driver arrives at pickup location |
+| ACCEPTED | PENDING | Driver cancels — ride re-dispatches to next candidate |
+| ACCEPTED | CANCELLED | Rider cancels |
+| ARRIVED | IN_PROGRESS | Driver starts the trip |
+| ARRIVED | PENDING | Driver cancels — ride re-dispatches |
+| ARRIVED | CANCELLED | Rider cancels |
+| IN_PROGRESS | TRIP_ENDED | Driver arrives at destination |
+| IN_PROGRESS | CANCELLED | Driver cancels mid-trip |
+| TRIP_ENDED | COMPLETED | Payment captured + rider rates |
+
+### Dispatch flow
+
+1. Rider requests ride → created as `PENDING` with `expiresAt = now + 60s`
+2. Dispatcher ticks every **1s**, finds unoffered pending rides
+3. For each ride: count failed offers → determine radius (3km → 6km → 12km, widens every 2 failures)
+4. Query nearest eligible driver (online, approved, fresh heartbeat, no active trip)
+5. Exclude drivers who responded within last **30s cooldown**
+6. Create offer → emit `ride:new-request` to driver's socket
+7. Driver has **20s** to respond:
+   - **Accept** → ride `ACCEPTED`, all other offers expired atomically
+   - **Reject** → offer `REJECTED`, next tick escalates to next candidate
+   - **Timeout** → offer `EXPIRED`, next tick escalates
+8. If no candidates at max radius (12km) → ride stays `PENDING` until 60s TTL
+
+---
+
+## Authentication
+
+### Architecture
+
+Clerk handles all authentication — no custom JWT implementation. The system has two roles: `USER` and `ADMIN`.
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Mobile App  │────→│ Clerk SDK   │────→│ Clerk API   │
+│  (Expo RN)   │←────│ (token)     │←────│ (JWT sign)  │
+└──────┬───────┘     └─────────────┘     └─────────────┘
+       │
+       │ HTTP + Clerk JWT
+       ▼
+┌─────────────┐     ┌─────────────┐
+│  @clerk/    │────→│  verifyToken │
+│  express    │     │  (RBAC)     │
+└─────────────┘     └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │  PostgreSQL  │
+                    │  (role check)│
+                    └─────────────┘
 ```
 
-> Background location + live driver task require native modules. Rebuild after `npm install`.
+### HTTP auth flow
 
-### Admin
+1. Mobile app obtains a Clerk session token after sign-in
+2. Every API request includes `Authorization: Bearer <clerk_session_token>`
+3. `@clerk/express` middleware calls `getAuth(req)` to verify the JWT
+4. If `auth.isAuthenticated === false` → HTTP 401
+5. For admin routes: `requireAdminPermission(permission)` middleware checks:
+   - User exists in DB with `role === ADMIN`
+   - User has the specific permission (19 granular permissions defined)
+   - Action is logged to `AdminAuditLog`
 
-```bash
-cd admin
-npm install
-cp .env.example .env.local
-npm run dev                # → http://localhost:5173
+### Socket auth flow
+
+Socket.io connections can't use Express middleware, so auth is handled separately:
+
+1. Client connects with `socket.handshake.auth.token` (Clerk session JWT)
+2. Server calls `verifyToken(token, { secretKey })` from `@clerk/backend`
+3. Extracts `payload.sub` as `clerkId`, looks up user in DB
+4. Sets `socket.data.user = { userId, clerkId, role }`
+5. Socket joins its own `clerkId` room for targeted events
+
+### RBAC permissions
+
 ```
+dashboard.read, dashboard.manage
+trips.read, trips.manage, trips.cancel
+drivers.read, drivers.approve, drivers.suspend
+users.read, users.block, users.manage
+payments.read, payments.refund
+promos.manage
+support.read, support.manage
+settings.manage
+audit.read
+```
+
+---
+
+## Real-Time Communication
+
+### Architecture
+
+```
+Mobile Driver                    Server                     Admin Dashboard
+     │                              │                              │
+     │── driver:location ──────────→│                              │
+     │                              │── broadcastNearbyDrivers()   │
+     │                              │   (1s throttle, dirty flag)  │
+     │←─ drivers:nearby ───────────│                              │
+     │                              │                              │
+     │── driver:heartbeat ─────────→│                              │
+     │                              │── refreshSeenAt()            │
+     │                              │                              │
+     │                              │── stale sweep (5s)           │
+     │                              │   mark offline if silent 15s │
+     │                              │                              │
+     │                              │── sendSnapshotTo(io) ───────→│
+     │                              │   (1s throttle, dirty flag)  │
+     │                              │   drivers:locations          │
+```
+
+### Location throttling
+
+Drivers emit `driver:location` with `{ lat, lng, heading }`. The server uses a **dirty-flag + setTimeout coalescing** pattern:
+
+- When a location arrives: set `nearbyDriversDirty = true`, start a 1s timer if not running
+- When the timer fires: build payload from all cached positions, emit `drivers:nearby` to all sockets, reset dirty flag
+- `flushNearbyDriversNow()` bypasses the throttle for immediate delivery (e.g., driver comes online)
+
+The admin live map uses the same pattern — a separate 1s throttle emits `drivers:locations` to the `admins` room.
+
+### Stale driver detection
+
+Server-side liveness checking (device is not trusted):
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `DRIVER_STALE_MS` | 15s | Silence threshold before offline |
+| `STALE_CHECK_INTERVAL_MS` | 5s | Sweep frequency |
+| `NEARBY_DRIVERS_BROADCAST_MS` | 1s | Broadcast coalescing window |
+
+Every 5s, the sweep runs: any driver with `isOnline = true` and `lastSeenAt < now - 15s` gets flipped offline. If any rows changed, a fresh snapshot is broadcast to admins and riders.
+
+### Dispatch timing
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `OFFER_TTL_MS` | 20s | Driver response window |
+| `REOFFER_COOLDOWN_MS` | 30s | Cooldown before re-offering to same driver |
+| `RIDE_TTL_MS` | 60s | Total ride lifetime |
+| `DISPATCH_SWEEP_INTERVAL_MS` | 1s | Dispatcher tick frequency |
+| `DISPATCH_RADIUS_LADDER_KM` | [3, 6, 12] | Progressive search radius |
+| `WIDEN_EVERY_OFFERS` | 2 | Failed offers before radius widens |
+
+---
+
+## Database Design
+
+12 tables across 4 domains — users, rides, payments, and admin.
+
+```mermaid
+erDiagram
+    User ||--o| DriverProfile : has
+    User ||--o{ Ride : requests
+    User ||--o{ SupportTicket : files
+    User ||--o{ PromoCode : creates
+    User ||--o{ AdminAuditLog : logs
+
+    DriverProfile ||--o{ Ride : drives
+    DriverProfile ||--o{ RideOffer : receives
+    DriverProfile ||--o{ DriverPayout : earns
+    DriverProfile ||--o| StripeConnectAccount : links
+
+    Ride ||--o{ RideOffer : dispatched_to
+    Ride ||--o| PaymentIntentRecord : paid_via
+    Ride ||--o{ SupportTicket : disputed_in
+
+    User {
+        string id
+        string email
+        string clerkId
+        string role
+        string stripeCustomerId
+    }
+
+    DriverProfile {
+        string id
+        string userId
+        string approvalStatus
+        boolean isOnline
+        float latitude
+        float longitude
+        datetime lastSeenAt
+    }
+
+    Ride {
+        string id
+        string userId
+        string driverId
+        string status
+        float originLatitude
+        float originLongitude
+        float destinationLatitude
+        float destinationLongitude
+        float distanceKm
+        decimal fare
+        string paymentStatus
+        datetime expiresAt
+    }
+
+    RideOffer {
+        string id
+        string rideId
+        string driverId
+        string status
+        float distanceKm
+        datetime offeredAt
+    }
+
+    PaymentIntentRecord {
+        string id
+        string rideId
+        string userId
+        string stripePiId
+        int grossAmount
+        int platformFee
+        int driverShare
+        string status
+        string transferStatus
+    }
+
+    StripeConnectAccount {
+        string id
+        string driverId
+        string accountId
+        boolean chargesEnabled
+        boolean payoutsEnabled
+    }
+
+    AdminAuditLog {
+        string id
+        string adminId
+        string action
+        string targetType
+        string targetId
+    }
+
+    SupportTicket {
+        string id
+        string userId
+        string rideId
+        string category
+        string status
+        string priority
+    }
+
+    DriverPayout {
+        string id
+        string driverId
+        datetime periodStart
+        datetime periodEnd
+        decimal grossEarnings
+        decimal netAmount
+        string status
+    }
+```
+
+### Key tables
+
+| Domain | Tables | Purpose |
+|--------|--------|---------|
+| **Users** | `User`, `DriverProfile` | Rider accounts + driver applications with GPS state |
+| **Rides** | `Ride`, `RideOffer` | Ride lifecycle + per-driver dispatch offers |
+| **Payments** | `PaymentIntentRecord`, `StripeConnectAccount` | Stripe PI tracking + driver Connect onboarding |
+| **Admin** | `AdminAuditLog`, `PromoCode`, `SupportTicket`, `DriverPayout` | Audit trail, promotions, support, payouts |
+
+### Performance indexes
+
+```sql
+-- Driver location queries (nearest driver dispatch)
+CREATE INDEX idx_driver_online_lastseen ON driver_profiles (is_online, last_seen_at);
+CREATE INDEX idx_driver_online_approval ON driver_profiles (is_online, approval_status);
+
+-- Ride queries (active ride lookup, expiry sweep)
+CREATE INDEX idx_ride_user_status_created ON rides (user_id, status, created_at);
+CREATE INDEX idx_ride_status_expires ON rides (status, expires_at);
+
+-- Offer queries (dispatch + re-offer cooldown)
+CREATE INDEX idx_offer_driver_status ON ride_offers (driver_id, status);
+CREATE INDEX idx_offer_ride_status ON ride_offers (ride_id, status);
+```
+
+---
 
 ## Architecture
 
@@ -238,9 +588,43 @@ src/
 └── types/admin.ts               # Shared TypeScript types
 ```
 
+---
+
+## Engineering Decisions
+
+### Why Express over NestJS?
+
+Express was chosen for speed of iteration. NestJS adds decorators, modules, and dependency injection that pay off at scale — but for an MVP with a small team, Express + TypeScript gives the same type safety with less ceremony. The module structure (`modules/rides/`, `modules/drivers/`) provides organization without framework overhead.
+
+### Why Prisma over Drizzle?
+
+Prisma's schema-first approach made the data model the source of truth. The generated client catches relation errors at compile time, and `prisma migrate` handles schema evolution. Drizzle is lighter and closer to SQL, but Prisma's DX (autocomplete, relation queries, transaction API) was more productive for a solo developer.
+
+### Why Socket.io over native WebSocket?
+
+Socket.io provides automatic reconnection, room-based routing, and fallback to long-polling. The driver location system relies on rooms (`admins`, per-clerkId rooms) and broadcast patterns that would require significant boilerplate with raw WebSocket. The overhead is negligible for this scale.
+
+### Why Clerk over Firebase Auth or Supabase Auth?
+
+Clerk provides managed user management with built-in social providers (Google), multi-factor support, and session handling. The Expo SDK integrates cleanly with token caching. Firebase Auth would lock us into Google's ecosystem; Supabase Auth requires running a separate service. Clerk's webhook for user sync kept the backend in sync without custom JWT verification.
+
+### Why Neon over Supabase or self-hosted Postgres?
+
+Neon's serverless Postgres scales to zero when idle (free tier), provides branching for preview environments, and requires no infrastructure management. Supabase adds a real-time layer we don't need (we use Socket.io), and self-hosted Postgres would require maintaining a VM.
+
+### Why multi-stage Docker build?
+
+The production image only contains the compiled JS and node_modules — no TypeScript, no devDependencies, no source code. This reduces the image from ~800MB to ~200MB and eliminates dev-only attack surface. The build stage runs `prisma generate` and `tsc`, the production stage runs `node dist/server.js`.
+
+### Why progressive dispatch radius?
+
+Starting at 3km and widening to 6km then 12km every 2 failed offers mimics Uber's dispatch strategy. It exhausts nearby drivers before reaching further ones, reducing average pickup time. The 30s re-offer cooldown prevents spam while giving rejected drivers a second chance.
+
+---
+
 ## API Reference
 
-Base URL: `http://localhost:3000/api`
+Base URL: `https://drivo-production-22df.up.railway.app/api`
 
 ### Rides
 
@@ -312,6 +696,7 @@ Base URL: `http://localhost:3000/api`
 | `driver:online` | driver → server | Driver declares online (gated on APPROVED) |
 | `driver:offline` | driver → server | Driver declares offline |
 | `driver:location` | driver → server | Live position ping |
+| `driver:heartbeat` | driver → server | Liveness ping (no location change) |
 | `driver:status` | server → driver | ACK the online transition |
 | `admin:join` | admin → server | Subscribe to driver locations |
 | `drivers:locations` | server → admin | Full snapshot (1s throttle) |
@@ -325,6 +710,40 @@ Base URL: `http://localhost:3000/api`
 | `admin:driver:status` | server → admin | Driver online/offline/approval status |
 | `admin:overview:update` | server → admin | Overview data refresh push |
 | `admin:alert` | server → admin | Alert notification (long wait, stuck trip, pending approval) |
+
+---
+
+## Getting Started
+
+### Backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env       # fill DATABASE_URL, Clerk keys, Stripe keys
+npx prisma migrate dev
+npm run dev                # → http://localhost:3000
+```
+
+### Mobile
+
+```bash
+cd mobile
+npm install
+cp .env.example .env       # fill EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
+npx expo run:android       # dev build — required for background location
+```
+
+> Background location + live driver task require native modules. Rebuild after `npm install`.
+
+### Admin
+
+```bash
+cd admin
+npm install
+cp .env.example .env.local
+npm run dev                # → http://localhost:5173
+```
 
 ## Development Workflow
 
