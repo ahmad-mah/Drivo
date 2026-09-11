@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import * as ridesApi from "@/api/rides/rides.api";
-import { TERMINAL_RIDE_STATUSES } from "@/features/rides/enums/RideStatus";
 import { toLiveRide } from "@/features/rides/utils/ridePhase";
 import { ApiError, getErrorMessage } from "@/errors";
 import type { Ride } from "../types/ride.types";

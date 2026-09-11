@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { AppButton, AppDialog, AppTextInput } from "@/shared/components";
 import { StarRatingInput } from "@/features/rides/components/StarRatingInput";
 import type { Ride } from "@/features/rides/types/ride.types";
@@ -26,27 +27,36 @@ export function RatingSheet({
 
   return (
     <AppDialog visible={ride != null} onClose={onClose}>
-      <Text className="text-center font-Jakarta-Bold text-lg text-secondary-900">
-        Rate your driver
-      </Text>
-      <View className="mt-4 items-center">
-        <StarRatingInput value={stars} onChange={setStars} disabled={submitting} />
-      </View>
-      <AppTextInput
-        placeholder="Add a comment (optional)"
-        value={comment}
-        onChangeText={setComment}
-        maxLength={300}
-      />
-      <View className="mt-5 w-full gap-2">
-        <AppButton
-          title="Submit"
-          disabled={stars == null || submitting}
-          loading={submitting}
-          onPress={() => ride && stars != null && onSubmit(ride.id, stars, comment || undefined)}
+      <KeyboardAwareScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={20}
+        contentContainerClassName="pb-4"
+      >
+        <Text className="text-center font-Jakarta-Bold text-lg text-secondary-900">
+          Rate your driver
+        </Text>
+        <View className="mt-4 items-center">
+          <StarRatingInput value={stars} onChange={setStars} disabled={submitting} />
+        </View>
+        <AppTextInput
+          placeholder="Add a comment (optional)"
+          value={comment}
+          onChangeText={setComment}
+          maxLength={300}
+          returnKeyType="done"
         />
-        <AppButton title="Skip" variant="outline" onPress={onClose} disabled={submitting} />
-      </View>
+        <View className="mt-5 w-full gap-2">
+          <AppButton
+            title="Submit"
+            disabled={stars == null || submitting}
+            loading={submitting}
+            onPress={() => ride && stars != null && onSubmit(ride.id, stars, comment || undefined)}
+          />
+          <AppButton title="Skip" variant="outline" onPress={onClose} disabled={submitting} />
+        </View>
+      </KeyboardAwareScrollView>
     </AppDialog>
   );
 }

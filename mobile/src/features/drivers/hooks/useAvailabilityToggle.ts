@@ -1,4 +1,4 @@
-import { useCallback, useState, type MutableRefObject } from "react";
+import { useCallback, useState, type RefObject } from "react";
 import { updateAvailability } from "@/api/drivers/drivers.api";
 import { getErrorMessage } from "@/errors";
 import type { ConnectivityStatus } from "@/providers/ConnectivityProvider";
@@ -25,7 +25,7 @@ interface UseAvailabilityToggleOptions {
   setBusy: (value: boolean) => void;
   setError: (message: string | null) => void;
   onGpsCheck: (available: boolean) => void;
-  pendingAckRef: MutableRefObject<boolean>;
+  pendingAckRef: RefObject<boolean>;
 }
 
 /**

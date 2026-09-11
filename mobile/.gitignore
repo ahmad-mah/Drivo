@@ -45,4 +45,6 @@ example
 
 
 # EAS build inspection output
-/build-inspect
+/build-inspectandroid/app/keystore.jks
+credentials.json
+credentials/

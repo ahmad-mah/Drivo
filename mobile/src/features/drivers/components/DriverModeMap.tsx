@@ -63,7 +63,7 @@ export function DriverModeMap({ location, autoOffline }: DriverModeMapProps) {
         onPanDrag={() => setUserPanned(true)}
       />
       {!autoOffline && (
-        <View className="absolute inset-e-4 bottom-56">
+        <View className="absolute inset-e-4 bottom-72">
           <RecenterButton onPress={recenterToUser} />
         </View>
       )}

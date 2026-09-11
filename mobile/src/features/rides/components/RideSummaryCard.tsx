@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppImage } from "@/shared/components/AppImage";
-import { cn } from "@/shared/utils/cn";
 
 export type RideSummary = {
   mapImage: string;

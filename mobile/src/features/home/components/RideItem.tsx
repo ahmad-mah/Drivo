@@ -1,56 +1,29 @@
 import { memo } from "react";
 import { Text, View } from "react-native";
 import { AppImage } from "@/shared/components";
-import { RideStatus, RidePaymentStatus } from "@/features/rides/enums/RideStatus";
+import { RideStatus } from "@/features/rides/enums/RideStatus";
 import { CANCEL_REASON_LABELS } from "@/features/rides/enums/CancellationReason";
 import { RideMapThumbnail } from "@/features/rides/components/RideMapThumbnail";
 import type { Ride } from "@/features/rides/types/ride.types";
-
-function formatDate(iso: string) {
-  const date = new Date(iso);
-  const day = date.getDate();
-  const month = date.toLocaleString(undefined, { month: "long" });
-  const year = date.getFullYear();
-  const time = date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${day} ${month} ${year}, ${time}`;
-}
-
-function paymentLabel(status: RideStatus): string {
-  if (status === RideStatus.COMPLETED) return "Paid";
-  if (status === RideStatus.CANCELLED) return "Cancelled";
-  if (status === RideStatus.EXPIRED) return "Expired";
-  return status;
-}
-
-function paymentStatusColor(
-  rideStatus: RideStatus,
-  paymentStatus: RidePaymentStatus | null,
-): string | undefined {
-  if (rideStatus === RideStatus.CANCELLED || rideStatus === RideStatus.EXPIRED)
-    return "text-red-500";
-  if (rideStatus === RideStatus.COMPLETED || paymentStatus === RidePaymentStatus.PAID)
-    return "text-green-600";
-  if (paymentStatus === RidePaymentStatus.PENDING) return "text-yellow-500";
-  return undefined;
-}
+import {
+  formatDate,
+  paymentLabel,
+  paymentStatusColor,
+  driverDisplayName,
+} from "@/features/rides/utils/rideDisplay";
 
 export const RideItem = memo(function RideItem({
   item,
   onRate,
+  isInView,
 }: {
   item: Ride;
   onRate?: (ride: Ride) => void;
+  isInView?: boolean;
 }) {
   const cancelled = item.status === RideStatus.CANCELLED;
   const expired = item.status === RideStatus.EXPIRED;
   const completed = item.status === RideStatus.COMPLETED;
-  const driverName =
-    item.driverFirstName || item.driverLastName
-      ? `${item.driverFirstName ?? ""} ${item.driverLastName ?? ""}`.trim()
-      : "—";
 
   return (
     <View
@@ -65,7 +38,11 @@ export const RideItem = memo(function RideItem({
     >
       {/* Top section: map + locations */}
       <View className="mb-3.5 flex-row items-center gap-3">
-        <RideMapThumbnail item={item} />
+        {isInView ? (
+          <RideMapThumbnail item={item} />
+        ) : (
+          <View className="size-20 rounded-xl bg-general-300" />
+        )}
 
         <View className="flex-1 justify-center gap-2.5">
           <View className="flex-row items-center gap-2.5">
@@ -100,7 +77,10 @@ export const RideItem = memo(function RideItem({
       {/* Info container */}
       <View className="overflow-hidden rounded-2xl bg-primary-100">
         <InfoRow label="Date & Time" value={formatDate(item.createdAt)} />
-        <InfoRow label="Driver" value={driverName} />
+        <InfoRow
+          label="Driver"
+          value={driverDisplayName(item.driverFirstName, item.driverLastName)}
+        />
         <InfoRow
           label="Car seats"
           value={item.seats != null ? String(item.seats) : "—"}
@@ -142,7 +122,7 @@ export const RideItem = memo(function RideItem({
   );
 });
 
-function InfoRow({
+const InfoRow = memo(function InfoRow({
   label,
   value,
   valueClassName,
@@ -171,4 +151,4 @@ function InfoRow({
       </Text>
     </View>
   );
-}
+});

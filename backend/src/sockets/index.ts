@@ -139,6 +139,16 @@ export function initSocketServer(httpServer: HttpServer) {
         await sendSnapshotTo(io);
       }),
     );
+
+    // When the socket drops (app kill, network loss, battery death) the driver
+    // goes offline immediately instead of waiting for the stale sweep.
+    // goOffline() has an active-trip guard — won't strand a rider mid-ride.
+    socket.on("disconnect", () => {
+      void driverService.goOffline(clerkId).then(() => {
+        broadcastDriversSnapshot(io);
+        broadcastNearbyDrivers(io);
+      });
+    });
   });
 
   // Silence is treated as offline: drivers that stop pinging the server are

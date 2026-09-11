@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppButton, AppDialog } from "@/shared/components";
+import { AppButton } from "@/shared/components";
 import { RideStatus } from "@/features/rides/enums/RideStatus";
 import type { Ride } from "@/features/rides/types/ride.types";
+import { formatCountdown } from "@/shared/utils/format";
 import {
   TRIP_PRIMARY_LABELS,
   TRIP_STATUS_HINTS,
+  getPrimaryHandler,
 } from "../constants/tripPanelConfig";
+import { useTripTimers } from "../hooks/useTripTimers";
+import { CancelTripDialog } from "./CancelTripDialog";
 import { DriverTripSummaryDialog } from "./DriverTripSummaryDialog";
 
 interface TripPanelProps {
@@ -22,13 +26,6 @@ interface TripPanelProps {
   onNoShow: () => void;
   /** Clears the completed trip so the availability footer comes back. */
   onDismissSummary: () => void;
-}
-
-function formatCountdown(seconds: number) {
-  const clamped = Math.max(0, Math.ceil(seconds));
-  const minutes = Math.floor(clamped / 60);
-  const secs = clamped % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }
 
 /**
@@ -54,57 +51,16 @@ export function TripPanel({
   const inProgress = trip.status === RideStatus.IN_PROGRESS;
   const tripEnded = trip.status === RideStatus.TRIP_ENDED;
   const arrived = trip.status === RideStatus.ARRIVED;
-  const paymentPaid = (trip as any).paymentStatus === "PAID";
-  const [confirmingCancel, setConfirmingCancel] = useState(false);
-  // Wait countdown: deadline syncs when the status flips to ARRIVED —
-  // capturing it at mount would freeze it to null (ACCEPTED sends no window).
-  const [noShow, setNoShow] = useState<{
-    deadline: number;
-    total: number;
-  } | null>(null);
-  const [noShowLeft, setNoShowLeft] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!arrived) return;
-    if (rideNoShowSeconds(trip) == null) return;
-    if (noShow) return;
-    const total = rideNoShowSeconds(trip) as number;
-    setNoShow({ deadline: Date.now() + total * 1000, total });
-    setNoShowLeft(total);
-  }, [arrived, trip, noShow]);
-
-  useEffect(() => {
-    if (!arrived || !noShow) return;
-    const timer = setInterval(() => {
-      setNoShowLeft(Math.max(0, (noShow.deadline - Date.now()) / 1000));
-    }, 500);
-    return () => clearInterval(timer);
-  }, [arrived, noShow]);
-
-  // Trip elapsed counter: same relative-capture pattern, counting UP.
-  const elapsedBase = useRef(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  useEffect(() => {
-    if (!inProgress) return;
-    elapsedBase.current = trip.tripElapsedSeconds ?? 0;
-    setElapsedSeconds(elapsedBase.current);
-    const timer = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [inProgress, trip]);
-
-  const noShowReady = arrived && noShow != null && (noShowLeft ?? 0) <= 0;
+  const paymentPaid = trip.paymentStatus === "PAID";
   const [summaryDismissed, setSummaryDismissed] = useState(false);
+  const { elapsedSeconds, noShowLeft, noShowReady } = useTripTimers(trip);
 
-  const onPrimary =
-    trip.status === RideStatus.ACCEPTED
-      ? onArrive
-      : trip.status === RideStatus.ARRIVED
-        ? onStart
-        : trip.status === RideStatus.IN_PROGRESS
-          ? onArrivedAtDestination
-          : onComplete;
+  const onPrimary = getPrimaryHandler(trip.status, {
+    onArrive,
+    onStart,
+    onArrivedAtDestination,
+    onComplete,
+  });
 
   return (
     <>
@@ -161,7 +117,10 @@ export function TripPanel({
                   className="h-full rounded-full bg-green-500"
                   style={{
                     width: `${Math.round(
-                      Math.max(0, Math.min(1, noShowLeft / (noShow?.total || 1))) * 100,
+                      Math.max(
+                        0,
+                        Math.min(1, noShowLeft / (trip.noShowInSeconds || 1)),
+                      ) * 100,
                     )}%`,
                   }}
                 />
@@ -173,7 +132,9 @@ export function TripPanel({
             </Text>
           ) : tripEnded ? (
             <Text className="font-Jakarta-Bold text-base text-secondary-900">
-              {paymentPaid ? "Payment confirmed — tap to complete" : "Waiting for rider to pay..."}
+              {paymentPaid
+                ? "Payment confirmed — tap to complete"
+                : "Waiting for rider to pay..."}
             </Text>
           ) : (
             <Text className="font-Jakarta text-xs text-secondary-400">
@@ -197,70 +158,14 @@ export function TripPanel({
             />
           )}
 
-          <AppButton
-            title={inProgress ? "Cancel trip" : "Cancel ride"}
-            variant="danger"
-            onPress={() => setConfirmingCancel(true)}
-            disabled={acting}
+          <CancelTripDialog
+            inProgress={inProgress}
+            acting={acting}
+            onCancel={onCancel}
           />
           <View style={{ height: Math.max(0, insets.bottom - 16) }} />
         </View>
       )}
-
-      {/* Pre-trip cancel requires a reason; mid-trip abort confirms instead. */}
-      <AppDialog visible={confirmingCancel} onClose={() => setConfirmingCancel(false)}>
-        {inProgress ? (
-          <>
-            <Text className="text-center font-Jakarta-Bold text-lg text-secondary-900">
-              Cancel this trip?
-            </Text>
-            <Text className="mt-2 text-center font-Jakarta text-sm text-secondary-500">
-              The rider will be notified and the ride will end.
-            </Text>
-            <View className="mt-5 w-full gap-2">
-              <AppButton
-                title="Keep trip"
-                onPress={() => setConfirmingCancel(false)}
-              />
-              <AppButton
-                title="Cancel trip"
-                variant="danger"
-                loading={acting}
-                disabled={acting}
-                onPress={() => {
-                  setConfirmingCancel(false);
-                  onCancel();
-                }}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            <Text className="text-center font-Jakarta-Bold text-lg text-secondary-900">
-              Cancel this ride?
-            </Text>
-            <Text className="mt-2 text-center font-Jakarta text-sm text-secondary-500">
-              It will be offered to the next nearest driver.
-            </Text>
-            <View className="mt-5 w-full gap-2">
-              <AppButton
-                title="Keep ride"
-                onPress={() => setConfirmingCancel(false)}
-              />
-              <AppButton
-                title="Cancel ride"
-                variant="danger"
-                loading={acting}
-                disabled={acting}
-                onPress={() => {
-                  setConfirmingCancel(false);
-                  onCancel();
-                }}
-              />
-            </View>
-          </>
-        )}
-      </AppDialog>
 
       <DriverTripSummaryDialog
         trip={trip}
@@ -272,8 +177,4 @@ export function TripPanel({
       />
     </>
   );
-}
-
-function rideNoShowSeconds(trip: Ride): number | null {
-  return trip.noShowInSeconds ?? null;
 }

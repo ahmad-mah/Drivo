@@ -1,12 +1,6 @@
 import { forwardRef, type ReactNode } from "react";
-import type { TextInput } from "react-native";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
-import type { ReturnKeyTypeOptions } from "react-native";
+import type { TextInput, ReturnKeyTypeOptions } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { AppImage, AppTextInput } from "@/shared/components";
 import type { PlaceSuggestion } from "../types/ride.types";
 
@@ -58,11 +52,7 @@ export const PlaceField = forwardRef<TextInput, PlaceFieldProps>(
           onChangeText={onChangeText}
           icon={icon}
           iconEnd={
-            suggestionsLoading ? (
-              <ActivityIndicator size="small" />
-            ) : (
-              iconEnd
-            )
+            suggestionsLoading ? <ActivityIndicator size="small" /> : iconEnd
           }
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}

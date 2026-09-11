@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRideRequestForm } from "./useRideRequestForm";
 import type { PlaceSuggestion, RidePoint } from "../types/ride.types";
 
@@ -20,7 +20,12 @@ export function useRideFormState() {
     destination: formDestination,
     usingCurrentLocation,
     applyPickedPoint,
-    ...formProps
+    onChangeFrom: formOnChangeFrom,
+    onChangeTo: formOnChangeTo,
+    onSelectFromSuggestion: formOnSelectFrom,
+    onSelectSuggestion: formOnSelectTo,
+    onUseCurrentLocation: formOnUseCurrentLocation,
+    ...restFormProps
   } = useRideRequestForm({
     onFindNowSuccess: (origin, destination) => {
       setRideOrigin(origin);
@@ -37,29 +42,61 @@ export function useRideFormState() {
     setRideDestination(null);
   }, []);
 
-  const formPropsWithReset = {
-    ...formProps,
-    onChangeFrom: (text: string) => {
-      formProps.onChangeFrom(text);
+  const onChangeFrom = useCallback(
+    (text: string) => {
+      formOnChangeFrom(text);
       resetRidePoints();
     },
-    onChangeTo: (text: string) => {
-      formProps.onChangeTo(text);
+    [formOnChangeFrom, resetRidePoints],
+  );
+
+  const onChangeTo = useCallback(
+    (text: string) => {
+      formOnChangeTo(text);
       resetRidePoints();
     },
-    onSelectFromSuggestion: (suggestion: PlaceSuggestion) => {
-      formProps.onSelectFromSuggestion(suggestion);
+    [formOnChangeTo, resetRidePoints],
+  );
+
+  const onSelectFromSuggestion = useCallback(
+    (suggestion: PlaceSuggestion) => {
+      formOnSelectFrom(suggestion);
       resetRidePoints();
     },
-    onSelectSuggestion: (suggestion: PlaceSuggestion) => {
-      formProps.onSelectSuggestion(suggestion);
+    [formOnSelectFrom, resetRidePoints],
+  );
+
+  const onSelectSuggestion = useCallback(
+    (suggestion: PlaceSuggestion) => {
+      formOnSelectTo(suggestion);
       resetRidePoints();
     },
-    onUseCurrentLocation: () => {
-      void formProps.onUseCurrentLocation();
-      resetRidePoints();
-    },
-  };
+    [formOnSelectTo, resetRidePoints],
+  );
+
+  const onUseCurrentLocation = useCallback(() => {
+    void formOnUseCurrentLocation();
+    resetRidePoints();
+  }, [formOnUseCurrentLocation, resetRidePoints]);
+
+  const formPropsWithReset = useMemo(
+    () => ({
+      ...restFormProps,
+      onChangeFrom,
+      onChangeTo,
+      onSelectFromSuggestion,
+      onSelectSuggestion,
+      onUseCurrentLocation,
+    }),
+    [
+      restFormProps,
+      onChangeFrom,
+      onChangeTo,
+      onSelectFromSuggestion,
+      onSelectSuggestion,
+      onUseCurrentLocation,
+    ],
+  );
 
   return {
     location,
@@ -68,7 +105,7 @@ export function useRideFormState() {
     usingCurrentLocation,
     applyPickedPoint,
     formProps: formPropsWithReset,
-    findNowLoading: formProps.findNowLoading,
+    findNowLoading: restFormProps.findNowLoading,
     startFindNowRef,
   };
 }

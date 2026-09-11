@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { ProfileInfoForm } from "@/features/profile/components/ProfileInfoForm";
 import { ProfileDriverSection } from "@/features/profile/components/ProfileDriverSection";
@@ -19,10 +20,14 @@ export default function ProfileScreen() {
 
   return (
     <AppSafeArea>
-      <ScrollView
+      <KeyboardAwareScrollView
         className="flex-1 pb-0"
-        contentContainerStyle={{ paddingBottom: tabBarInset }}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={80}
+        enableResetScrollToCoords={false}
+        contentContainerStyle={{ paddingBottom: tabBarInset }}
       >
         <AppGap height={20} />
 
@@ -50,7 +55,7 @@ export default function ProfileScreen() {
             loading={signOutLoading}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </AppSafeArea>
   );
 }

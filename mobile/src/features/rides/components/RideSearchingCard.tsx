@@ -1,74 +1,19 @@
-import { useEffect, useRef, useState } from "react";
 import { Animated, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage } from "@/shared/components";
+import { useRideSearching } from "../hooks/useRideSearching";
 
 interface RideSearchingCardProps {
   onRequestCancel: () => void;
   cancelling?: boolean;
 }
 
-const ESCALATION_THRESHOLD_MS = 40_000;
-
-const MESSAGES = [
-  "Waiting for a driver to respond",
-  "Still looking for a driver…",
-] as const;
-
 export function RideSearchingCard({
   onRequestCancel,
   cancelling = false,
 }: RideSearchingCardProps) {
   const insets = useSafeAreaInsets();
-  const [elapsed, setElapsed] = useState(0);
-  const [fade] = useState(() => new Animated.Value(1));
-  const [pulse] = useState(() => new Animated.Value(1));
-  const prevIndex = useRef(0);
-
-  useEffect(() => {
-    const start = Date.now();
-    const timer = setInterval(() => setElapsed(Date.now() - start), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Pulsing ring animation
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1.15,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const messageIndex = elapsed >= ESCALATION_THRESHOLD_MS ? 1 : 0;
-
-  useEffect(() => {
-    if (messageIndex === prevIndex.current) return;
-    Animated.sequence([
-      Animated.timing(fade, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fade, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-    prevIndex.current = messageIndex;
-  }, [messageIndex, fade]);
+  const { pulse, fade, message } = useRideSearching();
 
   return (
     <View
@@ -82,7 +27,6 @@ export function RideSearchingCard({
         elevation: 8,
       }}
     >
-      {/* Hero: pulsing circle */}
       <View className="items-center gap-6">
         <View className="relative items-center justify-center">
           <Animated.View
@@ -98,20 +42,18 @@ export function RideSearchingCard({
           </View>
         </View>
 
-        {/* Text */}
         <View className="items-center gap-2">
           <Text className="font-Jakarta-Bold text-xl text-secondary-900">
             Finding your ride
           </Text>
-           <Animated.View style={{ opacity: fade }}>
-             <Text className="text-center font-Jakarta text-sm text-secondary-500">
-               {MESSAGES[messageIndex]}
-             </Text>
-           </Animated.View>
+          <Animated.View style={{ opacity: fade }}>
+            <Text className="text-center font-Jakarta text-sm text-secondary-500">
+              {message}
+            </Text>
+          </Animated.View>
         </View>
       </View>
 
-      {/* Cancel */}
       <View className="mt-8">
         <AppButton
           title="Cancel ride"

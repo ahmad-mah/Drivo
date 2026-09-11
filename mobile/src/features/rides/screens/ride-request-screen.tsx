@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, DeviceEventEmitter, View } from "react-native";
-import { RIDE_COMPLETED_EVENT } from "@/features/home/hooks/useRides";
+import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
-import { useSnackbar } from "@/shared/contexts/SnackbarContext";
-import { playMatch, playSoftAlert, playSuccess } from "@/shared/utils/sounds";
 import { RideBottomSheet } from "../components/RideBottomSheet";
 import { RideConnectivityBanner } from "../components/RideConnectivityBanner";
 import { RideRequestHeader } from "../components/RideRequestHeader";
@@ -26,12 +23,11 @@ import { useRideRequest } from "../hooks/useRideRequest";
 import { useRideRoute } from "../hooks/useRideRoute";
 import { useRideSteps } from "../hooks/useRideRequestSteps";
 import { usePostTripPayment } from "../hooks/usePostTripPayment";
+import { useRideRequestActions } from "../hooks/useRideRequestActions";
 import { goBack } from "@/shared/services/navigation";
-import type { NearbyDriver } from "../types/ride.types";
 
 export function RideRequestScreen() {
   const { user } = useCurrentUser();
-  const { show: showSnackbar } = useSnackbar();
 
   const {
     ridePhase,
@@ -65,46 +61,11 @@ export function RideRequestScreen() {
     midTrip: isMidTrip,
   });
 
-  const [helpVisible, setHelpVisible] = useState(false);
-
-  const endedSnackbarShownRef = useRef(false);
-  const prevPhaseRef = useRef<RidePhase>(RidePhase.IDLE);
-
-  // Single effect: ridePhase → activeSheet + snackbar + sounds
-  useEffect(() => {
-    const prevPhase = prevPhaseRef.current;
-    prevPhaseRef.current = ridePhase;
-
-    if (ridePhase === RidePhase.IDLE) {
-      endedSnackbarShownRef.current = false;
-      return;
-    }
-
-    if (ridePhase === RidePhase.SEARCHING) {
-      endedSnackbarShownRef.current = false;
-      setActiveSheet(SheetStep.SEARCHING);
-    } else if (ridePhase === RidePhase.TRIP) {
-      setActiveSheet(SheetStep.TRIP);
-      // Driver matched → bright ascending chime
-      if (prevPhase === RidePhase.SEARCHING) playMatch();
-    } else if (ridePhase === RidePhase.ENDED) {
-      setActiveSheet(SheetStep.DRIVERS);
-      // Ride cancelled/expired → quiet alert (only if was in trip, not idle→ended)
-      if (prevPhase === RidePhase.TRIP) playSoftAlert();
-      if (endedMessage && !endedSnackbarShownRef.current) {
-        endedSnackbarShownRef.current = true;
-        showSnackbar(endedMessage);
-      }
-    }
-  }, [ridePhase, endedMessage, setActiveSheet, showSnackbar]);
-
-  // Dismiss the cancel dialog if the ride transitions to mid-trip while it is
-  // still open (e.g. ARRIVED → IN_PROGRESS with stale dialog).
+  // Dismiss cancel dialog if ride transitions to mid-trip while open
   useEffect(() => {
     if (isMidTrip) hideCancelConfirm();
   }, [isMidTrip, hideCancelConfirm]);
 
-  // ── Form + ride request ────────────────────────────────────────
   const {
     location,
     effectiveOrigin,
@@ -116,13 +77,14 @@ export function RideRequestScreen() {
     startFindNowRef,
   } = useRideFormState();
 
-  const { submitting: confirmLoading, submit, ride } = useRideRequest();
+  const { submitting: confirmLoading, submit } = useRideRequest();
   const {
     startPostTripPayment,
     submitting: paymentSubmitting,
     paymentError,
-    result: paymentResult,
-  } = usePostTripPayment(displayRide?.status === RideStatus.TRIP_ENDED ? displayRide.id : null);
+  } = usePostTripPayment(
+    displayRide?.status === RideStatus.TRIP_ENDED ? displayRide.id : null,
+  );
   useErrorSnackbar(paymentError);
   const { route } = useDirections(effectiveOrigin, effectiveDestination);
   const { drivers, loading: driversLoading } = useNearbyDrivers(location);
@@ -130,9 +92,6 @@ export function RideRequestScreen() {
     drivers.length,
     () => setActiveSheet(SheetStep.DRIVERS),
   );
-  useEffect(() => {
-    startFindNowRef.current = startFindNow;
-  }, [startFindNow, startFindNowRef]);
 
   const {
     selectedDriver,
@@ -144,42 +103,29 @@ export function RideRequestScreen() {
   const { pickingField, handleMapPick, handleRequestPickMap } =
     usePickMode(applyPickedPoint);
 
-  const handlePickAndShowInfo = useCallback(
-    (driver: NearbyDriver) => {
-      handlePickDriverFromList(driver);
-      setActiveSheet(SheetStep.RIDE_INFO);
-    },
-    [handlePickDriverFromList, setActiveSheet],
-  );
-
-  const handleConfirmRide = useCallback(async () => {
-    if (!effectiveOrigin || !effectiveDestination) return;
-    resetForNewRide();
-    try {
-      await submit(effectiveOrigin, effectiveDestination);
-      setActiveSheet(SheetStep.SEARCHING);
-    } catch (err) {
-      showSnackbar((err as Error).message || "Something went wrong");
-    }
-  }, [effectiveOrigin, effectiveDestination, submit, setActiveSheet, resetForNewRide]);
-
-  const rateAndGoHome = useCallback(
-    async (stars: number, comment?: string) => {
-      await handleRate(stars, comment);
-      DeviceEventEmitter.emit(RIDE_COMPLETED_EVENT);
-      goBack();
-    },
-    [handleRate],
-  );
-
-  const handleTryAgain = useCallback(() => {
-    setActiveSheet(SheetStep.FORM);
-  }, [setActiveSheet]);
-
-  const handleHelpReport = useCallback(() => {
-    setHelpVisible(false);
-    showSnackbar("Thank you for your report. We'll look into it.");
-  }, [showSnackbar]);
+  const {
+    helpVisible,
+    setHelpVisible,
+    handlePickAndShowInfo,
+    handleConfirmRide,
+    rateAndGoHome,
+    handleTryAgain,
+    handleHelpReport,
+  } = useRideRequestActions({
+    ridePhase,
+    displayRide,
+    endedMessage,
+    setActiveSheet,
+    handleRate,
+    ratingSubmitting,
+    resetForNewRide,
+    submit,
+    effectiveOrigin,
+    effectiveDestination,
+    handlePickDriverFromList,
+    startFindNow,
+    startFindNowRef,
+  });
 
   const {
     origin: rideOriginPoint,
@@ -189,9 +135,6 @@ export function RideRequestScreen() {
 
   const isSearchingOrTrip =
     activeSheet === SheetStep.SEARCHING || activeSheet === SheetStep.TRIP;
-
-  const showConnectivityBanner =
-    isSearchingOrTrip && ridePhase !== RidePhase.ENDED;
 
   return (
     <View className="flex-1">
@@ -216,11 +159,17 @@ export function RideRequestScreen() {
       </View>
 
       <RideConnectivityBanner
-        visible={showConnectivityBanner}
+        visible={
+          isSearchingOrTrip && ridePhase !== RidePhase.ENDED
+        }
         connected={socketConnected}
       />
 
-      <RideRequestHeader title={SHEET_TITLES[activeSheet]} onBack={stepsBack} hidden={isMidTrip} />
+      <RideRequestHeader
+        title={SHEET_TITLES[activeSheet]}
+        onBack={stepsBack}
+        hidden={isMidTrip}
+      />
 
       {activeRideLoading && (
         <View className="absolute inset-0 items-center justify-center">

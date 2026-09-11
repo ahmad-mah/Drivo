@@ -37,7 +37,7 @@ function lifecycleReducer(state: LifecycleState, action: LifecycleAction): Lifec
 }
 
 export function useRideLifecycle() {
-  const { ride: activeRide, loading: activeRideLoading, cancel } = useActiveRide();
+  const { ride: activeRide, loading: activeRideLoading, cancel, restartPolling } = useActiveRide();
   const [cancelling, setCancelling] = useState(false);
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [ratedLocally, setRatedLocally] = useState(false);
@@ -70,6 +70,7 @@ export function useRideLifecycle() {
     setPrevSocketRide(socketRide);
     if (!prevSocketRide && socketRide) {
       dispatch({ type: "NEW_RIDE" });
+      restartPolling();
       if (TRIP_RIDE_STATUSES.includes(socketRide.status)) {
         dispatch({ type: "MATCH_FOUND" });
       }

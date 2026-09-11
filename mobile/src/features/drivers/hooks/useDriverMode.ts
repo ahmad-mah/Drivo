@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getErrorMessage } from "@/errors";
 import { useConnectivity } from "@/hooks/useConnectivity";
 import {
   connectDriverSocket,

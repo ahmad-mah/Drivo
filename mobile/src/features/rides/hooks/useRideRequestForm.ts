@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useCurrentLocation } from "@/features/home/hooks/useCurrentLocation";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import type { PlaceSuggestion, RidePoint } from "../types/ride.types";
@@ -88,7 +88,7 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
     location?.coords.longitude,
   ]);
 
-  const handleUseCurrentLocation = async () => {
+  const handleUseCurrentLocation = useCallback(async () => {
     if (!location) return;
     clearPickedFrom();
     const address = await reverseGeocodeAddress(location);
@@ -98,40 +98,40 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
     } else {
       setLocationError("Could not get your current location.");
     }
-  };
+  }, [location, clearPickedFrom]);
 
-  const handleChangeFrom = (text: string) => {
+  const handleChangeFrom = useCallback((text: string) => {
     setFrom(text);
     clearPickedFrom();
     setUsingCurrentLocation(false);
-  };
+  }, [clearPickedFrom]);
 
-  const handleSelectFromSuggestion = (suggestion: PlaceSuggestion) => {
+  const handleSelectFromSuggestion = useCallback((suggestion: PlaceSuggestion) => {
     setFrom(suggestion.address);
     clearPickedFrom();
     setUsingCurrentLocation(false);
     selectFrom(suggestion);
-  };
+  }, [clearPickedFrom, selectFrom]);
 
-  const handleSelectToSuggestion = (suggestion: PlaceSuggestion) => {
+  const handleSelectToSuggestion = useCallback((suggestion: PlaceSuggestion) => {
     setTo(suggestion.address);
     clearPickedTo();
     selectTo(suggestion);
-  };
+  }, [clearPickedTo, selectTo]);
 
   /** Commits a map-pin pick for one of the two fields and fills its text. */
-  const applyPickAndFillText = (
-    field: "from" | "to",
-    point: RidePoint,
-  ) => {
-    applyPickedPoint(field, point);
-    if (field === "from") {
-      setFrom(point.address);
-      setUsingCurrentLocation(false);
-    } else {
-      setTo(point.address);
-    }
-  };
+  const applyPickAndFillText = useCallback(
+    (field: "from" | "to", point: RidePoint) => {
+      applyPickedPoint(field, point);
+      if (field === "from") {
+        setFrom(point.address);
+        setUsingCurrentLocation(false);
+      } else {
+        setTo(point.address);
+      }
+    },
+    [applyPickedPoint],
+  );
 
   const { handleFindNow } = useRideRequestSubmit(
     { onFindNowSuccess: options?.onFindNowSuccess },
@@ -154,10 +154,10 @@ export function useRideRequestForm(options?: UseRideRequestFormOptions) {
     from,
     to,
     onChangeFrom: handleChangeFrom,
-    onChangeTo: (text: string) => {
+    onChangeTo: useCallback((text: string) => {
       clearPickedTo();
       setTo(text);
-    },
+    }, [clearPickedTo]),
     onUseCurrentLocation: handleUseCurrentLocation,
     fromSuggestions: usingCurrentLocation ? [] : fromSuggestions,
     fromSuggestionsLoading,

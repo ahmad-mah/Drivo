@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
@@ -8,6 +8,7 @@ import {
   Text,
   UIManager,
   View,
+  type ViewToken,
 } from "react-native";
 import { RatingSheet } from "@/features/home/components/RatingSheet";
 import { RideItem } from "@/features/home/components/RideItem";
@@ -16,6 +17,7 @@ import { RideItemSkeleton } from "@/features/home/skeletons/RideItemSkeleton";
 import { RideStatus } from "@/features/rides/enums/RideStatus";
 import type { Ride } from "@/features/rides/types/ride.types";
 import { useHistoryRides } from "../hooks/useHistoryRides";
+import { useSubmitRating } from "../hooks/useSubmitRating";
 import { groupRidesByDate } from "../utils/groupRides";
 import {
   HistoryFilterTabs,
@@ -35,17 +37,41 @@ function matchesFilter(ride: Ride, filter: RideFilter): boolean {
 }
 
 export function HistoryScreen() {
-  const { rides, loading, refreshing, loadingMore, error, loadMore, refresh, submitRating } =
+  const { rides, loading, refreshing, loadingMore, error, loadMore, refresh, applyRating } =
     useHistoryRides();
+  const { submitting, submit } = useSubmitRating();
   const [filter, setFilter] = useState<RideFilter>("all");
   const [ratingTarget, setRatingTarget] = useState<null | Ride>(null);
-  const [submitting, setSubmitting] = useState(false);
   const tabBarInset = useTabBarBottomInset();
+
+  /** IDs of items that have scrolled into view at least once — their map
+   *  thumbnail is mounted and stays mounted (even if they scroll back out). */
+  const [renderedIds, setRenderedIds] = useState<Set<string>>(() => new Set());
+
+  const viewabilityConfig = useMemo(
+    () => ({ itemVisiblePercentThreshold: 20, minimumViewTime: 100 }),
+    [],
+  );
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      let changed = false;
+      setRenderedIds((prev) => {
+        const next = new Set(prev);
+        for (const vt of viewableItems) {
+          if (vt.item && !next.has(vt.item.id)) {
+            next.add(vt.item.id);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    },
+    [],
+  );
 
   const handleFilterChange = (next: RideFilter) => {
     if (next === filter) return;
-    // Fade items in/out (opacity only) as the filtered set changes — no layout
-    // shift, just a smooth cross-fade between the two lists.
     LayoutAnimation.configureNext({
       duration: 250,
       create: {
@@ -75,9 +101,8 @@ export function HistoryScreen() {
   );
 
   const handleSubmit = (rideId: string, stars: number, comment?: string) => {
-    setSubmitting(true);
-    void submitRating(rideId, stars, comment).finally(() => {
-      setSubmitting(false);
+    void submit(rideId, stars, comment).then(() => {
+      applyRating(rideId, stars);
       setRatingTarget(null);
     });
   };
@@ -93,7 +118,6 @@ export function HistoryScreen() {
           : `${visibleCount} ride${visibleCount !== 1 ? "s" : ""}`}
       </Text>
 
-      {/* Filter tabs */}
       <HistoryFilterTabs active={filter} onChange={handleFilterChange} />
 
       {loading ? (
@@ -120,15 +144,22 @@ export function HistoryScreen() {
           onEndReachedThreshold={0.4}
           contentContainerStyle={{ paddingBottom: tabBarInset }}
           stickySectionHeadersEnabled={false}
+          removeClippedSubviews={Platform.OS === "android"}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item }) => (
-            <RideItem item={item} onRate={setRatingTarget} />
+            <RideItem
+              item={item}
+              onRate={setRatingTarget}
+              isInView={renderedIds.has(item.id)}
+            />
           )}
           renderSectionHeader={({ section }) => (
             <Text className="mb-2 font-Jakarta-Bold text-sm text-secondary-500">
               {section.title}
             </Text>
           )}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -147,12 +178,14 @@ export function HistoryScreen() {
         />
       )}
 
-      <RatingSheet
-        ride={ratingTarget}
-        submitting={submitting}
-        onSubmit={handleSubmit}
-        onClose={() => setRatingTarget(null)}
-      />
+      {ratingTarget && (
+        <RatingSheet
+          ride={ratingTarget}
+          submitting={submitting}
+          onSubmit={handleSubmit}
+          onClose={() => setRatingTarget(null)}
+        />
+      )}
     </View>
   );
 }

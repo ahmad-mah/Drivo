@@ -52,7 +52,7 @@ function ExpiredState({ onTryAgain }: { onTryAgain?: () => void }) {
         </Text>
       </View>
       {onTryAgain && (
-        <View className="mt-2 w-full max-w-[200px]">
+        <View className="mt-2 w-full max-w-50">
           <AppButton title="Try again" onPress={onTryAgain} />
         </View>
       )}

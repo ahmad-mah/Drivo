@@ -3,13 +3,27 @@ module.exports = () => ({
     name: "Drivo",
     slug: "drivo",
     version: "1.0.0",
+
+    updates: {
+      url: "https://u.expo.dev/dc4b5367-84e8-46e2-b0b9-97cb2aa1bfc6",
+    },
+
+    runtimeVersion: {
+      policy: "appVersion",
+    },
+
     orientation: "portrait",
+
     icon: "./assets/images/icon.png",
+
     scheme: "drivo",
+
     userInterfaceStyle: "automatic",
+
     ios: {
       bundleIdentifier: "com.anonymous.drivo",
     },
+
     android: {
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
@@ -17,17 +31,30 @@ module.exports = () => ({
         backgroundImage: "./assets/images/android-icon-background.png",
         monochromeImage: "./assets/images/android-icon-monochrome.png",
       },
+
       predictiveBackGestureEnabled: false,
+
       package: "com.anonymous.drivo",
     },
+
     web: {
       output: "static",
       favicon: "./assets/images/favicon.png",
       bundler: "metro",
     },
+
     plugins: [
       "expo-router",
+
       "expo-audio",
+
+      [
+        "expo-asset",
+        {
+          assets: ["./assets/sounds"],
+        },
+      ],
+
       [
         "expo-splash-screen",
         {
@@ -36,7 +63,7 @@ module.exports = () => ({
           imageWidth: 300,
         },
       ],
-      // Updated Clerk plugin with Google OAuth config
+
       [
         "@clerk/expo",
         {
@@ -48,16 +75,20 @@ module.exports = () => ({
               },
             },
           },
+
           // ios: {
           //   oauth: {
           //     google: {
-          //       clientId: process.env.EXPO_PUBLIC_CLERK_GOOGLE_IOS_CLIENT_ID,
+          //       clientId:
+          //         process.env.EXPO_PUBLIC_CLERK_GOOGLE_IOS_CLIENT_ID,
           //     },
           //   },
           // },
         },
       ],
+
       "expo-secure-store",
+
       [
         "@stripe/stripe-react-native",
         {
@@ -65,15 +96,19 @@ module.exports = () => ({
           enableGooglePay: true,
         },
       ],
+
       [
         "expo-location",
         {
           locationAlwaysAndWhenInUsePermission:
             "Allow Drivo to access your location.",
+
           isIosBackgroundLocationEnabled: true,
+
           isAndroidForegroundServiceEnabled: true,
         },
       ],
+
       [
         "react-native-maps",
         {
@@ -81,16 +116,21 @@ module.exports = () => ({
         },
       ],
     ],
+
     extra: {
       router: {},
+
       eas: {
         projectId: "dc4b5367-84e8-46e2-b0b9-97cb2aa1bfc6",
       },
+
       EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID:
         process.env.EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID,
+
       EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID:
         process.env.EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID,
     },
+
     experiments: {
       typedRoutes: true,
       reactCompiler: true,

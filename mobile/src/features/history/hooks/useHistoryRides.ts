@@ -73,24 +73,16 @@ export function useHistoryRides() {
   }, [loadingMore, hasMore, loading, rides.length, loadPage]);
 
   /**
-   * Submits a rating and reflects it on the list item without a refetch.
+   * Optimistically reflects a submitted rating on the local list — the API
+   * call is handled by the caller (useSubmitRating).
    */
-  const submitRating = async (
-    rideId: string,
-    stars: number,
-    comment?: string,
-  ) => {
-    try {
-      await ridesApi.rateRide(rideId, { stars, comment });
-      setRides((prev) =>
-        prev.map((ride) =>
-          ride.id === rideId ? { ...ride, riderRating: stars } : ride,
-        ),
-      );
-    } catch (err) {
-      setError(getErrorMessage(err, "Could not submit your rating"));
-    }
+  const applyRating = (rideId: string, stars: number) => {
+    setRides((prev) =>
+      prev.map((ride) =>
+        ride.id === rideId ? { ...ride, riderRating: stars } : ride,
+      ),
+    );
   };
 
-  return { rides, loading, refreshing, loadingMore, hasMore, error, loadMore, refresh, submitRating };
+  return { rides, loading, refreshing, loadingMore, hasMore, error, loadMore, refresh, applyRating };
 }

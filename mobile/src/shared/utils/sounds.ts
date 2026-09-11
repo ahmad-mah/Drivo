@@ -1,4 +1,5 @@
 import { createAudioPlayer, preload } from "expo-audio";
+import { Asset } from "expo-asset";
 import type { AudioPlayer } from "expo-audio";
 
 /**
@@ -28,21 +29,34 @@ export async function preloadSounds(): Promise<void> {
   const keys = Object.keys(SOUNDS) as SoundKey[];
   await Promise.all(
     keys.map(async (key) => {
-      await preload(SOUNDS[key]);
-      players[key] = createAudioPlayer(SOUNDS[key]);
+      try {
+        const asset = (await Asset.loadAsync(SOUNDS[key]))[0];
+        if (!asset.localUri) {
+          console.warn(`[sounds] Failed to resolve "${key}" sound: localUri is null`);
+          return;
+        }
+        const source = { uri: asset.localUri };
+        await preload(source);
+        players[key] = createAudioPlayer(source);
+      } catch (error) {
+        console.warn(`[sounds] Failed to preload "${key}" sound`, error);
+      }
     }),
   );
 }
 
 async function play(key: SoundKey, volume = 1.0): Promise<void> {
   const player = players[key];
-  if (!player) return;
+  if (!player) {
+    console.warn(`[sounds] play("${key}") aborted: player is ${player}`);
+    return;
+  }
   try {
     player.volume = volume;
     await player.seekTo(0);
     player.play();
-  } catch {
-    // Silently swallow — audio failures must never crash the app.
+  } catch (error) {
+    console.warn(`[sounds] Failed to play "${key}" sound`, error);
   }
 }
 

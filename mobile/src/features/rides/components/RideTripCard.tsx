@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton, AppImage, AppTextInput } from "@/shared/components";
-import { formatFare } from "@/shared/utils/format";
-import { RideStatus } from "../enums/RideStatus";
-import { TRIP_TITLES } from "../constants/tripCardConfig";
-import type { Ride, RidePoint } from "../types/ride.types";
-import { useUserContext } from "@/providers/UserProvider";
-import { useLiveEta } from "../hooks/useLiveEta";
+import type { Ride } from "../types/ride.types";
+import { useRideTripCard } from "../hooks/useRideTripCard";
 import { NoShowCountdown } from "./NoShowCountdown";
 import { ParticipantCard } from "./ParticipantCard";
 import { StarRatingInput } from "./StarRatingInput";
@@ -25,22 +21,6 @@ interface RideTripCardProps {
   paying?: boolean;
 }
 
-const STATUS_ICONS: Record<string, number> = {
-  [RideStatus.ACCEPTED]: require("@/assets/icons/point.png"),
-  [RideStatus.ARRIVED]: require("@/assets/icons/check.png"),
-  [RideStatus.IN_PROGRESS]: require("@/assets/icons/marker.png"),
-  [RideStatus.TRIP_ENDED]: require("@/assets/icons/dollar.png"),
-  [RideStatus.COMPLETED]: require("@/assets/icons/check.png"),
-};
-
-const STATUS_BG: Record<string, string> = {
-  [RideStatus.ACCEPTED]: "bg-primary-500",
-  [RideStatus.ARRIVED]: "bg-green-500",
-  [RideStatus.IN_PROGRESS]: "bg-primary-500",
-  [RideStatus.TRIP_ENDED]: "bg-amber-500",
-  [RideStatus.COMPLETED]: "bg-primary-500",
-};
-
 export function RideTripCard({
   ride,
   onRequestCancel,
@@ -54,87 +34,25 @@ export function RideTripCard({
   paying = false,
 }: RideTripCardProps) {
   const insets = useSafeAreaInsets();
-  const { user } = useUserContext();
-  const inProgress = ride.status === RideStatus.IN_PROGRESS;
-  const tripEnded = ride.status === RideStatus.TRIP_ENDED;
-  const completed = ride.status === RideStatus.COMPLETED;
-  const paymentPaid = ride.paymentStatus === "PAID";
-  const needsRating = completed && ride.riderRating == null && !alreadyRated;
+  const {
+    inProgress,
+    tripEnded,
+    completed,
+    needsRating,
+    showCountdown,
+    noShowLeft,
+    accentBg,
+    accentIcon,
+    title,
+    driverName,
+    riderName,
+    riderImageUrl,
+    fare,
+    statusLine,
+  } = useRideTripCard(ride, alreadyRated);
+
   const [stars, setStars] = useState<number | null>(null);
   const [comment, setComment] = useState("");
-
-  // No-show countdown: anchored from the server arrival timestamp
-  // (arrivedAt + noShowInSeconds) so rider and driver stay in sync, and the
-  // remaining seconds are *derived* each render from a `now` tick — never
-  // stored via setState in an effect body — so the timer ticks without
-  // cascading synchronous re-renders.
-  const noShowDeadline = useMemo(() => {
-    if (ride.arrivedAt == null || ride.noShowInSeconds == null) return null;
-    return new Date(ride.arrivedAt).getTime() + ride.noShowInSeconds * 1000;
-  }, [ride.arrivedAt, ride.noShowInSeconds]);
-
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (noShowDeadline == null || inProgress || completed) return;
-    const timer = setInterval(() => setNow(Date.now()), 500);
-    const raf = requestAnimationFrame(() => setNow(Date.now()));
-    return () => {
-      clearInterval(timer);
-      cancelAnimationFrame(raf);
-    };
-  }, [noShowDeadline, inProgress, completed]);
-
-  const noShowLeft =
-    noShowDeadline != null ? Math.max(0, (noShowDeadline - now) / 1000) : null;
-
-  const showCountdown = noShowDeadline != null && ride.status === RideStatus.ARRIVED;
-
-  const accentBg = STATUS_BG[ride.status] ?? "bg-primary-500";
-  const accentIcon = STATUS_ICONS[ride.status] ?? STATUS_ICONS[RideStatus.ACCEPTED];
-  const title = completed
-    ? "Trip completed"
-    : tripEnded
-      ? "Trip ended"
-      : TRIP_TITLES[ride.status];
-
-  const driverName =
-    [ride.driverFirstName, ride.driverLastName].filter(Boolean).join(" ") ||
-    "Your driver";
-  const riderName =
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "You";
-
-  const fare = `$${formatFare(ride.fare)}`;
-
-  const destination: RidePoint | null = useMemo(
-    () =>
-      inProgress
-        ? {
-            address: ride.destinationAddress,
-            latitude: ride.destinationLatitude,
-            longitude: ride.destinationLongitude,
-          }
-        : null,
-    [inProgress, ride.destinationAddress, ride.destinationLatitude, ride.destinationLongitude],
-  );
-
-  const { etaMinutes: liveEta, loading: etaLoading } = useLiveEta(destination, inProgress);
-
-  const statusLine = completed
-    ? "Thanks for riding with Drivo"
-    : tripEnded
-      ? paymentPaid
-        ? "Payment confirmed"
-        : "Your driver is waiting for payment"
-      : inProgress
-        ? liveEta != null
-          ? `Arriving in ${liveEta} min`
-          : etaLoading
-            ? "Calculating ETA..."
-            : "Heading to your destination"
-        : ride.driverEtaMinutes != null
-          ? `${ride.driverEtaMinutes} min away`
-          : "Arriving soon";
 
   return (
     <View
@@ -177,7 +95,7 @@ export function RideTripCard({
         <ParticipantCard
           role="You"
           name={riderName}
-          imageUrl={user?.imageUrl ?? null}
+          imageUrl={riderImageUrl}
         />
       </View>
 
@@ -200,7 +118,7 @@ export function RideTripCard({
                 {fare}
               </Text>
             </View>
-            {paymentPaid ? (
+            {ride.paymentStatus === "PAID" ? (
               <View className="items-center gap-1 rounded-2xl border border-green-200 bg-green-50 px-4 py-4">
                 <Text className="font-Jakarta-SemiBold text-base text-green-700">
                   Payment confirmed

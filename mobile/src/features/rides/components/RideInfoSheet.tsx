@@ -72,7 +72,7 @@ export function RideInfoSheet({
         {/* ── Driver Hero ─────────────────────────── */}
         <View className="items-center gap-3">
           <View className="relative">
-            <View className="size-[76px] overflow-hidden rounded-full border-[3px] border-primary-200">
+            <View className="size-19 overflow-hidden rounded-full border-[3px] border-primary-200">
               {driver.imageUrl && !imageError ? (
                 <AppImage
                   source={{ uri: driver.imageUrl }}

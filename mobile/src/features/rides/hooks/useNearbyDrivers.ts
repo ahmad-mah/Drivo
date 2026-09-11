@@ -19,7 +19,7 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 /**
  * Socket-only nearby drivers. The list is stable: online drivers keep their
  * slot while their coordinates refresh and new arrivals are appended. When
- * the backend stops reporting a driver (offline / stale sweep) they are not
+ * the backend stops reporting a driver (offline / disconnect) they are not
  * removed — they flip to `isOnline: false`, drop to the end of the list and
  * come back to their online slot automatically if they reappear.
  */

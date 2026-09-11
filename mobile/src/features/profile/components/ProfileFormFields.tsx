@@ -1,4 +1,5 @@
-import { View, Text } from "react-native";
+import { useRef } from "react";
+import { View, Text, TextInput } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AppFormField, AppGap } from "@/shared/components";
 import { profileFormFields } from "../constants/profileFormFields";
@@ -12,13 +13,29 @@ type ProfileFormFieldsProps = {
 };
 
 export function ProfileFormFields({ email }: ProfileFormFieldsProps) {
+  const firstNameRef = useRef<TextInput>(null);
+  const lastNameRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+
   return (
     <>
-      <AppFormField {...profileFormFields[0]} iconEnd={editIcon} />
+      <AppFormField
+        {...profileFormFields[0]}
+        iconEnd={editIcon}
+        inputRef={firstNameRef}
+        returnKeyType="next"
+        onSubmitEditing={() => lastNameRef.current?.focus()}
+      />
 
       <AppGap height={16} />
 
-      <AppFormField {...profileFormFields[1]} iconEnd={editIcon} />
+      <AppFormField
+        {...profileFormFields[1]}
+        iconEnd={editIcon}
+        inputRef={lastNameRef}
+        returnKeyType="next"
+        onSubmitEditing={() => phoneRef.current?.focus()}
+      />
 
       <AppGap height={16} />
 
@@ -33,7 +50,13 @@ export function ProfileFormFields({ email }: ProfileFormFieldsProps) {
 
       <AppGap height={16} />
 
-      <AppFormField {...profileFormFields[2]} iconEnd={editIcon} />
+      <AppFormField
+        {...profileFormFields[2]}
+        iconEnd={editIcon}
+        inputRef={phoneRef}
+        returnKeyType="done"
+        submitBehavior="blurAndSubmit"
+      />
     </>
   );
 }

@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { AppImage } from "@/shared/components";
 import { vehicleIconFor } from "@/shared/constants/vehicleIcons";
 import { VehicleType } from "@/features/drivers/enums/VehicleType";
+import { useAnimatedCollapse } from "../hooks/useAnimatedCollapse";
 
 type Props = {
   value: VehicleType | "";
@@ -10,43 +10,13 @@ type Props = {
 };
 
 export function VehicleTypePicker({ value, onChange }: Props) {
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [anim] = useState(() => new Animated.Value(0));
+  const { open, mounted, toggle, close, animatedStyle } =
+    useAnimatedCollapse();
   const selected = value ? vehicleIconFor(value) : null;
-
-  const openList = () => {
-    setMounted(true);
-    anim.setValue(0);
-    Animated.timing(anim, {
-      toValue: 1,
-      duration: 180,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const closeList = () => {
-    Animated.timing(anim, {
-      toValue: 0,
-      duration: 150,
-      useNativeDriver: true,
-    }).start(() => setMounted(false));
-  };
-
-  const toggle = () => {
-    if (open) {
-      setOpen(false);
-      closeList();
-    } else {
-      setOpen(true);
-      openList();
-    }
-  };
 
   const select = (type: VehicleType) => {
     onChange(type);
-    setOpen(false);
-    closeList();
+    close();
   };
 
   return (
@@ -75,23 +45,7 @@ export function VehicleTypePicker({ value, onChange }: Props) {
       {mounted && (
         <Animated.View
           className="mt-2 rounded-2xl bg-white border border-general-200 shadow-sm overflow-hidden"
-          style={{
-            opacity: anim,
-            transform: [
-              {
-                translateY: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-8, 0],
-                }),
-              },
-              {
-                scale: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.98, 1],
-                }),
-              },
-            ],
-          }}
+          style={animatedStyle}
         >
           {Object.values(VehicleType).map((type) => {
             const selectedOption = value === type;

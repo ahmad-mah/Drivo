@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { View, Text } from "react-native";
+import type { KeyboardAwareScrollView as KAScrollView } from "react-native-keyboard-aware-scroll-view";
 import { goBack } from "@/shared/services/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -23,6 +25,7 @@ export default function BecomeDriverScreen() {
   const { bottom } = useSafeAreaInsets();
   const { show } = useSnackbar();
   const { user, loading: userLoading } = useCurrentUser();
+  const scrollRef = useRef<KAScrollView>(null);
   const {
     form,
     onSubmit,
@@ -81,11 +84,13 @@ export default function BecomeDriverScreen() {
   return (
     <AppSafeArea>
       <KeyboardAwareScrollView
+        ref={scrollRef}
         className="flex-1"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         enableOnAndroid
-        extraScrollHeight={40}
+        extraScrollHeight={80}
+        enableResetScrollToCoords={false}
         contentContainerClassName="pb-8"
       >
         <BecomeDriverHeader
@@ -98,7 +103,7 @@ export default function BecomeDriverScreen() {
         <DriverRequirements />
         <AppGap height={16} />
         <AppForm form={form}>
-          <DriverApplicationForm />
+          <DriverApplicationForm scrollViewRef={scrollRef} />
         </AppForm>
         <AppGap height={24} />
         <AppButton

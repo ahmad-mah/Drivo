@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, LayoutAnimation } from "react-native";
+import { BackHandler } from "react-native";
 import { goBack } from "@/shared/services/navigation";
 import { SheetStep } from "../enums/SheetStep";
 
@@ -30,7 +30,6 @@ export function useRideSteps({
   const [activeSheet, setActiveSheetState] = useState<SheetStep>(SheetStep.FORM);
 
   const setActiveSheet = useCallback((step: SheetStep) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setActiveSheetState(step);
   }, []);
 

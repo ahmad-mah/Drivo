@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useMemo } from "react";
 import { AppMapView, Shimmer, UserLocationMarker } from "@/shared/components";
-import { CarMarker } from "@/features/rides/components/CarMarker";
+import { AnimatedCarMarker } from "./AnimatedCarMarker";
 import { useNearbyDrivers } from "@/features/rides/hooks/useNearbyDrivers";
 import { regionFromCoords } from "@/shared/utils/mapRegion";
 import { useCurrentLocation } from "../hooks/useCurrentLocation";
@@ -15,8 +15,9 @@ export function HomeMap() {
   const driverMarkers = useMemo(
     () =>
       drivers
+        .filter((d) => d.isOnline !== false)
         .slice(0, 4)
-        .map((driver) => <CarMarker key={driver.id} driver={driver} />),
+        .map((driver) => <AnimatedCarMarker key={driver.id} driver={driver} />),
     [drivers],
   );
 

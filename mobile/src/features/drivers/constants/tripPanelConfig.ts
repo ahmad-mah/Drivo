@@ -15,3 +15,27 @@ export const TRIP_STATUS_HINTS: Record<string, string> = {
   [RideStatus.IN_PROGRESS]: "Trip underway — drive safely",
   [RideStatus.TRIP_ENDED]: "Waiting for rider payment",
 };
+
+interface TripActions {
+  onArrive: () => void;
+  onStart: () => void;
+  onArrivedAtDestination: () => void;
+  onComplete: () => void;
+}
+
+/** Maps the current trip status to the correct lifecycle action. */
+export function getPrimaryHandler(
+  status: RideStatus,
+  actions: TripActions,
+): () => void {
+  switch (status) {
+    case RideStatus.ACCEPTED:
+      return actions.onArrive;
+    case RideStatus.ARRIVED:
+      return actions.onStart;
+    case RideStatus.IN_PROGRESS:
+      return actions.onArrivedAtDestination;
+    default:
+      return actions.onComplete;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { updateAvailability } from "@/api/drivers/drivers.api";
 import type { ConnectivityStatus } from "@/providers/ConnectivityProvider";
 import {
@@ -22,7 +22,7 @@ interface UseConnectivityWatchdogOptions {
   connectivityBlocked: boolean;
   setOnline: (value: boolean) => void;
   setBusy: (value: boolean) => void;
-  pendingAckRef: MutableRefObject<boolean>;
+  pendingAckRef: RefObject<boolean>;
 }
 
 /**
