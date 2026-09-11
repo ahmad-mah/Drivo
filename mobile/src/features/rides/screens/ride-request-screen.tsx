@@ -122,6 +122,7 @@ export function RideRequestScreen() {
     submit,
     effectiveOrigin,
     effectiveDestination,
+    selectedDriver,
     handlePickDriverFromList,
     startFindNow,
     startFindNowRef,

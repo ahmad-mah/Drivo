@@ -3,6 +3,7 @@ import {
   FARE_PER_KM,
   NEARBY_RADIUS_KM,
   NO_SHOW_WAIT_MS,
+  OFFER_TTL_MS,
   RECENT_RIDES_LIMIT_DEFAULT,
   RIDE_ENDED_GRACE_MS,
   RIDE_TTL_MS,
@@ -27,6 +28,7 @@ import {
 import { etaMinutesForDistanceKm } from "./dispatch.utils.js";
 import {
   notifyDriverAssigned,
+  notifyNewRideRequest,
   notifyRideExpired,
   notifyRideUpdated,
 } from "./ride.notifications.js";
@@ -167,6 +169,32 @@ export async function requestRide(
     newStatus: RideStatus.PENDING,
     timestamp: new Date().toISOString(),
   });
+
+  if (dto.preferredDriverId) {
+    const driver = await driverRepository.findById(dto.preferredDriverId);
+    if (driver && driver.user?.clerkId) {
+      await rideOfferRepository.createOffer({
+        rideId: ride.id,
+        driverId: driver.id,
+        distanceKm: distanceKm,
+      });
+
+      await notifyNewRideRequest(driver.user.clerkId, {
+        rideId: ride.id,
+        originAddress: ride.originAddress,
+        originLatitude: ride.originLatitude,
+        originLongitude: ride.originLongitude,
+        destinationAddress: ride.destinationAddress,
+        destinationLatitude: ride.destinationLatitude,
+        destinationLongitude: ride.destinationLongitude,
+        tripDistanceKm: ride.distanceKm,
+        fare: Number(ride.fare),
+        currency: ride.currency,
+        etaMinutes: etaMinutesForDistanceKm(distanceKm),
+        respondWithinSeconds: Math.round(OFFER_TTL_MS / 1000),
+      });
+    }
+  }
 
   return toResponse(ride);
 }

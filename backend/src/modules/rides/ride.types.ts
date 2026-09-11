@@ -9,6 +9,7 @@ export interface RidePoint {
 export interface RequestRideDto {
   origin: RidePoint;
   destination: RidePoint;
+  preferredDriverId?: string;
 }
 
 /** Driver snapshot delivered to the rider when a ride is assigned. */

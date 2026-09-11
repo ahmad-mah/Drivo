@@ -21,13 +21,14 @@ export function useRideRequest() {
     async (
       origin: RidePoint,
       destination: RidePoint,
+      preferredDriverId?: string,
       onSuccess?: () => void,
     ) => {
       setSubmitting(true);
       setError(null);
       setRide(null);
       try {
-        const result = await ridesApi.requestRide({ origin, destination });
+        const result = await ridesApi.requestRide({ origin, destination, preferredDriverId });
         setRide(result);
         onSuccess?.();
         return result;

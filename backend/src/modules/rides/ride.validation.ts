@@ -9,6 +9,8 @@ const pointSchema = z.object({
 export const requestRideSchema = z.object({
   origin: pointSchema,
   destination: pointSchema,
+  /** When the rider explicitly selected a driver, dispatch to them first. */
+  preferredDriverId: z.string().optional(),
 });
 
 export type RequestRideDto = z.infer<typeof requestRideSchema>;

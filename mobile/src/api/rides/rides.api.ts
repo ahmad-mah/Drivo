@@ -8,6 +8,7 @@ export { RideStatus };
 export interface RequestRideDto {
   origin: RidePoint;
   destination: RidePoint;
+  preferredDriverId?: string;
 }
 
 export async function requestRide(dto: RequestRideDto) {

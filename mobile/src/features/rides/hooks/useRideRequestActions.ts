@@ -19,9 +19,11 @@ interface UseRideRequestActionsOptions {
   submit: (
     origin: RidePoint,
     destination: RidePoint,
+    preferredDriverId?: string,
   ) => Promise<unknown>;
   effectiveOrigin: RidePoint | null;
   effectiveDestination: RidePoint | null;
+  selectedDriver: NearbyDriver | null;
   handlePickDriverFromList: (driver: NearbyDriver) => void;
   startFindNow: () => void;
   startFindNowRef: React.RefObject<(() => void) | null>;
@@ -42,6 +44,7 @@ export function useRideRequestActions({
   submit,
   effectiveOrigin,
   effectiveDestination,
+  selectedDriver,
   handlePickDriverFromList,
   startFindNow,
   startFindNowRef,
@@ -94,7 +97,7 @@ export function useRideRequestActions({
     if (!effectiveOrigin || !effectiveDestination) return;
     resetForNewRide();
     try {
-      await submit(effectiveOrigin, effectiveDestination);
+      await submit(effectiveOrigin, effectiveDestination, selectedDriver?.id);
       setActiveSheet(SheetStep.SEARCHING);
     } catch (err) {
       showSnackbar((err as Error).message || "Something went wrong");
@@ -102,6 +105,7 @@ export function useRideRequestActions({
   }, [
     effectiveOrigin,
     effectiveDestination,
+    selectedDriver,
     submit,
     setActiveSheet,
     resetForNewRide,
