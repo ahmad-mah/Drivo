@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useIsFocused } from "expo-router";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
 import { RideBottomSheet } from "../components/RideBottomSheet";
@@ -28,6 +29,7 @@ import { goBack } from "@/shared/services/navigation";
 
 export function RideRequestScreen() {
   const { user } = useCurrentUser();
+  const isFocused = useIsFocused();
 
   const {
     ridePhase,
@@ -139,25 +141,27 @@ export function RideRequestScreen() {
 
   return (
     <View className="flex-1">
-      <View className="absolute inset-0">
-        <RideRequestMap
-          location={location}
-          origin={isSearchingOrTrip ? rideOriginPoint : effectiveOrigin}
-          destination={
-            isSearchingOrTrip ? rideDestinationPoint : effectiveDestination
-          }
-          route={isSearchingOrTrip ? rideRoute : route}
-          drivers={drivers}
-          originIsCurrentLocation={usingCurrentLocation && !pickingField}
-          selectedDriverId={selectedDriver?.id ?? null}
-          focusedDriver={focusedDriver}
-          onSelectDriver={handleSelectDriver}
-          userImageUrl={user?.imageUrl}
-          userName={user?.firstName}
-          pickingField={activeSheet === SheetStep.FORM ? pickingField : null}
-          onMapPick={(lat, lng) => void handleMapPick(lat, lng)}
-        />
-      </View>
+      {isFocused && (
+        <View className="absolute inset-0">
+          <RideRequestMap
+            location={location}
+            origin={isSearchingOrTrip ? rideOriginPoint : effectiveOrigin}
+            destination={
+              isSearchingOrTrip ? rideDestinationPoint : effectiveDestination
+            }
+            route={isSearchingOrTrip ? rideRoute : route}
+            drivers={drivers}
+            originIsCurrentLocation={usingCurrentLocation && !pickingField}
+            selectedDriverId={selectedDriver?.id ?? null}
+            focusedDriver={focusedDriver}
+            onSelectDriver={handleSelectDriver}
+            userImageUrl={user?.imageUrl}
+            userName={user?.firstName}
+            pickingField={activeSheet === SheetStep.FORM ? pickingField : null}
+            onMapPick={(lat, lng) => void handleMapPick(lat, lng)}
+          />
+        </View>
+      )}
 
       <RideConnectivityBanner
         visible={

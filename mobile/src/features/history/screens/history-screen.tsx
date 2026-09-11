@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
@@ -47,6 +47,14 @@ export function HistoryScreen() {
   /** IDs of items that have scrolled into view at least once — their map
    *  thumbnail is mounted and stays mounted (even if they scroll back out). */
   const [renderedIds, setRenderedIds] = useState<Set<string>>(() => new Set());
+
+  // Derive effective rendered IDs during render to avoid cascading updates
+  // Pre-populate first 8 to avoid the initial mount blank-map bug in SectionList
+  const effectiveRenderedIds = useMemo(() => {
+    const set = new Set(renderedIds);
+    rides.slice(0, 8).forEach((r) => set.add(r.id));
+    return set;
+  }, [renderedIds, rides]);
 
   const viewabilityConfig = useMemo(
     () => ({ itemVisiblePercentThreshold: 20, minimumViewTime: 100 }),
@@ -150,7 +158,7 @@ export function HistoryScreen() {
             <RideItem
               item={item}
               onRate={setRatingTarget}
-              isInView={renderedIds.has(item.id)}
+              isInView={effectiveRenderedIds.has(item.id)}
             />
           )}
           renderSectionHeader={({ section }) => (

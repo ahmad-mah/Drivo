@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from "react";
 import type { LocationObject } from "expo-location";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Marker } from "react-native-maps";
 import { AvatarCircle } from "./AvatarCircle";
@@ -19,13 +19,39 @@ export function SelfMarker({
   userName,
   onPress,
 }: SelfMarkerProps) {
+  return (
+    <TrackedSelfMarker
+      key={String(isSelfSelected)}
+      location={location}
+      isSelfSelected={isSelfSelected}
+      userImageUrl={userImageUrl}
+      userName={userName}
+      onPress={onPress}
+    />
+  );
+}
+
+function TrackedSelfMarker({
+  location,
+  isSelfSelected,
+  userImageUrl,
+  userName,
+  onPress,
+}: SelfMarkerProps) {
   const coordinate = {
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
   };
 
   const markerRef = useRef<React.ElementRef<typeof Marker>>(null);
-  const [tracking, setTracking] = useState(!!userImageUrl);
+  const [tracking, setTracking] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTracking(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [isSelfSelected]);
 
   const handleImageLoad = useCallback(() => {
     markerRef.current?.redraw();
@@ -38,7 +64,7 @@ export function SelfMarker({
       coordinate={coordinate}
       anchor={{ x: 0.5, y: 0.5 }}
       zIndex={isSelfSelected ? 101 : 100}
-      tracksViewChanges={isSelfSelected ? tracking : false}
+      tracksViewChanges={tracking}
       onPress={(e) => {
         e?.stopPropagation?.();
         onPress();

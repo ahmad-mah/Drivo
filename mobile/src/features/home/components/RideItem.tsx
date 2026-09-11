@@ -15,7 +15,7 @@ import {
 export const RideItem = memo(function RideItem({
   item,
   onRate,
-  isInView,
+  isInView = true,
 }: {
   item: Ride;
   onRate?: (ride: Ride) => void;

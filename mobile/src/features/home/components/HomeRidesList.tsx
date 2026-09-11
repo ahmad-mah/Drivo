@@ -57,7 +57,7 @@ export function HomeRidesList() {
           data={rides}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <RideItem item={item} onRate={setRatingTarget} />
+            <RideItem item={item} onRate={setRatingTarget} isInView={true} />
           )}
           contentContainerClassName="gap-3 pb-24"
           scrollEnabled={false}
