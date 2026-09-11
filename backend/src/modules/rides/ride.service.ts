@@ -124,6 +124,16 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
   }
   const fare = Math.round((FARE_BASE + distanceKm * FARE_PER_KM) * 100) / 100;
 
+  const preferredDriverId = dto.preferredDriverId ?? dto.driverId;
+  const preferredDriver = preferredDriverId
+    ? await driverRepository.findById(preferredDriverId)
+    : null;
+  const preferredDriverProfileId = preferredDriver?.id;
+  const preferredDriverClerkId = preferredDriver?.user?.clerkId;
+  const canOfferPreferredDriver = Boolean(
+    preferredDriverProfileId && preferredDriverClerkId,
+  );
+
   const ride = await rideRepository.create({
     user: { connect: { id: user.id } },
     status: RideStatus.PENDING,
@@ -137,6 +147,16 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
     fare,
     nearbyDrivers,
     expiresAt: new Date(Date.now() + RIDE_TTL_MS),
+    ...(canOfferPreferredDriver
+      ? {
+          offers: {
+            create: {
+              driver: { connect: { id: preferredDriverProfileId! } },
+              distanceKm,
+            },
+          },
+        }
+      : {}),
   });
 
   // Notify admin dashboard of new ride
@@ -146,17 +166,8 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
     timestamp: new Date().toISOString(),
   });
 
-  const preferredDriverId = dto.preferredDriverId ?? dto.driverId;
-  if (preferredDriverId) {
-    const driver = await driverRepository.findById(preferredDriverId);
-    if (driver && driver.user?.clerkId) {
-      await rideOfferRepository.createOffer({
-        rideId: ride.id,
-        driverId: driver.id,
-        distanceKm: distanceKm,
-      });
-
-      await notifyNewRideRequest(driver.user.clerkId, {
+  if (canOfferPreferredDriver) {
+      await notifyNewRideRequest(preferredDriverClerkId!, {
         rideId: ride.id,
         originAddress: ride.originAddress,
         originLatitude: ride.originLatitude,
@@ -170,7 +181,6 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
         etaMinutes: etaMinutesForDistanceKm(distanceKm),
         respondWithinSeconds: Math.round(OFFER_TTL_MS / 1000),
       });
-    }
   }
 
   return toResponse(ride);
