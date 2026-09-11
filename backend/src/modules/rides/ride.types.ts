@@ -1,4 +1,4 @@
-import type { RideStatus, RidePaymentStatus } from "@prisma/client";
+import type { RidePaymentStatus, RideStatus } from '@prisma/client';
 
 export interface RidePoint {
   address: string;
@@ -10,6 +10,7 @@ export interface RequestRideDto {
   origin: RidePoint;
   destination: RidePoint;
   preferredDriverId?: string;
+  driverId?: string;
 }
 
 /** Driver snapshot delivered to the rider when a ride is assigned. */

@@ -1,3 +1,5 @@
+import { ApprovalStatus, RideStatus, type Ride } from '@prisma/client';
+import { prisma } from '../../config/database.js';
 import {
   FARE_BASE,
   FARE_PER_KM,
@@ -8,40 +10,28 @@ import {
   RIDE_ENDED_GRACE_MS,
   RIDE_TTL_MS,
   STUCK_TRIP_LOG_MS,
-} from "../../config/index.js";
-import { prisma } from "../../config/database.js";
-import { emitRideUpdated } from "../../sockets/admin-emit.js";
-import { DRIVER_DECLINED_REASON } from "./cancellation-reasons.js";
-import { ConflictError } from "../../errors/ConflictError.js";
-import { ForbiddenError } from "../../errors/ForbiddenError.js";
-import { NotFoundError } from "../../errors/NotFoundError.js";
-import { requireUserByClerkId } from "../../shared/require-user.js";
-import { ApprovalStatus } from "@prisma/client";
-import * as directionsService from "../directions/directions.service.js";
-import * as driverRepository from "../drivers/driver.repository.js";
-import * as rideRepository from "./ride.repository.js";
-import * as rideOfferRepository from "./ride-offer.repository.js";
-import {
-  canTransition,
-  transitionSources,
-} from "./trip-state-machine.js";
-import { etaMinutesForDistanceKm } from "./dispatch.utils.js";
+} from '../../config/index.js';
+import { ConflictError } from '../../errors/ConflictError.js';
+import { ForbiddenError } from '../../errors/ForbiddenError.js';
+import { NotFoundError } from '../../errors/NotFoundError.js';
+import { requireUserByClerkId } from '../../shared/require-user.js';
+import { emitRideUpdated } from '../../sockets/admin-emit.js';
+import * as directionsService from '../directions/directions.service.js';
+import * as driverRepository from '../drivers/driver.repository.js';
+import { DRIVER_DECLINED_REASON } from './cancellation-reasons.js';
+import { etaMinutesForDistanceKm } from './dispatch.utils.js';
+import * as rideOfferRepository from './ride-offer.repository.js';
 import {
   notifyDriverAssigned,
   notifyNewRideRequest,
   notifyRideExpired,
   notifyRideUpdated,
-} from "./ride.notifications.js";
-import type { AssignedDriverDto, RequestRideDto } from "./ride.types.js";
-import type { RideResponse } from "./ride.types.js";
-import { RideStatus, type Ride } from "@prisma/client";
+} from './ride.notifications.js';
+import * as rideRepository from './ride.repository.js';
+import type { AssignedDriverDto, RequestRideDto, RideResponse } from './ride.types.js';
+import { canTransition, transitionSources } from './trip-state-machine.js';
 
-function haversineKm(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -52,10 +42,7 @@ function haversineKm(
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function toResponse(
-  ride: Ride,
-  driverRating: number | null = null,
-): RideResponse {
+function toResponse(ride: Ride, driverRating: number | null = null): RideResponse {
   return {
     id: ride.id,
     status: ride.status,
@@ -75,23 +62,15 @@ function toResponse(
     driverRating,
     nearbyDrivers: ride.nearbyDrivers,
     expiresAt: ride.expiresAt.toISOString(),
-    expiresInSeconds: Math.max(
-      0,
-      Math.round((ride.expiresAt.getTime() - Date.now()) / 1000),
-    ),
+    expiresInSeconds: Math.max(0, Math.round((ride.expiresAt.getTime() - Date.now()) / 1000)),
     arrivedAt: ride.arrivedAt?.toISOString() ?? null,
     startedAt: ride.startedAt?.toISOString() ?? null,
     completedAt: ride.completedAt?.toISOString() ?? null,
-    cancelReason: ride.cancelReason ?? null,    // Only meaningful while the driver is waiting at pickup — counts down to
+    cancelReason: ride.cancelReason ?? null, // Only meaningful while the driver is waiting at pickup — counts down to
     // when the driver may mark the rider a no-show (relative, skew-proof).
     noShowInSeconds:
       ride.status === RideStatus.ARRIVED && ride.arrivedAt
-        ? Math.max(
-            0,
-            Math.round(
-              (ride.arrivedAt.getTime() + NO_SHOW_WAIT_MS - Date.now()) / 1000,
-            ),
-          )
+        ? Math.max(0, Math.round((ride.arrivedAt.getTime() + NO_SHOW_WAIT_MS - Date.now()) / 1000))
         : null,
     riderRating: ride.riderRating ?? null,
     // Only while the trip is underway — clients count it up locally; the
@@ -109,10 +88,7 @@ function toResponse(
 function driverAverage(sum: number, count: number): number | null {
   return count > 0 ? Math.round((sum / count) * 10) / 10 : null;
 }
-export async function requestRide(
-  clerkId: string,
-  dto: RequestRideDto,
-): Promise<RideResponse> {
+export async function requestRide(clerkId: string, dto: RequestRideDto): Promise<RideResponse> {
   const user = await requireUserByClerkId(clerkId);
 
   const [active, nearbyDrivers] = await Promise.all([
@@ -120,11 +96,11 @@ export async function requestRide(
     driverRepository.countNearbyDrivers(
       dto.origin.latitude,
       dto.origin.longitude,
-      NEARBY_RADIUS_KM,
+      NEARBY_RADIUS_KM
     ),
   ]);
   if (active) {
-    throw new ConflictError("You already have an active ride request");
+    throw new ConflictError('You already have an active ride request');
   }
 
   // Prefer the real driving distance so riders pay for the actual route; if
@@ -136,14 +112,14 @@ export async function requestRide(
         dto.origin.latitude,
         dto.origin.longitude,
         dto.destination.latitude,
-        dto.destination.longitude,
+        dto.destination.longitude
       )) / 1000;
   } catch {
     distanceKm = haversineKm(
       dto.origin.latitude,
       dto.origin.longitude,
       dto.destination.latitude,
-      dto.destination.longitude,
+      dto.destination.longitude
     );
   }
   const fare = Math.round((FARE_BASE + distanceKm * FARE_PER_KM) * 100) / 100;
@@ -170,8 +146,9 @@ export async function requestRide(
     timestamp: new Date().toISOString(),
   });
 
-  if (dto.preferredDriverId) {
-    const driver = await driverRepository.findById(dto.preferredDriverId);
+  const preferredDriverId = dto.preferredDriverId ?? dto.driverId;
+  if (preferredDriverId) {
+    const driver = await driverRepository.findById(preferredDriverId);
     if (driver && driver.user?.clerkId) {
       await rideOfferRepository.createOffer({
         rideId: ride.id,
@@ -207,19 +184,19 @@ export async function requestRide(
 export async function assignDriver(
   clerkId: string,
   rideId: string,
-  driver: AssignedDriverDto,
+  driver: AssignedDriverDto
 ): Promise<RideResponse> {
   const user = await requireUserByClerkId(clerkId);
 
   const ride = await rideRepository.findOwnedById(rideId, user.id);
   if (!ride) {
-    throw new NotFoundError("Ride not found");
+    throw new NotFoundError('Ride not found');
   }
   if (ride.status !== RideStatus.PENDING) {
-    throw new ConflictError("Ride is no longer pending");
+    throw new ConflictError('Ride is no longer pending');
   }
   if (ride.expiresAt.getTime() <= Date.now()) {
-    throw new ConflictError("Ride request has expired");
+    throw new ConflictError('Ride request has expired');
   }
 
   const updated = await rideRepository.acceptPending(ride.id, user.id, {
@@ -228,7 +205,7 @@ export async function assignDriver(
     driverLastName: driver.lastName,
   });
   if (updated.count === 0) {
-    throw new ConflictError("Ride is no longer pending");
+    throw new ConflictError('Ride is no longer pending');
   }
 
   // Push the assigned driver to the rider's open socket so the searching
@@ -252,7 +229,7 @@ export async function assignDriver(
   });
 
   const fresh = await rideRepository.findOwnedById(ride.id, user.id);
-  if (!fresh) throw new NotFoundError("Ride not found");
+  if (!fresh) throw new NotFoundError('Ride not found');
   return toResponse(fresh);
 }
 
@@ -268,37 +245,32 @@ export async function getActiveRide(clerkId: string): Promise<RideResponse> {
   if (!ride) {
     const ended = await rideRepository.findRecentlyEnded(
       user.id,
-      new Date(Date.now() - RIDE_ENDED_GRACE_MS),
+      new Date(Date.now() - RIDE_ENDED_GRACE_MS)
     );
     if (ended) {
       return toResponse(
         ended,
-        ended.driver
-          ? driverAverage(ended.driver.ratingSum, ended.driver.ratingCount)
-          : null,
+        ended.driver ? driverAverage(ended.driver.ratingSum, ended.driver.ratingCount) : null
       );
     }
-    throw new NotFoundError("No active ride");
+    throw new NotFoundError('No active ride');
   }
 
   return toResponse(
     ride,
-    ride.driver ? driverAverage(ride.driver.ratingSum, ride.driver.ratingCount) : null,
+    ride.driver ? driverAverage(ride.driver.ratingSum, ride.driver.ratingCount) : null
   );
 }
 
-export async function cancelRide(
-  clerkId: string,
-  rideId: string,
-): Promise<RideResponse> {
+export async function cancelRide(clerkId: string, rideId: string): Promise<RideResponse> {
   const user = await requireUserByClerkId(clerkId);
 
   const existing = await rideRepository.findOwnedById(rideId, user.id);
-  if (!existing) throw new NotFoundError("Ride not found");
+  if (!existing) throw new NotFoundError('Ride not found');
   // Mid-trip cancellation is blocked — the trip is underway. Pre-trip states
   // (including a driver already en route) may still be cancelled.
   if (existing.status === RideStatus.IN_PROGRESS || existing.status === RideStatus.TRIP_ENDED) {
-    throw new ConflictError("Cannot cancel while on the trip");
+    throw new ConflictError('Cannot cancel while on the trip');
   }
 
   // Resolve the assigned driver before the flip so they can be notified.
@@ -310,15 +282,13 @@ export async function cancelRide(
 
   const updated = await rideRepository.cancelActive(rideId, user.id);
   if (updated.count === 0) {
-    throw new ConflictError("Ride can no longer be cancelled");
+    throw new ConflictError('Ride can no longer be cancelled');
   }
 
   // Any driver still holding an unresponded offer must dismiss their card
   // immediately — otherwise they see an accept option for a dead ride.
   const holdingDrivers = await rideOfferRepository.expireOpenOffers(rideId);
-  const rooms = [driverClerkId, ...holdingDrivers].filter(
-    (id): id is string => Boolean(id),
-  );
+  const rooms = [driverClerkId, ...holdingDrivers].filter((id): id is string => Boolean(id));
   if (rooms.length > 0) {
     await notifyRideUpdated(rooms, rideId);
   }
@@ -333,19 +303,19 @@ export async function cancelRide(
   // The ride was just cancelled above; the re-read builds the response. A
   // null here means it was deleted between the two queries.
   const ride = await rideRepository.findOwnedById(rideId, user.id);
-  if (!ride) throw new NotFoundError("Ride not found");
+  if (!ride) throw new NotFoundError('Ride not found');
   return toResponse(ride);
 }
 
 export async function getRecentRides(
   clerkId: string,
-  limit = RECENT_RIDES_LIMIT_DEFAULT,
+  limit = RECENT_RIDES_LIMIT_DEFAULT
 ): Promise<RideResponse[]> {
   const user = await requireUserByClerkId(clerkId);
 
   const rides = await rideRepository.findRecent(user.id, limit);
   return rides.map((r) =>
-    toResponse(r, r.driver ? driverAverage(r.driver.ratingSum, r.driver.ratingCount) : null),
+    toResponse(r, r.driver ? driverAverage(r.driver.ratingSum, r.driver.ratingCount) : null)
   );
 }
 
@@ -354,7 +324,7 @@ export async function getRideHistory(clerkId: string, limit: number, offset: num
 
   const rides = await rideRepository.findHistory(user.id, limit, offset);
   return rides.map((r) =>
-    toResponse(r, r.driver ? driverAverage(r.driver.ratingSum, r.driver.ratingCount) : null),
+    toResponse(r, r.driver ? driverAverage(r.driver.ratingSum, r.driver.ratingCount) : null)
   );
 }
 
@@ -369,7 +339,7 @@ export async function expireOverdueRides() {
         newStatus: RideStatus.EXPIRED,
         timestamp: new Date().toISOString(),
       });
-    }),
+    })
   );
 }
 
@@ -388,7 +358,7 @@ export async function logStuckTrips() {
   });
   for (const trip of stuck) {
     console.warn(
-      `[stuck-trip] ride ${trip.id} in ${trip.status} since ${trip.updatedAt.toISOString()}`,
+      `[stuck-trip] ride ${trip.id} in ${trip.status} since ${trip.updatedAt.toISOString()}`
     );
   }
 }
@@ -401,7 +371,7 @@ async function requireApprovedDriver(clerkId: string) {
   const user = await requireUserByClerkId(clerkId);
   const profile = await driverRepository.findByUserId(user.id);
   if (!profile || profile.approvalStatus !== ApprovalStatus.APPROVED) {
-    throw new ForbiddenError("Only approved drivers can respond to ride requests");
+    throw new ForbiddenError('Only approved drivers can respond to ride requests');
   }
   return profile;
 }
@@ -412,20 +382,14 @@ async function requireApprovedDriver(clerkId: string) {
  * `rideOfferRepository.acceptOffer`), then the rider's socket is pushed so
  * the searching card flips to the driver info card.
  */
-export async function acceptRideRequest(
-  clerkId: string,
-  rideId: string,
-): Promise<RideResponse> {
+export async function acceptRideRequest(clerkId: string, rideId: string): Promise<RideResponse> {
   const profile = await requireApprovedDriver(clerkId);
 
   const ride = await rideRepository.findByIdWithRider(rideId);
-  if (!ride) throw new NotFoundError("Ride not found");
+  if (!ride) throw new NotFoundError('Ride not found');
 
-  const offer = await rideOfferRepository.findByRideAndDriver(
-    ride.id,
-    profile.id,
-  );
-  if (!offer) throw new NotFoundError("No ride request was sent to you");
+  const offer = await rideOfferRepository.findByRideAndDriver(ride.id, profile.id);
+  if (!offer) throw new NotFoundError('No ride request was sent to you');
 
   let updated: Ride | null;
   try {
@@ -437,10 +401,10 @@ export async function acceptRideRequest(
   } catch {
     // The transaction rolled back the offer acceptance along with the failed
     // ride claim — the driver's offer stays untouched for a clean retry.
-    throw new ConflictError("Ride is no longer pending");
+    throw new ConflictError('Ride is no longer pending');
   }
   if (!updated) {
-    throw new ConflictError("Offer already responded or expired");
+    throw new ConflictError('Offer already responded or expired');
   }
 
   await notifyDriverAssigned(ride.user.clerkId, updated.id, {
@@ -464,10 +428,7 @@ export async function acceptRideRequest(
   // depending on which device initiated the accept.
   await notifyRideUpdated([clerkId], updated.id);
 
-  return toResponse(
-    updated,
-    driverAverage(profile.ratingSum, profile.ratingCount),
-  );
+  return toResponse(updated, driverAverage(profile.ratingSum, profile.ratingCount));
 }
 
 /**
@@ -484,23 +445,17 @@ export async function rejectRideRequest(clerkId: string, rideId: string) {
   const profile = await requireApprovedDriver(clerkId);
 
   const ride = await rideRepository.findByIdWithRider(rideId);
-  if (!ride) throw new NotFoundError("Ride not found");
+  if (!ride) throw new NotFoundError('Ride not found');
 
   const rejected = await rideOfferRepository.rejectOffer(ride.id, profile.id);
   if (rejected.count === 0) {
-    throw new ConflictError("Offer already responded or expired");
+    throw new ConflictError('Offer already responded or expired');
   }
 
-  const cancelled = await rideRepository.cancelPendingWithReason(
-    ride.id,
-    DRIVER_DECLINED_REASON,
-  );
+  const cancelled = await rideRepository.cancelPendingWithReason(ride.id, DRIVER_DECLINED_REASON);
 
   if (cancelled) {
-    await notifyRideUpdated(
-      [ride.user.clerkId, clerkId].filter(Boolean),
-      ride.id,
-    );
+    await notifyRideUpdated([ride.user.clerkId, clerkId].filter(Boolean), ride.id);
   }
 }
 
@@ -509,7 +464,7 @@ async function requireDriverForTrip(clerkId: string) {
   const user = await requireUserByClerkId(clerkId);
   const profile = await driverRepository.findByUserId(user.id);
   if (!profile || profile.approvalStatus !== ApprovalStatus.APPROVED) {
-    throw new ForbiddenError("Only approved drivers can manage trips");
+    throw new ForbiddenError('Only approved drivers can manage trips');
   }
   return profile;
 }
@@ -523,13 +478,13 @@ async function finishTransition(
   clerkId: string,
   from: RideStatus,
   to: RideStatus,
-  updated: Ride | null,
+  updated: Ride | null
 ): Promise<RideResponse> {
-  if (!updated) throw new ConflictError("Trip is not in a state for this action");
+  if (!updated) throw new ConflictError('Trip is not in a state for this action');
   // Defense in depth: the repo guard already enforced this; the assertion
   // documents the contract and catches call-site mistakes at runtime.
   if (!canTransition(from, to)) {
-    throw new ConflictError("Invalid trip transition");
+    throw new ConflictError('Invalid trip transition');
   }
 
   const withRider = await rideRepository.findByIdWithRider(updated.id);
@@ -537,8 +492,8 @@ async function finishTransition(
     ? await driverRepository.findClerkIdByDriverId(updated.driverId)
     : null;
 
-  const rooms = [withRider?.user.clerkId, driverClerk ?? clerkId].filter(
-    (id): id is string => Boolean(id),
+  const rooms = [withRider?.user.clerkId, driverClerk ?? clerkId].filter((id): id is string =>
+    Boolean(id)
   );
   await notifyRideUpdated(rooms, updated.id);
 
@@ -554,7 +509,7 @@ async function finishTransition(
     withRider ?? updated,
     withRider?.driver
       ? driverAverage(withRider.driver.ratingSum, withRider.driver.ratingCount)
-      : null,
+      : null
   );
 }
 
@@ -562,7 +517,7 @@ export async function getDriverActiveRide(clerkId: string): Promise<RideResponse
   const profile = await requireDriverForTrip(clerkId);
 
   const ride = await rideRepository.findActiveByDriver(profile.id);
-  if (!ride) throw new NotFoundError("No active trip");
+  if (!ride) throw new NotFoundError('No active trip');
 
   return toResponse(ride);
 }
@@ -573,7 +528,7 @@ export async function arriveAtPickup(clerkId: string, rideId: string) {
     rideId,
     profile.id,
     transitionSources(RideStatus.ARRIVED),
-    RideStatus.ARRIVED,
+    RideStatus.ARRIVED
   );
   return finishTransition(clerkId, RideStatus.ACCEPTED, RideStatus.ARRIVED, updated);
 }
@@ -584,7 +539,7 @@ export async function startTrip(clerkId: string, rideId: string) {
     rideId,
     profile.id,
     transitionSources(RideStatus.IN_PROGRESS),
-    RideStatus.IN_PROGRESS,
+    RideStatus.IN_PROGRESS
   );
   return finishTransition(clerkId, RideStatus.ARRIVED, RideStatus.IN_PROGRESS, updated);
 }
@@ -599,7 +554,7 @@ export async function arrivedAtDestination(clerkId: string, rideId: string) {
     rideId,
     profile.id,
     transitionSources(RideStatus.TRIP_ENDED),
-    RideStatus.TRIP_ENDED,
+    RideStatus.TRIP_ENDED
   );
   return finishTransition(clerkId, RideStatus.IN_PROGRESS, RideStatus.TRIP_ENDED, updated);
 }
@@ -614,17 +569,17 @@ export async function completeTrip(clerkId: string, rideId: string) {
   // Verify payment is confirmed before allowing completion
   const ride = await rideRepository.findActiveByDriver(profile.id);
   if (!ride || ride.id !== rideId) {
-    throw new ConflictError("Trip is not in a state for this action");
+    throw new ConflictError('Trip is not in a state for this action');
   }
-  if (ride.paymentStatus !== "PAID") {
-    throw new ConflictError("Payment must be confirmed before completing the trip");
+  if (ride.paymentStatus !== 'PAID') {
+    throw new ConflictError('Payment must be confirmed before completing the trip');
   }
 
   const updated = await rideRepository.transitionForDriver(
     rideId,
     profile.id,
     transitionSources(RideStatus.COMPLETED),
-    RideStatus.COMPLETED,
+    RideStatus.COMPLETED
   );
   return finishTransition(clerkId, RideStatus.TRIP_ENDED, RideStatus.COMPLETED, updated);
 }
@@ -638,12 +593,7 @@ export async function completeTrip(clerkId: string, rideId: string) {
 export async function markRiderNoShow(clerkId: string, rideId: string) {
   const profile = await requireDriverForTrip(clerkId);
   const updated = await rideRepository.markRiderNoShow(rideId, profile.id);
-  return finishTransition(
-    clerkId,
-    RideStatus.ARRIVED,
-    RideStatus.CANCELLED,
-    updated,
-  );
+  return finishTransition(clerkId, RideStatus.ARRIVED, RideStatus.CANCELLED, updated);
 }
 
 /**
@@ -656,16 +606,11 @@ export async function markRiderNoShow(clerkId: string, rideId: string) {
  */
 export async function cancelTripAsDriver(clerkId: string, rideId: string) {
   const profile = await requireDriverForTrip(clerkId);
-  const { ride: updated } = await rideRepository.cancelByDriver(
-    rideId,
-    profile.id,
-  );
-  if (!updated) throw new ConflictError("Trip is not in a state for this action");
+  const { ride: updated } = await rideRepository.cancelByDriver(rideId, profile.id);
+  if (!updated) throw new ConflictError('Trip is not in a state for this action');
 
   const withRider = await rideRepository.findByIdWithRider(updated.id);
-  const rooms = [withRider?.user.clerkId, clerkId].filter(
-    (id): id is string => Boolean(id),
-  );
+  const rooms = [withRider?.user.clerkId, clerkId].filter((id): id is string => Boolean(id));
   await notifyRideUpdated(rooms, updated.id);
 
   // Notify admin dashboard
@@ -686,19 +631,19 @@ export async function cancelTripAsDriver(clerkId: string, rideId: string) {
 export async function rateRide(
   clerkId: string,
   rideId: string,
-  dto: { stars: number; comment?: string },
+  dto: { stars: number; comment?: string }
 ): Promise<RideResponse> {
   const user = await requireUserByClerkId(clerkId);
 
   const ride = await rideRepository.findOwnedById(rideId, user.id);
-  if (!ride) throw new NotFoundError("Ride not found");
+  if (!ride) throw new NotFoundError('Ride not found');
   if (ride.status !== RideStatus.COMPLETED) {
-    throw new ConflictError("You can rate only completed rides");
+    throw new ConflictError('You can rate only completed rides');
   }
   if (ride.riderRating != null) {
-    throw new ConflictError("You already rated this ride");
+    throw new ConflictError('You already rated this ride');
   }
-  if (!ride.driverId) throw new ConflictError("Nothing to rate");
+  if (!ride.driverId) throw new ConflictError('Nothing to rate');
 
   await prisma.$transaction([
     rideRepository.setRiderRating(ride.id, user.id, dto.stars, dto.comment),
@@ -708,6 +653,6 @@ export async function rateRide(
   const fresh = await rideRepository.findByIdWithRider(rideId);
   return toResponse(
     fresh ?? ride,
-    fresh?.driver ? driverAverage(fresh.driver.ratingSum, fresh.driver.ratingCount) : null,
+    fresh?.driver ? driverAverage(fresh.driver.ratingSum, fresh.driver.ratingCount) : null
   );
 }

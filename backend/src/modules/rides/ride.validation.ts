@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { coordinatesShape } from "../../shared/validation/coordinates.js";
+import { z } from 'zod';
+import { coordinatesShape } from '../../shared/validation/coordinates.js';
 
 const pointSchema = z.object({
-  address: z.string().min(1, "Address is required"),
+  address: z.string().min(1, 'Address is required'),
   ...coordinatesShape,
 });
 
@@ -11,12 +11,13 @@ export const requestRideSchema = z.object({
   destination: pointSchema,
   /** When the rider explicitly selected a driver, dispatch to them first. */
   preferredDriverId: z.string().optional(),
+  driverId: z.string().optional(),
 });
 
 export type RequestRideDto = z.infer<typeof requestRideSchema>;
 
 /** Rider rates the driver on a completed ride. */
 export const rateRideSchema = z.object({
-  stars: z.number().int().min(1, "Pick 1–5 stars").max(5, "Pick 1–5 stars"),
+  stars: z.number().int().min(1, 'Pick 1–5 stars').max(5, 'Pick 1–5 stars'),
   comment: z.string().max(500).optional(),
 });

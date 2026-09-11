@@ -1,7 +1,7 @@
-import { useCallback, useState } from "react";
 import * as ridesApi from "@/api/rides/rides.api";
 import { ApiError, getErrorMessage } from "@/errors";
 import { useErrorSnackbar } from "@/hooks/useErrorSnackbar";
+import { useCallback, useState } from "react";
 import type { RidePoint } from "../types/ride.types";
 
 /**
@@ -13,7 +13,9 @@ import type { RidePoint } from "../types/ride.types";
 export function useRideRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ride, setRide] = useState<import("../types/ride.types").Ride | null>(null);
+  const [ride, setRide] = useState<import("../types/ride.types").Ride | null>(
+    null,
+  );
 
   useErrorSnackbar(error);
 
@@ -28,7 +30,12 @@ export function useRideRequest() {
       setError(null);
       setRide(null);
       try {
-        const result = await ridesApi.requestRide({ origin, destination, preferredDriverId });
+        const result = await ridesApi.requestRide({
+          origin,
+          destination,
+          preferredDriverId,
+          driverId: preferredDriverId,
+        });
         setRide(result);
         onSuccess?.();
         return result;

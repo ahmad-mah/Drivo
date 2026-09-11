@@ -1,7 +1,7 @@
-import { apiClient } from "../client";
-import type { ApiResponse } from "../types";
 import { RideStatus } from "@/features/rides/enums/RideStatus";
 import type { Ride, RidePoint } from "@/features/rides/types/ride.types";
+import { apiClient } from "../client";
+import type { ApiResponse } from "../types";
 
 export { RideStatus };
 
@@ -9,6 +9,7 @@ export interface RequestRideDto {
   origin: RidePoint;
   destination: RidePoint;
   preferredDriverId?: string;
+  driverId?: string;
 }
 
 export async function requestRide(dto: RequestRideDto) {
