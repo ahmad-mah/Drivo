@@ -130,9 +130,7 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
     : null;
   const preferredDriverProfileId = preferredDriver?.id;
   const preferredDriverClerkId = preferredDriver?.user?.clerkId;
-  const canOfferPreferredDriver = Boolean(
-    preferredDriverProfileId && preferredDriverClerkId,
-  );
+  const canOfferPreferredDriver = Boolean(preferredDriverProfileId && preferredDriverClerkId);
 
   const ride = await rideRepository.create({
     user: { connect: { id: user.id } },
@@ -167,20 +165,20 @@ export async function requestRide(clerkId: string, dto: RequestRideDto): Promise
   });
 
   if (canOfferPreferredDriver) {
-      await notifyNewRideRequest(preferredDriverClerkId!, {
-        rideId: ride.id,
-        originAddress: ride.originAddress,
-        originLatitude: ride.originLatitude,
-        originLongitude: ride.originLongitude,
-        destinationAddress: ride.destinationAddress,
-        destinationLatitude: ride.destinationLatitude,
-        destinationLongitude: ride.destinationLongitude,
-        tripDistanceKm: ride.distanceKm,
-        fare: Number(ride.fare),
-        currency: ride.currency,
-        etaMinutes: etaMinutesForDistanceKm(distanceKm),
-        respondWithinSeconds: Math.round(OFFER_TTL_MS / 1000),
-      });
+    await notifyNewRideRequest(preferredDriverClerkId!, {
+      rideId: ride.id,
+      originAddress: ride.originAddress,
+      originLatitude: ride.originLatitude,
+      originLongitude: ride.originLongitude,
+      destinationAddress: ride.destinationAddress,
+      destinationLatitude: ride.destinationLatitude,
+      destinationLongitude: ride.destinationLongitude,
+      tripDistanceKm: ride.distanceKm,
+      fare: Number(ride.fare),
+      currency: ride.currency,
+      etaMinutes: etaMinutesForDistanceKm(distanceKm),
+      respondWithinSeconds: Math.round(OFFER_TTL_MS / 1000),
+    });
   }
 
   return toResponse(ride);
